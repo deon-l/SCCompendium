@@ -31,29 +31,41 @@ public class DiachronicaParser
         return (title, credit);
     }
 
-    public void ParseFile(StreamReader file)
+    public Dictionary<string, (string credit, List<PhonologicalRule> rules)> ParseFile(StreamReader file)
     {
         ArgumentNullException.ThrowIfNull(file);
+
+        Dictionary<string, (string credit, List<PhonologicalRule> rules)> organizedRules = new();
+        StringBuilder builder = new();
 
         string currentLine;
         for (var subsectionHeader = GetNextSubsection(file);
              subsectionHeader is not null;
              subsectionHeader = GetNextSubsection(file, currentLine))
         {
-            string? line = file.ReadLine();
-            if (line is null)
+            List<PhonologicalRule> rules;
+            (rules, currentLine) = ParseSubsection(file);
+            if (rules.Count == 0)
             {
-                break;
+                continue;
             }
 
-            List<string> rules;
-            (rules, currentLine) = ParseSubsection(file);
+            _latexParser.ParseLatexSegment(subsectionHeader.Value.title, builder);
+            string titleTranslated = builder.ToString();
+            builder.Clear();
+            Debug.Assert(!organizedRules.ContainsKey(titleTranslated));
+            _latexParser.ParseLatexSegment(subsectionHeader.Value.credit, builder);
+            string creditTranslated = builder.ToString();
+            builder.Clear();
+            organizedRules.Add(titleTranslated, (creditTranslated, rules));
         }
+
+        return organizedRules;
     }
 
-    private (List<string> rules, string nextLine) ParseSubsection(StreamReader file)
+    private (List<PhonologicalRule> rules, string nextLine) ParseSubsection(StreamReader file)
     {
-        List<string> rules = new();
+        List<PhonologicalRule> rules = new();
         string? line;
         while (true)
         {
@@ -71,8 +83,7 @@ public class DiachronicaParser
                 break;
             }
 
-            // Todo: handle used chars.
-            if (!TryParseRule(line, out string rule, out _, out _, out _))
+            if (!TryParseRule(line, out PhonologicalRule rule))
             {
                 continue;
             }
@@ -88,29 +99,28 @@ public class DiachronicaParser
     }
 
     private bool TryParseRule(string line,
-        out string rule, out List<string> inputChars, out List<string> outputChars, out List<string> contextChars)
+        out PhonologicalRule rule)
     {
         Match result = _ruleDecomposer.Match(line);
         if (!result.Success)
         {
-            rule = null!;
-            inputChars = null!;
-            outputChars = null!;
-            contextChars = null!;
+            rule = default;
             return false;
         }
 
         GroupCollection groups = result.Groups;
         Debug.Assert(groups.Count == 5);
 
-        Group input = groups[1];
-        Group output = groups[2];
-        Group context = groups[3];
-        Group exception = groups[4];
+        Group
+            input = groups[1],
+            output = groups[2],
+        	context = groups[3],
+        	exception = groups[4];
 
-        inputChars = [];
-        outputChars = [];
-        contextChars = [];
+        List<string>
+            inputChars = [],
+            outputChars = [],
+            contextChars = [];
 
         StringBuilder ruleBuilder = new();
 
@@ -129,7 +139,8 @@ public class DiachronicaParser
             ruleBuilder.Append('!');
             ParseRuleSegment(output, ruleBuilder, contextChars);
         }
-        rule = ruleBuilder.ToString();
+
+        rule = new PhonologicalRule(ruleBuilder.ToString(), inputChars, outputChars, contextChars);
         return true;
 
 
