@@ -182,21 +182,4 @@ public class DiachronicaParser
             }
         }
     }
-
-
-
-
-    private void SkipLine(StreamReader file)
-    {
-        int c;
-        do
-        {
-            c = file.Read();
-        } while (c is not (-1 or '\n' or '\r'));
-
-        if (c == '\n' && file.Peek() == '\r')
-        {
-            _ = file.Read();
-        }
-    }
 }
