@@ -6,7 +6,7 @@ public class DiachronicaParser
 {
     private readonly Regex _sectionHeader = new(@"^\\(sub)*(section|paragraph)", RegexOptions.Compiled);
     private readonly Regex _ruleDecomposer =
-        new(@"^(.+?)(?:\\change|\\textrightarrow)(.+?)(?:/(.+?))?(?:!(?![^{\n]*?})(.+?))?(?:\\\\)?$",
+        new(@"^(--- )?(.+?)(?:\\change|\\textrightarrow)(.+?)(?:/(.+?))?(?:!(?![^{\n]*?})(.+?))?(?:\\\\)?$",
         RegexOptions.Compiled);
     private readonly LatexParser _latexParser = new();
 
@@ -109,21 +109,24 @@ public class DiachronicaParser
         }
 
         GroupCollection groups = result.Groups;
-        Debug.Assert(groups.Count == 5);
+        Debug.Assert(groups.Count == 6);
 
+        bool inSubgroup = groups[1].Success;
         Group
-            input = groups[1],
-            output = groups[2],
-        	context = groups[3],
-        	exception = groups[4];
-
+            input = groups[2],
+            output = groups[3],
+        	context = groups[4],
+        	exception = groups[5];
         List<string>
             inputChars = [],
             outputChars = [],
             contextChars = [];
 
         StringBuilder ruleBuilder = new();
-
+        if (inSubgroup)
+        {
+            ruleBuilder.Append('—');
+        }
         Debug.Assert(input.Success && !input.ValueSpan.IsWhiteSpace());
         ParseRuleSegment(input, ruleBuilder, inputChars);
         ruleBuilder.Append('→');
