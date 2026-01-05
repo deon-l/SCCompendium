@@ -50,6 +50,12 @@ public class LatexParser
         {'|', '|'}
     };
 
+    public string ParseLatexSegment(ReadOnlySpan<char> segment)
+    {
+        StringBuilder sb = new();
+        ParseLatexSegment(segment, sb);
+        return sb.ToString();
+    }
 
     public void ParseLatexSegment(ReadOnlySpan<char> segment, StringBuilder builder)
     {

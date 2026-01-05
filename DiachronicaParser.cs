@@ -67,6 +67,9 @@ public class DiachronicaParser
     {
         List<PhonologicalRule> rules = new();
         string? line;
+        string possiblePrenote = "";
+        bool isPrenoteParsed = false;
+        bool isPrenoteGreedy = false;
         while (true)
         {
             line = file.ReadLine();
@@ -85,7 +88,21 @@ public class DiachronicaParser
 
             if (!TryParseRule(line, out PhonologicalRule rule))
             {
+                possiblePrenote = line;
+                isPrenoteParsed = false;
+                isPrenoteGreedy = possiblePrenote.StartsWith("---");
                 continue;
+            }
+
+            if (rule.Rule.StartsWith('—') || isPrenoteGreedy)
+            {
+                if (!isPrenoteParsed)
+                {
+                    possiblePrenote = _latexParser.ParseLatexSegment(possiblePrenote);
+                    isPrenoteParsed = true;
+                }
+
+                rule = rule with { Prenote = possiblePrenote };
             }
             rules.Add(rule);
         }

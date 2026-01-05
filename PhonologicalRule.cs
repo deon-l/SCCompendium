@@ -2,4 +2,5 @@ public record struct PhonologicalRule(
     string Rule,
     List<string> InputCharacters,
     List<string> OutputCharacters,
-    List<string> ContextCharacters);
+    List<string> ContextCharacters,
+    string Prenote = "");
