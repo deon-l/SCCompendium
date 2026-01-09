@@ -160,7 +160,13 @@ public class LatexParser
             foreach (char num in segment[1..])
             {
                 Debug.Assert(Char.IsDigit(num));
-                builder.Append(num - '0' + '⁰');
+                builder.Append(num switch
+                {
+                    '1' => '¹',
+                    '2' => '²',
+                    '3' => '³',
+                    _ => (char)(num - '0' + '⁰')
+                });
             }
             return;
         }
@@ -170,7 +176,7 @@ public class LatexParser
             foreach (char num in segment[1..])
             {
                 Debug.Assert(Char.IsDigit(num));
-                builder.Append(num - '0' + '₀');
+                builder.Append((char)(num - '0' + '₀'));
             }
             return;
         }
