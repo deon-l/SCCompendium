@@ -2,6 +2,8 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
+namespace DiachronicaParserSearcher.Parser;
+
 public class DiachronicaParser
 {
     private readonly Regex _sectionHeader = new(@"^\\(sub)*(section|paragraph)", RegexOptions.Compiled);

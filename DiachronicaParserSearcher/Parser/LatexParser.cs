@@ -1,5 +1,7 @@
 using System.Text;
 
+namespace DiachronicaParserSearcher.Parser;
+
 public class LatexParser
 {
     public const int ContextNone = 0;
