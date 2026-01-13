@@ -2,55 +2,8 @@ using System.Text;
 
 namespace DiachronicaParserSearcher.Parser;
 
-public class LatexParser
+public partial class LatexParser
 {
-    public const int ContextNone = 0;
-    public const int ContextIpa = 1;
-
-    private readonly Dictionary<char, char> _tipaSingleCharConversions = new()
-    {
-        {':', 'ː'},
-        {';', '\u02D1'},
-        {'"', 'ˈ'},
-        {'0', 'ʉ'},
-        {'1', 'ɨ'},
-        {'2', 'ʌ'},
-        {'3', 'ɜ'},
-        {'4', 'ɥ'},
-        {'5', 'ɐ'},
-        {'6', 'ɒ'},
-        {'7', 'ɤ'},
-        {'8', 'ɵ'},
-        {'9', 'ɘ'},
-        {'@', 'ə'},
-        {'A', 'ɑ'},
-        {'B', 'β'},
-        {'C', 'ɕ'},
-        {'D', 'ð'},
-        {'E', 'ɛ'},
-        {'F', 'ɸ'},
-        {'G', 'ɣ'},
-        {'H', 'ɦ'},
-        {'I', 'ɪ'},
-        {'J', 'ʝ'},
-        {'K', 'ʁ'},
-        {'L', 'ʎ'},
-        {'M', 'ɱ'},
-        {'N', 'ŋ'},
-        {'O', 'ɔ'},
-        {'P', 'ʔ'},
-        {'Q', 'ʕ'},
-        {'R', 'ɾ'},
-        {'S', 'ʃ'},
-        {'T', 'θ'},
-        {'U', 'ʊ'},
-        {'V', 'ʋ'},
-        {'W', 'ɯ'},
-        {'X', 'χ'},
-        {'Y', 'ʏ'},
-        {'Z', 'ʒ'},
-        {'|', '|'}
-    };
 
     public string ParseLatexSegment(ReadOnlySpan<char> segment)
     {
