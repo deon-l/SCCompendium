@@ -35,7 +35,7 @@ public partial class LatexParser
                 {
                     Debug.Assert(i + 1 < length && segment[i+1] == '{');
                     ReadOnlySpan<char> ipaSegment = GetCommandArgument(segment[(i + 1)..], out var iIncrement);
-                    ParseLatexSegment(ipaSegment, builder);
+                    ParseLatexTipaSegment(ipaSegment, builder);
                     i += iIncrement;
                     continue;
                 }
@@ -171,10 +171,12 @@ public partial class LatexParser
     private ReadOnlySpan<char> GetCommandArgument(ReadOnlySpan<char> segment, out int enumeratedCount,
         ReadOnlySpan<char> delimiter = default)
     {
-        if (delimiter.Length != 2)
+        if (delimiter.Length == 0)
         {
             delimiter = "{}".AsSpan();
         }
+
+        Debug.Assert(delimiter.Length == 2);
 
         if (segment[0] != delimiter[0])
         {
@@ -182,7 +184,7 @@ public partial class LatexParser
             {
                 if (!Char.IsWhiteSpace(segment[i]))
                 {
-                    enumeratedCount = i;
+                    enumeratedCount = i + 1;
                     return segment[i..(i + 1)];
                 }
             }
@@ -195,7 +197,7 @@ public partial class LatexParser
         }
 
         Debug.Assert(!segment[1..endI].Contains(delimiter[0]));
-        enumeratedCount = endI;
+        enumeratedCount = endI + 1;
         return segment[1..endI];
     }
 }
