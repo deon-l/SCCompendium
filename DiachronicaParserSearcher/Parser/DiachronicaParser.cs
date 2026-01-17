@@ -19,7 +19,6 @@ public class DiachronicaParser
 
     private static readonly HashSet<(char, char)> _ipaDoubleChars =
         IpaDoubleCharSource.Chunk(3).Select(chars => (chars[0], chars[1])).ToHashSet();
-
     private static readonly HashSet<char> _vowels = new("iyɨʉɯuɪʏʊeøɘɵɤoəɛœɜɞʌɔæɐaɶɑɒ");
 
         private (string title, string credit)? GetNextSubsection(SavingTextReader reader)
@@ -99,7 +98,7 @@ public class DiachronicaParser
             if (sectionParsingErrors.Count > 0)
             {
                 sectionExceptions.Add(
-                    new AggregateException($"errors while parsing section: {titleTranslated}", sectionExceptions));
+                    new AggregateException($"errors while parsing section: {titleTranslated}", sectionParsingErrors));
                 continue;
             }
 
@@ -264,7 +263,7 @@ public class DiachronicaParser
                 }
             }
 
-            for (; endI < segment.Length; i++)
+            for (; endI < segment.Length; endI++)
             {
                 char c2 = segment[endI];
                 if (c2 == '[')
