@@ -6,7 +6,7 @@ namespace DiachronicaParserSearcher.Parser;
 
 public class DiachronicaParser
 {
-    private readonly Regex _sectionHeader = new(@"^\\(sub)*(section|paragraph)", RegexOptions.Compiled);
+    private readonly Regex _sectionHeader = new(@"^\\(?:sub)*(?:section|paragraph)", RegexOptions.Compiled);
     private readonly Regex _ruleDecomposer =
         new(@"^(--- )?(.+?)(?:\\change|\\textrightarrow)(.+?)(?:/(.+?))?(?:!(?![^{\n]*?})(.+?))?(?:\\\\)?$",
         RegexOptions.Compiled);
@@ -14,26 +14,29 @@ public class DiachronicaParser
 
     private (string title, string credit)? GetNextSubsection(SavingTextReader reader)
     {
-        if (reader.CurrentLine is null)
+        Match result;
+        while (true)
         {
-            return null;
-        }
-
-        while (!_sectionHeader.IsMatch(reader.CurrentLine))
-        {
-            reader.Advance();
             if (reader.CurrentLine is null)
             {
                 return null;
             }
+
+            result = _sectionHeader.Match(reader.CurrentLine);
+            if (result.Success)
+            {
+                break;
+            }
+
+            reader.Advance();
         }
 
-        string currentLine = reader.CurrentLine;
-        int titleStartIndex = currentLine.IndexOf('{', @"\section".Length);
-        int titleEndIndex = currentLine.IndexOf('}', titleStartIndex);
+        int titleStartIndex = result.Length;
+        Debug.Assert(reader.CurrentLine[titleStartIndex] == '{');
+        int titleEndIndex = reader.CurrentLine.IndexOf('}', titleStartIndex);
         Debug.Assert(titleEndIndex != -1);
-        string title = currentLine.Substring(titleStartIndex + 1, titleEndIndex);
-        string credit = currentLine.Substring(titleEndIndex + 1);
+        string title = reader.CurrentLine.Substring(titleStartIndex + 1, titleEndIndex);
+        string credit = reader.CurrentLine.Substring(titleEndIndex + 1);
         return (title, credit);
     }
 
