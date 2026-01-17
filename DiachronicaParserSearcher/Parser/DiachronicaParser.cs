@@ -82,7 +82,7 @@ public class DiachronicaParser
             catch (Exception e)
             {
                 sectionParsingErrors.Insert(0, new ArgumentException(
-                    $"Error parsing title of section: {subsectionHeader.Value.title}", nameof(file), e));
+                    $"Error parsing title of section: {subsectionHeader.Value.credit}", nameof(file), e));
                 creditTranslated = subsectionHeader.Value.credit;
             }
 
