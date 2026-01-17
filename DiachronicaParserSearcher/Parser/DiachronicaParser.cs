@@ -51,17 +51,8 @@ public class DiachronicaParser
              subsectionHeader is not null;
              subsectionHeader = GetNextSubsection(reader))
         {
-            List<PhonologicalRule> rules = null!;
-            AggregateException? sectionParsingErrors = null;
-            try
-            {
-                rules = ParseSubsection(reader);
-            }
-            catch (AggregateException e)
-            {
-                sectionParsingErrors = e;
-            }
-            if (sectionParsingErrors is null && rules.Count == 0)
+            (List<PhonologicalRule> rules, List<Exception> sectionParsingErrors) = ParseSubsection(reader);
+            if (sectionParsingErrors.Count == 0 && rules.Count == 0)
             {
                 continue;
             }
@@ -69,28 +60,30 @@ public class DiachronicaParser
             _latexParser.ParseLatexSegment(subsectionHeader.Value.title, builder);
             string titleTranslated = builder.ToString();
             builder.Clear();
+            if (sectionParsingErrors.Count > 0)
+            {
+                sectionExceptions.Add(
+                    new AggregateException($"errors while parsing section: {titleTranslated}", sectionExceptions));
+                continue;
+            }
+
             Debug.Assert(!organizedRules.ContainsKey(titleTranslated));
             _latexParser.ParseLatexSegment(subsectionHeader.Value.credit, builder);
             string creditTranslated = builder.ToString();
             builder.Clear();
 
-            if (sectionParsingErrors is not null)
-            {
-                sectionExceptions.Add(new ArgumentException($"error parsing section: {titleTranslated}", sectionParsingErrors));
-                continue;
-            }
             organizedRules.Add(titleTranslated, (creditTranslated, rules));
         }
 
         if (sectionExceptions.Count > 0)
         {
-            throw new AggregateException(sectionExceptions);
+            throw new AggregateException("errors while parsing stream", sectionExceptions);
         }
 
         return organizedRules;
     }
 
-    private List<PhonologicalRule> ParseSubsection(SavingTextReader file)
+    private (List<PhonologicalRule>, List<Exception> exceptions) ParseSubsection(SavingTextReader file)
     {
         List<Exception> exceptions = new();
         List<PhonologicalRule> rules = new();
@@ -146,12 +139,7 @@ public class DiachronicaParser
             rules.Add(rule);
         }
 
-        if (exceptions.Count != 0)
-        {
-            throw new AggregateException(exceptions);
-        }
-
-        return rules;
+        return (rules, exceptions);
 
         bool IsSectionEnder(string line)
         {
