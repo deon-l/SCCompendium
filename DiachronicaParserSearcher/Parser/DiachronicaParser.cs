@@ -35,8 +35,8 @@ public class DiachronicaParser
         Debug.Assert(reader.CurrentLine[titleStartIndex] == '{');
         int titleEndIndex = reader.CurrentLine.IndexOf('}', titleStartIndex);
         Debug.Assert(titleEndIndex != -1);
-        string title = reader.CurrentLine.Substring(titleStartIndex + 1, titleEndIndex);
-        string credit = reader.CurrentLine.Substring(titleEndIndex + 1);
+        string title = reader.CurrentLine[(titleStartIndex + 1)..titleEndIndex];
+        string credit = reader.CurrentLine[(titleEndIndex + 1)..];
         return (title, credit);
     }
 
