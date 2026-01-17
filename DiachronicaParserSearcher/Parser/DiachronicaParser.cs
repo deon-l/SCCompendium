@@ -60,20 +60,38 @@ public class DiachronicaParser
                 continue;
             }
 
-            _latexParser.ParseLatexSegment(subsectionHeader.Value.title, builder);
-            string titleTranslated = builder.ToString();
+            string titleTranslated;
+            string creditTranslated;
+            try
+            {
+                _latexParser.ParseLatexSegment(subsectionHeader.Value.title, builder);
+                titleTranslated = builder.ToString();
+            }
+            catch (Exception e)
+            {
+                sectionParsingErrors.Insert(0, new ArgumentException(
+                    $"Error parsing title of section: {subsectionHeader.Value.title}", nameof(file), e));
+                titleTranslated = subsectionHeader.Value.title;
+            }
             builder.Clear();
+            try
+            {
+                _latexParser.ParseLatexSegment(subsectionHeader.Value.credit, builder);
+                creditTranslated = builder.ToString();
+            }
+            catch (Exception e)
+            {
+                sectionParsingErrors.Insert(0, new ArgumentException(
+                    $"Error parsing title of section: {subsectionHeader.Value.title}", nameof(file), e));
+                creditTranslated = subsectionHeader.Value.credit;
+            }
+
             if (sectionParsingErrors.Count > 0)
             {
                 sectionExceptions.Add(
                     new AggregateException($"errors while parsing section: {titleTranslated}", sectionExceptions));
                 continue;
             }
-
-            Debug.Assert(!organizedRules.ContainsKey(titleTranslated));
-            _latexParser.ParseLatexSegment(subsectionHeader.Value.credit, builder);
-            string creditTranslated = builder.ToString();
-            builder.Clear();
 
             organizedRules.Add(titleTranslated, (creditTranslated, rules));
         }
