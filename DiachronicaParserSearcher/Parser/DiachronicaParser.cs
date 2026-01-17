@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Net.Mime;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -12,19 +13,23 @@ public class DiachronicaParser
         RegexOptions.Compiled);
     private readonly LatexParser _latexParser = new();
 
-    private (string title, string credit)? GetNextSubsection(StreamReader file, string currentLine = "")
+    private (string title, string credit)? GetNextSubsection(SavingTextReader reader)
     {
-        while (!_sectionHeader.IsMatch(currentLine))
+        if (reader.CurrentLine is null)
         {
-            string? line = file.ReadLine();
-            if (line is null)
+            return null;
+        }
+
+        while (!_sectionHeader.IsMatch(reader.CurrentLine))
+        {
+            reader.Advance();
+            if (reader.CurrentLine is null)
             {
                 return null;
             }
-
-            currentLine = line;
         }
 
+        string currentLine = reader.CurrentLine;
         int titleStartIndex = currentLine.IndexOf('{', @"\section".Length);
         int titleEndIndex = currentLine.IndexOf('}', titleStartIndex);
         Debug.Assert(titleEndIndex != -1);
@@ -33,20 +38,20 @@ public class DiachronicaParser
         return (title, credit);
     }
 
-    public Dictionary<string, (string credit, List<PhonologicalRule> rules)> ParseFile(StreamReader file)
+    public Dictionary<string, (string credit, List<PhonologicalRule> rules)> ParseFile(TextReader file)
     {
         ArgumentNullException.ThrowIfNull(file);
+        SavingTextReader reader = new(file);
 
         Dictionary<string, (string credit, List<PhonologicalRule> rules)> organizedRules = new();
         StringBuilder builder = new();
 
-        string currentLine;
-        for (var subsectionHeader = GetNextSubsection(file);
+        reader.Advance();
+        for (var subsectionHeader = GetNextSubsection(reader);
              subsectionHeader is not null;
-             subsectionHeader = GetNextSubsection(file, currentLine))
+             subsectionHeader = GetNextSubsection(reader))
         {
-            List<PhonologicalRule> rules;
-            (rules, currentLine) = ParseSubsection(file);
+            List<PhonologicalRule> rules = ParseSubsection(reader);
             if (rules.Count == 0)
             {
                 continue;
@@ -65,16 +70,15 @@ public class DiachronicaParser
         return organizedRules;
     }
 
-    private (List<PhonologicalRule> rules, string nextLine) ParseSubsection(StreamReader file)
+    private List<PhonologicalRule> ParseSubsection(SavingTextReader file)
     {
         List<PhonologicalRule> rules = new();
-        string? line;
         string possiblePrenote = "";
         bool isPrenoteParsed = false;
         bool isPrenoteGreedy = false;
         while (true)
         {
-            line = file.ReadLine();
+            string? line = file.ReadNextLine();
             if (line is not null)
             {
                 break;
@@ -109,7 +113,7 @@ public class DiachronicaParser
             rules.Add(rule);
         }
 
-        return (rules, line);
+        return rules;
 
         bool IsSectionEnder(string line)
         {
@@ -202,6 +206,23 @@ public class DiachronicaParser
 
                 foundCharacters.Add(new String(addedSegment[i..endI]));
             }
+        }
+    }
+
+    private class SavingTextReader(TextReader reader)
+    {
+        public TextReader TextReader { get; } = reader;
+        public string? CurrentLine { get; private set; }
+
+        public string? ReadNextLine()
+        {
+            Advance();
+            return CurrentLine;
+        }
+
+        public void Advance()
+        {
+            CurrentLine = TextReader.ReadLine();
         }
     }
 }
