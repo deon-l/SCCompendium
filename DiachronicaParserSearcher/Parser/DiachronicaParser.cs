@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Net.Mime;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -43,6 +42,7 @@ public class DiachronicaParser
         ArgumentNullException.ThrowIfNull(file);
         SavingTextReader reader = new(file);
 
+        List<Exception> sectionExceptions = new();
         Dictionary<string, (string credit, List<PhonologicalRule> rules)> organizedRules = new();
         StringBuilder builder = new();
 
@@ -51,8 +51,17 @@ public class DiachronicaParser
              subsectionHeader is not null;
              subsectionHeader = GetNextSubsection(reader))
         {
-            List<PhonologicalRule> rules = ParseSubsection(reader);
-            if (rules.Count == 0)
+            List<PhonologicalRule> rules = null!;
+            AggregateException? sectionParsingErrors = null;
+            try
+            {
+                rules = ParseSubsection(reader);
+            }
+            catch (AggregateException e)
+            {
+                sectionParsingErrors = e;
+            }
+            if (sectionParsingErrors is null && rules.Count == 0)
             {
                 continue;
             }
@@ -64,7 +73,18 @@ public class DiachronicaParser
             _latexParser.ParseLatexSegment(subsectionHeader.Value.credit, builder);
             string creditTranslated = builder.ToString();
             builder.Clear();
+
+            if (sectionParsingErrors is not null)
+            {
+                sectionExceptions.Add(new ArgumentException($"error parsing section: {titleTranslated}", sectionParsingErrors));
+                continue;
+            }
             organizedRules.Add(titleTranslated, (creditTranslated, rules));
+        }
+
+        if (sectionExceptions.Count > 0)
+        {
+            throw new AggregateException(sectionExceptions);
         }
 
         return organizedRules;
@@ -72,6 +92,7 @@ public class DiachronicaParser
 
     private List<PhonologicalRule> ParseSubsection(SavingTextReader file)
     {
+        List<Exception> exceptions = new();
         List<PhonologicalRule> rules = new();
         string possiblePrenote = "";
         bool isPrenoteParsed = false;
@@ -92,7 +113,19 @@ public class DiachronicaParser
                 break;
             }
 
-            if (!TryParseRule(line, out PhonologicalRule rule))
+            PhonologicalRule rule;
+            bool successfulParse;
+            try
+            {
+                successfulParse = TryParseRule(line, out rule);
+            }
+            catch (Exception e)
+            {
+                exceptions.Add(new ArgumentException($"Error parsing line: {line}", nameof(file), e));
+                continue;
+            }
+
+            if (!successfulParse)
             {
                 possiblePrenote = line;
                 isPrenoteParsed = false;
@@ -111,6 +144,11 @@ public class DiachronicaParser
                 rule = rule with { Prenote = possiblePrenote };
             }
             rules.Add(rule);
+        }
+
+        if (exceptions.Count != 0)
+        {
+            throw new AggregateException(exceptions);
         }
 
         return rules;
