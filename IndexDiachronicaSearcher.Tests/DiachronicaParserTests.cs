@@ -8,7 +8,7 @@ public partial class DiachronicaParserTests
     public async Task ParseFile_EntireDiachronica_NonEmptyListings()
     {
         DiachronicaParser parser = new();
-        StringReader reader = new StringReader(_sampleDiachronica);
+        StringReader reader = new(_sampleDiachronica);
 
         var result = parser.ParseFile(reader);
 

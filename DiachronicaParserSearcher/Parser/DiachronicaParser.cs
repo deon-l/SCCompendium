@@ -6,13 +6,23 @@ namespace DiachronicaParserSearcher.Parser;
 
 public class DiachronicaParser
 {
+    /// <remarks>
+    /// Formated as '[char1][char2][buffer]', for visual clarity. Not all pairs are here.
+    /// </remarks>
+    private const string IpaDoubleCharSource = "pɸ bβ pf bv ts dz tʃ ʈʂ ɖʐ tɕ dʑ cç ɟʝ kx ɡɣ qχ ɢʁ ʡʜ ʡʢ ʔh tɬ dɮ ";
+
     private readonly Regex _sectionHeader = new(@"^\\(?:sub)*(?:section|paragraph)", RegexOptions.Compiled);
     private readonly Regex _ruleDecomposer =
         new(@"^(--- )?(.+?)(?:\\change|\\textrightarrow)(.+?)(?:/(.+?))?(?:!(?![^{\n]*?})(.+?))?(?:\\\\)?$",
-        RegexOptions.Compiled);
+            RegexOptions.Compiled);
     private readonly LatexParser _latexParser = new();
 
-    private (string title, string credit)? GetNextSubsection(SavingTextReader reader)
+    private static readonly HashSet<(char, char)> _ipaDoubleChars =
+        IpaDoubleCharSource.Chunk(3).Select(chars => (chars[0], chars[1])).ToHashSet();
+
+    private static readonly HashSet<char> _vowels = new("iyɨʉɯuɪʏʊeøɘɵɤoəɛœɜɞʌɔæɐaɶɑɒ");
+
+        private (string title, string credit)? GetNextSubsection(SavingTextReader reader)
     {
         Match result;
         while (true)
@@ -114,7 +124,7 @@ public class DiachronicaParser
         while (true)
         {
             string? line = file.ReadNextLine();
-            if (line is not null)
+            if (line is null)
             {
                 break;
             }
@@ -185,8 +195,8 @@ public class DiachronicaParser
         Group
             input = groups[2],
             output = groups[3],
-        	context = groups[4],
-        	exception = groups[5];
+            context = groups[4],
+            exception = groups[5];
         List<string>
             inputChars = [],
             outputChars = [],
@@ -220,39 +230,73 @@ public class DiachronicaParser
         void ParseRuleSegment(Group segment, StringBuilder builder, List<string> foundCharacters)
         {
             // TODO: Strip english parts.
-            int startI = builder.Length + 1;
+            int startI = builder.Length;
             _latexParser.ParseLatexSegment(segment.ValueSpan, builder);
 
             var addedSegment = builder.ToString(startI, builder.Length - startI).AsSpan();
-            for (int i = 0; i < addedSegment.Length; i++)
+            ExtractCharacters(addedSegment, foundCharacters);
+        }
+    }
+
+    private void ExtractCharacters(ReadOnlySpan<char> segment, List<string> foundChars)
+    {
+        for (int i = 0; i < segment.Length; i++)
+        {
+            char c = segment[i];
+            if (!IsIpaChar(c))
             {
-                char c = builder[i];
-                if (Char.IsWhiteSpace(c) || c is '{' or '}' or '_' or ',' or '(' or ')')
+                continue;
+            }
+
+            int endI = i + 1;
+            if (_vowels.Contains(c))
+            {
+                while (endI < segment.Length && _vowels.Contains(segment[endI]))
+                {
+                    endI++;
+                }
+            }
+            else // consonants
+            {
+                if (endI < segment.Length && _ipaDoubleChars.Contains((c, segment[endI])))
+                {
+                    endI++;
+                }
+            }
+
+            for (; endI < segment.Length; i++)
+            {
+                char c2 = segment[endI];
+                if (c2 == '[')
+                {
+                    int attributeEndI = segment[endI..].IndexOf(']');
+                    if (attributeEndI == -1)
+                    {
+                        endI = segment.Length;
+                        break;
+                    }
+
+                    endI += attributeEndI;
+                    continue;
+                }
+                if (Char.GetUnicodeCategory(segment[endI]) is UnicodeCategory.ModifierLetter
+                    or UnicodeCategory.ModifierSymbol or UnicodeCategory.SpacingCombiningMark
+                    or UnicodeCategory.NonSpacingMark)
                 {
                     continue;
                 }
-
-                int endI = i;
-                while (true)
-                {
-                    endI++;
-                    if (Char.GetUnicodeCategory(addedSegment[endI]) is UnicodeCategory.ModifierLetter
-                        or UnicodeCategory.ModifierSymbol or UnicodeCategory.SpacingCombiningMark
-                        or UnicodeCategory.NonSpacingMark)
-                    {
-                        continue;
-                    }
-                    if (addedSegment[endI] == '[')
-                    {
-                        endI = addedSegment[endI..].IndexOf(']') + endI;
-                        continue;
-                    }
-
-                    break;
-                }
-
-                foundCharacters.Add(new String(addedSegment[i..endI]));
+                break;
             }
+
+            foundChars.Add(segment[i..endI].ToString());
+        }
+
+        bool IsIpaChar(char c)
+        {
+            return !(
+                Char.IsWhiteSpace(c) ||
+                "[](){}_".Contains(c)
+            );
         }
     }
 
