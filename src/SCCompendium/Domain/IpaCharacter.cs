@@ -2,10 +2,10 @@ namespace SCCompendium.Domain;
 
 public readonly struct IpaCharacter
 {
-    public string Character { get; }
-    public List<string> Diacritics { get; }
+    public readonly string Character { get; }
+    public readonly string[] Diacritics { get; }
 
-    public IpaCharacter(string character, List<string> diacritics)
+    public IpaCharacter(string character, string[] diacritics)
     {
         Character = character;
         Diacritics = diacritics;
