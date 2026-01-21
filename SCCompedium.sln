@@ -2,11 +2,11 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SCCompedium", "src\SCCompedium\SCCompedium.csproj", "{8C71205B-9702-4EE3-A5A9-7D212266B8B9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SCCompendium", "src\SCCompendium\SCCompendium.csproj", "{8C71205B-9702-4EE3-A5A9-7D212266B8B9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SCCompedium.Tests", "tests\SCCompedium.Tests\SCCompedium.Tests.csproj", "{DB2E5EAD-F3F8-43A1-9A15-3179C23D876A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SCCompendium.Tests", "tests\SCCompendium.Tests\SCCompendium.Tests.csproj", "{DB2E5EAD-F3F8-43A1-9A15-3179C23D876A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using SCCompendium.Domain;
 
-namespace DiachronicaParserSearcher.Parser;
+namespace SCCompendium.Parser;
 
 public class DiachronicaParser
 {

@@ -1,4 +1,4 @@
-namespace IndexDiachronicaSearcher.Tests;
+namespace SCCompendium.Tests;
 
 public partial class DiachronicaParserTests
 {

@@ -1,4 +1,4 @@
-namespace DiachronicaParserSearcher.Parser;
+namespace SCCompendium.Parser;
 
 public partial class LatexParser
 {

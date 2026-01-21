@@ -1,6 +1,6 @@
-using DiachronicaParserSearcher.Parser;
+using SCCompendium.Parser;
 
-namespace IndexDiachronicaSearcher.Tests;
+namespace SCCompendium.Tests;
 
 public partial class DiachronicaParserTests
 {

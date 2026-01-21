@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SCCompedium\SCCompedium.csproj" />
+    <ProjectReference Include="..\..\src\SCCompendium\SCCompendium.csproj" />
   </ItemGroup>
 
 </Project>
