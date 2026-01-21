@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using SCCompendium.Domain;
 
 namespace DiachronicaParserSearcher.Parser;
 

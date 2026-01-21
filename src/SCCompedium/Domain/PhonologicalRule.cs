@@ -1,4 +1,4 @@
-namespace DiachronicaParserSearcher.Parser;
+namespace SCCompendium.Domain;
 
 public record struct PhonologicalRule(
     string Rule,
