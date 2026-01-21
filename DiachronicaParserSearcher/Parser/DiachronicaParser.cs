@@ -107,6 +107,9 @@ public class DiachronicaParser
 
         if (sectionExceptions.Count > 0)
         {
+            // Todo: Temporary - TUnits normal logging of AggregateExceptions isn't formated well enough.
+            Console.WriteLine(new AggregateException(sectionExceptions));
+            return new();
             throw new AggregateException("errors while parsing stream", sectionExceptions);
         }
 
@@ -160,7 +163,14 @@ public class DiachronicaParser
             {
                 if (!isPrenoteParsed)
                 {
-                    possiblePrenote = _latexParser.ParseLatexSegment(possiblePrenote);
+                    try
+                    {
+                        possiblePrenote = _latexParser.ParseLatexSegment(possiblePrenote);
+                    }
+                    catch (Exception e)
+                    {
+                        exceptions.Add(new ArgumentException($"Error parsing line: {line}", nameof(file), e));
+                    }
                     isPrenoteParsed = true;
                 }
 
