@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DiachronicaParserSearcher\DiachronicaParserSearcher.csproj" />
+    <ProjectReference Include="..\..\src\SCCompedium\SCCompedium.csproj" />
   </ItemGroup>
 
 </Project>
