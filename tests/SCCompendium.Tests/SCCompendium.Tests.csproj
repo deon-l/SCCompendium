@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DbMocker" Version="1.26.0" />
     <PackageReference Include="TUnit" Version="1.9.17" />
   </ItemGroup>
 
