@@ -22,7 +22,7 @@ public class DiachronicaParser
         IpaDoubleCharSource.Chunk(3).Select(chars => (chars[0], chars[1])).ToHashSet();
     private static readonly HashSet<char> _vowels = new("iyɨʉɯuɪʏʊeøɘɵɤoəɛœɜɞʌɔæɐaɶɑɒ");
 
-        private (string title, string credit)? GetNextSubsection(SavingTextReader reader)
+    private (string title, string credit)? GetNextSubsection(SavingTextReader reader)
     {
         Match result;
         while (true)
@@ -175,7 +175,7 @@ public class DiachronicaParser
                     isPrenoteParsed = true;
                 }
 
-                rule = rule with { Prenote = possiblePrenote };
+                rule = rule with { Note = possiblePrenote };
             }
             rules.Add(rule);
         }
@@ -248,57 +248,66 @@ public class DiachronicaParser
         }
     }
 
-    private void ExtractCharacters(ReadOnlySpan<char> segment, List<string> foundChars)
+    private void ExtractCharacters(ReadOnlySpan<char> segment, List<IpaCharacter> foundChars)
     {
-        for (int i = 0; i < segment.Length; i++)
+        for (int i = 0; i < segment.Length; /* increment manually as loop moves i */)
         {
             char c = segment[i];
             if (!IsIpaChar(c))
             {
+                i++;
                 continue;
             }
 
-            int endI = i + 1;
+            int characterEndI = i + 1;
             if (_vowels.Contains(c))
             {
-                while (endI < segment.Length && _vowels.Contains(segment[endI]))
+                while (characterEndI < segment.Length && _vowels.Contains(segment[characterEndI]))
                 {
-                    endI++;
+                    characterEndI++;
                 }
             }
-            else // consonants
+            else // is maybe affricate
             {
-                if (endI < segment.Length && _ipaDoubleChars.Contains((c, segment[endI])))
+                if (characterEndI < segment.Length && _ipaDoubleChars.Contains((c, segment[characterEndI])))
                 {
-                    endI++;
+                    characterEndI++;
                 }
             }
 
-            for (; endI < segment.Length; endI++)
+            string character = segment[i..characterEndI].ToString();
+            i = characterEndI;
+
+            List<string> diacritics = new();
+
+            for (/* i */; i < segment.Length; /* manually increment as loop moves i */)
             {
-                char c2 = segment[endI];
+                char c2 = segment[i];
                 if (c2 == '[')
                 {
-                    int attributeEndI = segment[endI..].IndexOf(']');
-                    if (attributeEndI == -1)
+                    int diacriticLength = segment[i..].IndexOf(']');
+                    if (diacriticLength == -1)
                     {
-                        endI = segment.Length;
                         break;
                     }
 
-                    endI += attributeEndI;
+                    diacritics.Add(segment[i..(diacriticLength + 1)].ToString());
+                    i = i + diacriticLength + 1;
                     continue;
                 }
-                if (Char.GetUnicodeCategory(segment[endI]) is UnicodeCategory.ModifierLetter
+                if (Char.GetUnicodeCategory(segment[characterEndI]) is UnicodeCategory.ModifierLetter
                     or UnicodeCategory.ModifierSymbol or UnicodeCategory.SpacingCombiningMark
                     or UnicodeCategory.NonSpacingMark)
                 {
+                    diacritics.Add(segment[i].ToString());
+                    i++;
                     continue;
                 }
+
                 break;
             }
 
-            foundChars.Add(segment[i..endI].ToString());
+            foundChars.Add(new IpaCharacter(character, diacritics.ToArray()));
         }
 
         bool IsIpaChar(char c)
