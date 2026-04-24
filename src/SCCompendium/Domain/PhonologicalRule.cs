@@ -2,7 +2,8 @@ namespace SCCompendium.Domain;
 
 public record struct PhonologicalRule(
     string Rule,
-    List<string> InputCharacters,
-    List<string> OutputCharacters,
-    List<string> ContextCharacters,
-    string Prenote = "");
+    IpaCharacter[] InputCharacters,
+    IpaCharacter[] OutputCharacters,
+    PhonologicalContext ContextCharacters,
+    PhonologicalContext ExceptionCharacters,
+    string Note = "");
