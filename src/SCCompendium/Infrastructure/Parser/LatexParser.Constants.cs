@@ -1,4 +1,4 @@
-namespace SCCompendium.Parser;
+namespace SCCompendium.Infrastructure.Parser;
 
 public partial class LatexParser
 {

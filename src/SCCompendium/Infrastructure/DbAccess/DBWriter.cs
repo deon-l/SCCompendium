@@ -4,7 +4,7 @@ using System.Text;
 
 using SCCompendium.Domain;
 
-namespace SCCompendium.Application;
+namespace SCCompendium.Infrastructure.DbAccess;
 
 public class DbWriter
 {

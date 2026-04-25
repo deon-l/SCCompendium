@@ -1,7 +1,7 @@
 using System.Text;
-using SCCompendium.Parser;
+using SCCompendium.Infrastructure.Parser;
 
-namespace SCCompendium.Tests;
+namespace SCCompendium.Tests.Infrastructure.Parser;
 
 public class LatexParserTests
 {

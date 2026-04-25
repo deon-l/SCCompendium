@@ -2,8 +2,9 @@ using System.Data.Common;
 using Apps72.Dev.Data.DbMocker;
 using SCCompendium.Application;
 using SCCompendium.Domain;
+using SCCompendium.Infrastructure.DbAccess;
 
-namespace SCCompendium.Tests.Application;
+namespace SCCompendium.Tests.Infrastructure.DbAccess;
 
 public class DbWriterTests
 {
