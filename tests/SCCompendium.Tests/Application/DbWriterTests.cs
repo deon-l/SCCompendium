@@ -5,7 +5,7 @@ using SCCompendium.Domain;
 
 namespace SCCompendium.Tests.Application;
 
-public class DatabaseWriterTests
+public class DbWriterTests
 {
     public class CommandCapturer
     {
@@ -30,7 +30,7 @@ public class DatabaseWriterTests
         const string sampleTableName = "abcdef";
         string longCredit = new ('d', 100);
         string longTitle = new string('e', 100);
-        DatabaseWriter writer = new();
+        DbWriter writer = new();
         Dictionary<string, (string, List<PhonologicalRule>)> source = new()
         {
             {"", ("", null!)},

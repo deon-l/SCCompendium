@@ -6,7 +6,7 @@ using SCCompendium.Domain;
 
 namespace SCCompendium.Application;
 
-public class DatabaseWriter
+public class DbWriter
 {
     public int WriteSections(Dictionary<string, (string credit, List<PhonologicalRule> rules)> source,
         DbConnection connection, string tableName)
