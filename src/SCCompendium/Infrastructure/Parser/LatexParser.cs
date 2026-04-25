@@ -106,6 +106,11 @@ public partial class LatexParser : ILatexParser
     // assumes only one command per segment
     public void ParseLatexMathSegment(ReadOnlySpan<char> segment, StringBuilder builder)
     {
+        if (segment.Length == 0)
+        {
+            return;
+        }
+
         char command = segment[0];
         if (command == '^')
         {
@@ -115,6 +120,7 @@ public partial class LatexParser : ILatexParser
                 Debug.Assert(Char.IsDigit(num));
                 builder.Append(num switch
                 {
+                    // code value for superscript 1/2/3 is
                     '1' => '¹',
                     '2' => '²',
                     '3' => '³',
@@ -139,15 +145,21 @@ public partial class LatexParser : ILatexParser
                 nameof(segment));
         }
 
-        if (segment[1..] is "Omega")
+        char simpleTokenResult = segment[1..] switch
         {
-            builder.Append('Ω');
-        }
-        else
+            "Omega" => 'Ω',
+            "langle" => '⟨',
+            "rangle" => '⟩',
+            _ => '\0'
+        };
+
+        if (simpleTokenResult != '\0')
         {
-            throw new ArgumentException($"unrecognized \\command ({segment[1..]}) in $$ sequence: '{segment}'",
-                nameof(segment));
+            builder.Append(simpleTokenResult);
+            return;
         }
+        throw new ArgumentException($"unrecognized \\command ({segment[1..]}) in $$ sequence: '{segment}'",
+            nameof(segment));
     }
 
     private ReadOnlySpan<char> GetCommandName(ReadOnlySpan<char> segment)

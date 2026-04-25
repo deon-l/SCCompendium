@@ -44,9 +44,22 @@ public class LatexParserTests
     }
 
     [Test]
+    public async Task ParseLatexMathSegment_EmptyInput_NoModification()
+    {
+        LatexParser parser = new();
+        StringBuilder sb = new();
+
+        parser.ParseLatexMathSegment(String.Empty, sb);
+
+        await Assert.That(sb).IsEmpty();
+    }
+
+    [Test]
     [Arguments("_0", "₀")]
     [Arguments("^1", "¹")]
     [Arguments(@"\Omega", "Ω")]
+    [Arguments(@"\langle", "⟨")]
+    [Arguments(@"\rangle", "⟩")]
     public async Task ParseLatexMathSegment_SingleCommands_ExpectedOutputs(string inputSegment, string expectedOutput)
     {
         LatexParser parser = new();
@@ -56,5 +69,18 @@ public class LatexParserTests
         string actualOutput = sb.ToString();
 
         await Assert.That(actualOutput).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments("aaaaa")]
+    [Arguments("\\bbbbb")]
+    [Arguments("\\")]
+    public async Task ParseLatexMathSegment_InvalidInput_ThrowsException(string invalidInput)
+    {
+        LatexParser parser = new();
+
+        void ErrorAction() => parser.ParseLatexMathSegment(invalidInput, new());
+
+        await Assert.That(ErrorAction).ThrowsExactly<ArgumentException>();
     }
 }
