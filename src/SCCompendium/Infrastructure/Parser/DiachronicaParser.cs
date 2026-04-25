@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using SCCompendium.Application.Parser;
@@ -9,7 +8,16 @@ namespace SCCompendium.Parser;
 public class DiachronicaParser : IDiachronicaParser
 {
     private readonly Regex _sectionHeader = new(@"^\\(?:sub)*(?:section|paragraph)", RegexOptions.Compiled);
-    private readonly LatexParser _latexParser = new();
+
+    private readonly ILatexParser _latexParser;
+    private readonly IPhonologicalRuleParser _phonoRuleParser;
+
+    public DiachronicaParser(ILatexParser latexParser, IPhonologicalRuleParser phonoRuleParser)
+    {
+        _latexParser = latexParser;
+        _phonoRuleParser = phonoRuleParser;
+    }
+
 
     private (string title, string credit)? GetNextSubsection(SavingTextReader reader)
     {
@@ -45,7 +53,7 @@ public class DiachronicaParser : IDiachronicaParser
         SavingTextReader reader = new(file);
 
         List<Exception> sectionExceptions = new();
-        Dictionary<string, (string credit, List<PhonologicalRule> rules)> organizedRules = new();
+        List<PhonologicalRuleGroup> ruleGroups = new();
         StringBuilder builder = new();
 
         reader.Advance();
@@ -92,7 +100,7 @@ public class DiachronicaParser : IDiachronicaParser
                 continue;
             }
 
-            organizedRules.Add(titleTranslated, (creditTranslated, rules));
+            ruleGroups.Add(new(titleTranslated, creditTranslated, rules));
         }
 
         if (sectionExceptions.Count > 0)
@@ -103,7 +111,7 @@ public class DiachronicaParser : IDiachronicaParser
             throw new AggregateException("errors while parsing stream", sectionExceptions);
         }
 
-        return organizedRules;
+        return ruleGroups;
     }
 
     private (List<PhonologicalRule>, List<Exception> exceptions) ParseSubsection(SavingTextReader file)
@@ -133,7 +141,7 @@ public class DiachronicaParser : IDiachronicaParser
             bool successfulParse;
             try
             {
-                successfulParse = TryParseRule(line, out rule);
+                successfulParse = _phonoRuleParser.TryParseRule(line, out rule);
             }
             catch (Exception e)
             {
