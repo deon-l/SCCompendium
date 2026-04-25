@@ -10,7 +10,7 @@ public partial class DiachronicaParserTests
         DiachronicaParser parser = new();
         StringReader reader = new(_sampleDiachronica);
 
-        var result = parser.ParseFile(reader);
+        var result = parser.ParseDiachronica(reader);
 
         await Assert.That(result).IsNotEmpty();
     }

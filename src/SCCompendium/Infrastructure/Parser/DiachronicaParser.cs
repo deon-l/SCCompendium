@@ -1,11 +1,12 @@
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using SCCompendium.Application.Parser;
 using SCCompendium.Domain;
 
 namespace SCCompendium.Parser;
 
-public class DiachronicaParser
+public class DiachronicaParser : IDiachronicaParser
 {
     /// <remarks>
     /// Formated as '[char1][char2][buffer]', for visual clarity. Not all pairs are here.
@@ -50,7 +51,7 @@ public class DiachronicaParser
         return (title, credit);
     }
 
-    public Dictionary<string, (string credit, List<PhonologicalRule> rules)> ParseFile(TextReader file)
+    public List<PhonologicalRuleGroup> ParseDiachronica(TextReader file)
     {
         ArgumentNullException.ThrowIfNull(file);
         SavingTextReader reader = new(file);

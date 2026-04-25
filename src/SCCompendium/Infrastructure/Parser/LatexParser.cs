@@ -1,10 +1,10 @@
 using System.Text;
+using SCCompendium.Application.Parser;
 
 namespace SCCompendium.Parser;
 
-public partial class LatexParser
+public partial class LatexParser : ILatexParser
 {
-
     public string ParseLatexSegment(ReadOnlySpan<char> segment)
     {
         StringBuilder sb = new();
