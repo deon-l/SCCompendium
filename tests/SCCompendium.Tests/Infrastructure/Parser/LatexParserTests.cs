@@ -11,7 +11,6 @@ public class LatexParserTests
         public const string SimpleTipaOutput = "ː\u02D1ˈʉɨʌɜɥɐɒɤɵɘəɑβɕðɛɸɣɦɪʝʁʎɱŋɔʕɾʃθʊʋɯχʏʒ|";
         public static IEnumerable<(char, char)> TipaSourceToOutput()
         {
-
             Debug.Assert(SimpleTipaInput.Length == SimpleTipaOutput.Length);
             for (int i = 0; i < SimpleTipaInput.Length; i++)
             {
