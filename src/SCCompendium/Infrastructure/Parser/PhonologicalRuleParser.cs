@@ -18,7 +18,12 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         new(@"^(--- )?(.+?)(?:\\change|\\textrightarrow)(.+?)(?:/(.+?))?(?:!(?![^{\n]*?})(.+?))?(?:\\\\)?$",
             RegexOptions.Compiled);
 
-    private readonly LatexParser _latexParser = new();
+    private readonly ILatexParser _latexParser;
+
+    public PhonologicalRuleParser(ILatexParser latexParser)
+    {
+        _latexParser = latexParser;
+    }
 
     public bool TryParseRule(string line,
         out PhonologicalRule rule)
