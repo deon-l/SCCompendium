@@ -73,8 +73,31 @@ public partial class LatexParser : ILatexParser
     {
         for (int i = 0; i < segment.Length; i++)
         {
+            char ligatureReplace = segment[i..] switch
+            {
+                ['\"', '\"', ..] => 'ˌ',
+                ['|', '|', ..] => '‖',
+                ['\"', ..] => 'ˈ',
+                ['|', ..] => '|',
+                _ => '\0'
+            };
+            if (ligatureReplace != '\0')
+            {
+                builder.Append(ligatureReplace);
+                if (i + 1 < segment.Length && segment[i] == segment[i + 1])
+                {
+                    i++;
+                }
+                continue;
+            }
+
             char c = segment[i];
-            if (i == '\\')
+            if (Char.IsWhiteSpace(c))
+            {
+                builder.Append(c);
+                continue;
+            }
+            if (c == '\\')
             {
                 // Todo: Alternative algorithm required, since some shortcuts have 2 non-letter symbols.
                 ReadOnlySpan<char> command = GetCommandName(segment[(i + 1)..]);

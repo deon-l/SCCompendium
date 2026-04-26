@@ -44,6 +44,19 @@ public class LatexParserTests
     }
 
     [Test]
+    public async Task ParseLatexTipaSegment_Ligatures_ExpectedOutputs()
+    {
+        const string input = "\" \"\" | ||";
+        const string expectedOutput = "ˈ ˌ | ‖";
+        LatexParser parser = new();
+        StringBuilder sb = new();
+
+        parser.ParseLatexTipaSegment(input, sb);
+
+        await Assert.That(sb.ToString()).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
     public async Task ParseLatexMathSegment_EmptyInput_NoModification()
     {
         LatexParser parser = new();
