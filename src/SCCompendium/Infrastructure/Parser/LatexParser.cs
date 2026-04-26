@@ -20,6 +20,7 @@ public partial class LatexParser : ILatexParser
             char c = segment[i];
             if (Char.IsWhiteSpace(c))
             {
+                builder.Append(c);
                 continue;
             }
             if (c == '\\')
