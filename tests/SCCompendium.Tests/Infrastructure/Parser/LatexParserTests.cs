@@ -44,10 +44,28 @@ public class LatexParserTests
     }
 
     [Test]
-    public async Task ParseLatexTipaSegment_Ligatures_ExpectedOutputs()
+    public async Task ParseLatexTipaSegment_Ligatures_ExpectedOutput()
     {
         const string input = "\" \"\" | ||";
         const string expectedOutput = "ˈ ˌ | ‖";
+        LatexParser parser = new();
+        StringBuilder sb = new();
+
+        parser.ParseLatexTipaSegment(input, sb);
+
+        await Assert.That(sb.ToString()).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\*f \*k \*r \*t \*w", "ⅎ ʞ ɹ ʇ ʍ")]
+    // Note: "\*f" translation doesn't follow TIPA specs,
+    //  but couldn't find similar character (that isn't also result of "\*j")
+    [Arguments(@"\*j \*n \*h \*l \*z", "ɟ ɲ ħ ɬ ɮ")]
+    [Arguments(@"\*A \*B \*C \*1 \*2 \*3", "A B C 1 2 3")]
+    [Arguments(@"\*; \*: \*@ \*\# \*\$ \*\& \*\% \*\{ \*\}", "; : @ # $ & % { }")]
+    [Arguments(@"\*{123}", "123")]
+    public async Task ParseLatexTipaSegment_AsteriskMacros_ExpectedOutput(string input, string expectedOutput)
+    {
         LatexParser parser = new();
         StringBuilder sb = new();
 
