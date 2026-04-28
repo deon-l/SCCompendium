@@ -1,7 +1,7 @@
 using System.Text;
 using SCCompendium.Application.Parser;
 
-namespace SCCompendium.Infrastructure.Parser;
+namespace SCCompendium.Infrastructure.Parser.LatexParser;
 
 public partial class LatexParser : ILatexParser
 {
