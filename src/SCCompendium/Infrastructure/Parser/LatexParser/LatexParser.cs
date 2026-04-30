@@ -6,7 +6,7 @@ namespace SCCompendium.Infrastructure.Parser.LatexParser;
 
 public partial class LatexParser : ILatexParser
 {
-    private ReadOnlySpan<char> ExecuteCommand(ReadOnlySpan<char> segment, Context context)
+    private static ReadOnlySpan<char> ExecuteCommand(ReadOnlySpan<char> segment, Context context)
     {
         int commandNameLength;
         for (commandNameLength = 1; commandNameLength < segment.Length; commandNameLength++)
@@ -25,6 +25,53 @@ public partial class LatexParser : ILatexParser
         }
 
         return command(segment[commandNameLength..], context);
+    }
+
+    private static ReadOnlySpan<char> GetArgument(ReadOnlySpan<char> segment, Context context, StringBuilder argument)
+    {
+        int argumentStart;
+        for (argumentStart = 0; argumentStart < segment.Length; argumentStart++)
+        {
+            if (!Char.IsWhiteSpace(segment[argumentStart]))
+            {
+                break;
+            }
+        }
+
+        if (argumentStart == segment.Length)
+        {
+            return new();
+        }
+
+        bool isArgumentGroup = segment[argumentStart] == '{';
+        segment = isArgumentGroup ? segment[(argumentStart + 1)..] : segment[argumentStart..];
+        context = context with { Result = argument };
+        while (true)
+        {
+            if (segment[0] == '\\')
+            {
+                segment = ExecuteCommand(segment[1..], context);
+            }
+            else
+            {
+                argument.Append(segment[0]);
+                segment = segment[1..];
+            }
+
+            if (!isArgumentGroup) return segment;
+            if (segment.Length == 0) throw new ArgumentException("has Group that has no end.", nameof(segment));
+            if (segment[0] == '}') return segment[1..];
+        }
+    }
+
+    private static ReadOnlySpan<char> ParseTipaSection(ReadOnlySpan<char> segment, Context context)
+    {
+        StringBuilder argument = new();
+        segment = GetArgument(segment, context, argument);
+
+
+
+        return segment;
     }
 
     public string ParseLatexSegment(ReadOnlySpan<char> segment)
