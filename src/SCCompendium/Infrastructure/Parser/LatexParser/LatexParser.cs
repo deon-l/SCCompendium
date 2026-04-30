@@ -69,7 +69,38 @@ public partial class LatexParser : ILatexParser
         StringBuilder argument = new();
         segment = GetArgument(segment, context, argument);
 
+        for (int i = 0; i < argument.Length; i++)
+        {
+            char c = argument[i];
+            if (c == '\"' && i + 1 < argument.Length && argument[i + 1] == '\"')
+            {
+                context.Result.Append('ˌ');
+                i++;
+                continue;
+            }
+            if (c == '|' && i + 1 < argument.Length && argument[i + 1] == '|')
+            {
+                context.Result.Append('‖');
+                i++;
+                continue;
+            }
+            if (Char.IsWhiteSpace(c))
+            {
+                context.Result.Append(c);
+                continue;
+            }
+            if (_tipaSingleCharConversions.TryGetValue(c, out char converted))
+            {
+                context.Result.Append(converted);
+                continue;
+            }
+            if (c == '$')
+            {
+                throw new NotImplementedException();
+            }
 
+            context.Result.Append(c);
+        }
 
         return segment;
     }
