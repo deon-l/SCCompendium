@@ -1,3 +1,4 @@
+using OneOf;
 using System.Text;
 using SCCompendium.Application.Parser;
 
@@ -5,6 +6,27 @@ namespace SCCompendium.Infrastructure.Parser.LatexParser;
 
 public partial class LatexParser : ILatexParser
 {
+    private ReadOnlySpan<char> ExecuteCommand(ReadOnlySpan<char> segment, Context context)
+    {
+        int commandNameLength;
+        for (commandNameLength = 1; commandNameLength < segment.Length; commandNameLength++)
+        {
+            if (!Char.IsLetterOrDigit(segment[commandNameLength]))
+            {
+                break;
+            }
+        }
+
+       Command? command;
+        if (!context.Macros.TryGetValue(new String(segment[..commandNameLength]), out command)
+            && !(commandNameLength == 1 && segment.Length >= 2 && context.Macros.TryGetValue(new String(segment[..2]), out command)))
+        {
+            throw new ArgumentException($"Undefined command: {new String(segment[..commandNameLength])}", nameof(segment));
+        }
+
+        return command(segment[commandNameLength..], context);
+    }
+
     public string ParseLatexSegment(ReadOnlySpan<char> segment)
     {
         StringBuilder sb = new();
@@ -185,6 +207,8 @@ public partial class LatexParser : ILatexParser
         throw new ArgumentException($"unrecognized \\command ({segment[1..]}) in $$ sequence: '{segment}'",
             nameof(segment));
     }
+
+
 
     private ReadOnlySpan<char> GetCommandName(ReadOnlySpan<char> segment)
     {
