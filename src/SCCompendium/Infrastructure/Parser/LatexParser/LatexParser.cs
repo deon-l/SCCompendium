@@ -105,6 +105,37 @@ public partial class LatexParser : ILatexParser
         return segment;
     }
 
+    private static ReadOnlySpan<char> CommandSuper(ReadOnlySpan<char> segment, Context context)
+    {
+        StringBuilder argument = new();
+        segment = GetArgument(segment, context, argument);
+
+        for (int i = 0; i < argument.Length; i++)
+        {
+            context.Result.Append(argument[i] switch
+            {
+                'h' => 'ʰ',
+                'l' => 'ˡ',
+                'm' => 'ᵐ',
+                'n' => 'ⁿ',
+                'j' => 'ʲ',
+                'w' => 'ʷ',
+                'x' => 'ˣ',
+                'y' => 'ʸ',
+                // This command is TIPA exclusive, so the capital conversions are preemptively applied.
+                'H' => 'ʱ',
+                'M' => 'ᶬ',
+                'N' => 'ᵑ',
+                'P' => 'ˀ',
+                'Q' => 'ˤ',
+                'W' => 'ᵚ',
+                _ => throw new ArgumentException($"Cannot raise '{argument[i]}' (limitation of encoding or not implemented)", nameof(segment))
+            });
+        }
+
+        return segment;
+    }
+
     public string ParseLatexSegment(ReadOnlySpan<char> segment)
     {
         StringBuilder sb = new();
