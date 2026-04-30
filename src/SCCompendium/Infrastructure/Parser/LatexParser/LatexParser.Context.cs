@@ -7,7 +7,7 @@ public partial class LatexParser
 {
     private delegate ReadOnlySpan<char> Command(ReadOnlySpan<char> remaining, Context context);
     private record struct Context(StringBuilder Result,
-        Dictionary<string, Command> Macros)
+        Dictionary<string, Command> Commands)
     {
 
     }

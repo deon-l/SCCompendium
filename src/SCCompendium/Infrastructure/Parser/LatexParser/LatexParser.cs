@@ -18,8 +18,8 @@ public partial class LatexParser : ILatexParser
         }
 
        Command? command;
-        if (!context.Macros.TryGetValue(new String(segment[..commandNameLength]), out command)
-            && !(commandNameLength == 1 && segment.Length >= 2 && context.Macros.TryGetValue(new String(segment[..2]), out command)))
+        if (!context.Commands.TryGetValue(new String(segment[..commandNameLength]), out command)
+            && !(commandNameLength == 1 && segment.Length >= 2 && context.Commands.TryGetValue(new String(segment[..2]), out command)))
         {
             throw new ArgumentException($"Undefined command: {new String(segment[..commandNameLength])}", nameof(segment));
         }
