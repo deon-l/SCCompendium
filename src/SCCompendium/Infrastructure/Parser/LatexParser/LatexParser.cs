@@ -136,6 +136,36 @@ public partial class LatexParser : ILatexParser
         return segment;
     }
 
+    private static ReadOnlySpan<char> CommandAsterisk(ReadOnlySpan<char> segment, Context context)
+    {
+        StringBuilder argument = new();
+        segment = GetArgument(segment, context, argument);
+
+        for (int i = 0; i < argument.Length; i++)
+        {
+            context.Result.Append(argument[i] switch
+            {
+                'f' => 'ⅎ',
+                'k' => 'ʞ',
+                'r' => 'ɹ',
+                't' => 'ʇ',
+                'w' => 'ʍ',
+                'j' => 'ɟ',
+                'n' => 'ɲ',
+                'h' => 'ħ',
+                'l' => 'ɬ',
+                'z' => 'ɮ',
+                _ => SkipChar
+            });
+            if (context.Result[^1] == SkipChar)
+            {
+                context.Result.Append(argument[i]);
+            }
+        }
+
+        return segment;
+    }
+
     public string ParseLatexSegment(ReadOnlySpan<char> segment)
     {
         StringBuilder sb = new();
