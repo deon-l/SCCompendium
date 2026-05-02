@@ -72,6 +72,13 @@ public partial class LatexParser : ILatexParser
         for (int i = 0; i < argument.Length; i++)
         {
             char c = argument[i];
+            if (c == TipaIgnoreNextChar)
+            {
+                context.Result.Append(argument[i]);
+                context.Result.Append(argument[i + 1]);
+                i++;
+                continue;
+            }
             if (c == '\"' && i + 1 < argument.Length && argument[i + 1] == '\"')
             {
                 context.Result.Append('ˌ');
@@ -155,9 +162,9 @@ public partial class LatexParser : ILatexParser
                 'h' => 'ħ',
                 'l' => 'ɬ',
                 'z' => 'ɮ',
-                _ => SkipChar
+                _ => TipaIgnoreNextChar
             });
-            if (context.Result[^1] == SkipChar)
+            if (context.Result[^1] == TipaIgnoreNextChar)
             {
                 context.Result.Append(argument[i]);
             }
