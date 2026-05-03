@@ -102,6 +102,45 @@ public partial class LatexParser : ILatexParser
         }
     }
 
+    private static void ParseParagraphMode(Context context, bool isRoot = false)
+    {
+        while (true)
+        {
+            char c = context.PopSource();
+            if (Char.IsWhiteSpace(c))
+            {
+                if (_spacingWhitespace.Contains(c))
+                {
+                    context.AppendResult(c);
+                }
+                continue;
+            }
+            if (c == '}')
+            {
+                if (isRoot)
+                {
+                    throw new ArgumentException("erroneous '}'.", nameof(context));
+                }
+                return;
+            }
+            if (c == '\\')
+            {
+                if (isRoot && _escapedChars.Contains(context.PeekSource()))
+                {
+                    context.ConsumeSource();
+                    continue;
+                }
+                ExecuteCommand(context);
+            }
+            if (c == '$')
+            {
+                ParseMathMode(context);
+                continue;
+            }
+
+            context.AppendResult(c);
+        }
+    }
 
     private static ReadOnlySpan<char> ParseTipaSection(ReadOnlySpan<char> segment, Context context)
     {
