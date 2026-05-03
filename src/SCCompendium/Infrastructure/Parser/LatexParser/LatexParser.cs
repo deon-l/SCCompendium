@@ -21,7 +21,7 @@ public partial class LatexParser : ILatexParser
             if (c == '\\')
             {
                 _ = context.PopSource();
-                LoadCommand(context);
+                ExecuteCommand(context);
             }
             else if (c == '$')
             {
@@ -46,25 +46,60 @@ public partial class LatexParser : ILatexParser
         int argumentLength = context.LengthResult - argumentStartI;
         return context.SliceResult(argumentStartI, argumentLength);
     }
-    private static ReadOnlySpan<char> ExecuteCommand(ReadOnlySpan<char> segment, Context context)
+
+    private static string GetCommandName(Context context)
     {
-        int commandNameLength;
-        for (commandNameLength = 1; commandNameLength < segment.Length; commandNameLength++)
+        if (context.LengthSource == 0)
         {
-            if (!Char.IsLetterOrDigit(segment[commandNameLength]))
+            throw new ArgumentException("Ran out of source for command name", nameof(context));
+        }
+
+        int commandNameStart = context.LengthResult;
+        char firstC = context.ConsumeSource();
+        Debug.Assert(!_escapedChars.Contains(firstC), "Does not handle chars escaped with '\\'");
+        if (Char.IsLetterOrDigit(firstC))
+        {
+            while (Char.IsLetterOrDigit(context.PeekSource()))
             {
-                break;
+                context.ConsumeSource();
             }
         }
+        int commandNameLength = context.LengthResult - commandNameStart;
 
-       Command? command;
-        if (!context.Commands.TryGetValue(new String(segment[..commandNameLength]), out command)
-            && !(commandNameLength == 1 && segment.Length >= 2 && context.Commands.TryGetValue(new String(segment[..2]), out command)))
+        string commandName = context.SliceResult(commandNameStart, commandNameLength).ToString();
+        context.RemoveResult(commandNameStart, commandNameLength);
+        return commandName;
+    }
+
+    private static void ExecuteCommand(Context context)
+    {
+        if (_escapedChars.Contains(context.PeekSource()))
         {
-            throw new ArgumentException($"Undefined command: {new String(segment[..commandNameLength])}", nameof(segment));
+            context.AppendResult('\\');
+            context.ConsumeSource();
+            return;
         }
 
-        return command(segment[commandNameLength..], context);
+        string commandName = GetCommandName(context);
+
+        CommandData commandData = context.GetCommand(commandName);
+
+        var arguments = new StringSlice[commandData.Arguments];
+        for (int i = 0; i < arguments.Length; i++)
+        {
+            arguments[i] = LoadArgument(context);
+        }
+
+        int addedStartI = context.LengthResult;
+        commandData.Command(context, arguments);
+        int addedLength = context.LengthResult - addedStartI;
+
+        context.ConsumeResult(addedLength);
+        for (int i = arguments.Length - 1; i >= 0; i--)
+        {
+            StringSlice argument = arguments[i];
+            context.RemoveResult(argument.Start, argument.Length);
+        }
     }
 
     private static ReadOnlySpan<char> GetArgument(ReadOnlySpan<char> segment, Context context, StringBuilder argument)

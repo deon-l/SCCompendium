@@ -7,16 +7,17 @@ public partial class LatexParser
     private struct StringSlice
     {
         private readonly StringBuilder _sb;
-        private readonly int _start;
-        public int Length { get; }
+        public int Start { get; }
+        public int Length { get; private set; }
 
-        public char this[int i] => _sb[_start + i];
+        public char this[int i] => _sb[Start + i];
 
         public StringSlice(StringBuilder sb, int start, int length)
         {
             _sb = sb;
-            _start = start;
+            Start = start;
             Length = length;
         }
+        public override string ToString() => _sb.ToString(Start, Length);
     }
 }

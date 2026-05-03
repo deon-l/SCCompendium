@@ -43,8 +43,18 @@ public partial class LatexParser
             return c;
         }
 
+        public void ConsumeResult(int length)
+        {
+            Source.EnsureCapacity(Source.Length + length);
+            Source.Append(Result, Result.Length - 1, length);
+            Result.Remove(Result.Length - 1, length);
+        }
+
         public void AppendResult(char c) => Result.Append(c);
 
+        public void RemoveResult(int start, int length) => Result.Remove(start, length);
         public StringSlice SliceResult(int start, int length) => new StringSlice(Result, start, length);
+
+        public CommandData GetCommand(string commandName) => CommandList[commandName];
     }
 }
