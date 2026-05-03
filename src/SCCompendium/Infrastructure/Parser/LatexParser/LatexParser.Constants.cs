@@ -13,7 +13,7 @@ public partial class LatexParser
     private static readonly Dictionary<char, char> _tipaSingleCharConversions =
         Enumerable.Zip(TipaInput, TipaOutput).ToDictionary();
 
-    private static readonly Dictionary<string, Command> _normalCommands = new();
-    private static readonly Dictionary<string, Command> _tipaCommands = new();
-    private static readonly Dictionary<string, Command> _mathCommands = new();
+    private static readonly Dictionary<string, CommandData> _normalCommands = new();
+    private static readonly Dictionary<string, CommandData> _tipaCommands = new();
+    private static readonly Dictionary<string, CommandData> _mathCommands = new();
 }

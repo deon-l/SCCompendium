@@ -5,12 +5,11 @@ namespace SCCompendium.Infrastructure.Parser.LatexParser;
 
 public partial class LatexParser
 {
-    private delegate ReadOnlySpan<char> Command(ReadOnlySpan<char> remaining, Context context);
     private class Context
     {
         public StringBuilder Source { get; } = new();
         public StringBuilder Result { get; } = new();
-        public required Dictionary<string, Command> CommandList { get; set; }
+        public required Dictionary<string, CommandData> CommandList { get; set; }
 
         public Context(ReadOnlySpan<char> initialSource)
         {
