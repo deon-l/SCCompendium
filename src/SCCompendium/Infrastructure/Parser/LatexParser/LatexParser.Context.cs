@@ -7,9 +7,12 @@ public partial class LatexParser
 {
     private class Context
     {
-        public StringBuilder Source { get; } = new();
-        public StringBuilder Result { get; } = new();
+        private StringBuilder Source { get; } = new();
+        private StringBuilder Result { get; } = new();
         public required Dictionary<string, CommandData> CommandList { get; set; }
+
+        public int LengthSource => Source.Length;
+        public int LengthResult => Result.Length;
 
         public Context(ReadOnlySpan<char> initialSource)
         {
@@ -39,5 +42,9 @@ public partial class LatexParser
             Result.Append(c);
             return c;
         }
+
+        public void AppendResult(char c) => Result.Append(c);
+
+        public StringSlice SliceResult(int start, int length) => new StringSlice(Result, start, length);
     }
 }

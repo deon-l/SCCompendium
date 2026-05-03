@@ -6,6 +6,46 @@ namespace SCCompendium.Infrastructure.Parser.LatexParser;
 
 public partial class LatexParser : ILatexParser
 {
+    private static StringSlice LoadArgument(Context context)
+    {
+        while (Char.IsWhiteSpace(context.PeekSource()))
+        {
+            _ = context.PopSource();
+        }
+
+        bool argumentIsGroup = context.PeekSource() == '{';
+        int argumentStartI = context.LengthResult;
+        while (context.LengthSource > 0)
+        {
+            char c = context.PeekSource();
+            if (c == '\\')
+            {
+                _ = context.PopSource();
+                LoadCommand(context);
+            }
+            else if (c == '$')
+            {
+                // math mode.
+            }
+
+            else if (c == '}')
+            {
+                break;
+            }
+            else
+            {
+                context.AppendResult(c);
+            }
+
+            if (!argumentIsGroup)
+            {
+                break;
+            }
+        }
+
+        int argumentLength = context.LengthResult - argumentStartI;
+        return context.SliceResult(argumentStartI, argumentLength);
+    }
     private static ReadOnlySpan<char> ExecuteCommand(ReadOnlySpan<char> segment, Context context)
     {
         int commandNameLength;
