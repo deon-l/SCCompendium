@@ -17,7 +17,7 @@ public partial class LatexParser : ILatexParser
         int argumentStartI = context.LengthResult;
         while (context.LengthSource > 0)
         {
-            char c = context.PeekSource();
+            char c = context.PopSource();
             if (c == '\\')
             {
                 _ = context.PopSource();
