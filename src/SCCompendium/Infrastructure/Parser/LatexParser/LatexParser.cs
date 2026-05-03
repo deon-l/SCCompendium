@@ -25,7 +25,7 @@ public partial class LatexParser : ILatexParser
             }
             else if (c == '$')
             {
-                // math mode.
+                // Todo: math mode.
             }
 
             else if (c == '}')
@@ -102,42 +102,6 @@ public partial class LatexParser : ILatexParser
         }
     }
 
-    private static ReadOnlySpan<char> GetArgument(ReadOnlySpan<char> segment, Context context, StringBuilder argument)
-    {
-        int argumentStart;
-        for (argumentStart = 0; argumentStart < segment.Length; argumentStart++)
-        {
-            if (!Char.IsWhiteSpace(segment[argumentStart]))
-            {
-                break;
-            }
-        }
-
-        if (argumentStart == segment.Length)
-        {
-            return new();
-        }
-
-        bool isArgumentGroup = segment[argumentStart] == '{';
-        segment = isArgumentGroup ? segment[(argumentStart + 1)..] : segment[argumentStart..];
-        context = context with { Result = argument };
-        while (true)
-        {
-            if (segment[0] == '\\')
-            {
-                segment = ExecuteCommand(segment[1..], context);
-            }
-            else
-            {
-                argument.Append(segment[0]);
-                segment = segment[1..];
-            }
-
-            if (!isArgumentGroup) return segment;
-            if (segment.Length == 0) throw new ArgumentException("has Group that has no end.", nameof(segment));
-            if (segment[0] == '}') return segment[1..];
-        }
-    }
 
     private static ReadOnlySpan<char> ParseTipaSection(ReadOnlySpan<char> segment, Context context)
     {
