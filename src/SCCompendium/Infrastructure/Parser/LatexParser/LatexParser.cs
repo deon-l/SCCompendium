@@ -84,7 +84,10 @@ public partial class LatexParser : ILatexParser
 
         CommandData commandData = context.GetCommand(commandName);
 
-        var arguments = new StringSlice[commandData.Arguments];
+        var arguments = commandData.Arguments != 0
+            ? new StringSlice[commandData.Arguments]
+            : Array.Empty<StringSlice>();
+
         for (int i = 0; i < arguments.Length; i++)
         {
             arguments[i] = LoadArgument(context);
