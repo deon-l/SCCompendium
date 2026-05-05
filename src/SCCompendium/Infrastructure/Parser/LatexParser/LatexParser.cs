@@ -13,7 +13,6 @@ public partial class LatexParser : ILatexParser
             _ = context.PopSource();
         }
 
-        // bool argumentIsGroup = context.PeekSource() == '{';
         int argumentStartI = context.LengthResult;
         int groupDepth = 0;
         do
@@ -56,7 +55,7 @@ public partial class LatexParser : ILatexParser
             {
                 if (groupDepth == 0)
                 {
-                    throw new ArgumentException("$ cannot be used on an ungrouped argument");
+                    throw new ArgumentException("'$' cannot be used on an ungrouped argument");
                 }
                 ParseMathMode(context);
             }
