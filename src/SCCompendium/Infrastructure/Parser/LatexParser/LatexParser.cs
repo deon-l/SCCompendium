@@ -13,35 +13,56 @@ public partial class LatexParser : ILatexParser
             _ = context.PopSource();
         }
 
-        bool argumentIsGroup = context.PeekSource() == '{';
+        // bool argumentIsGroup = context.PeekSource() == '{';
         int argumentStartI = context.LengthResult;
-        while (context.LengthSource > 0)
+        int groupDepth = 0;
+        do
         {
+            if (context.LengthSource == 0)
+            {
+                throw new ArgumentException("Unclosed argument", nameof(context));
+            }
+
             char c = context.PopSource();
+            if (c == '{')
+            {
+                if (groupDepth != 0)
+                {
+                   context.AppendResult(c);
+                }
+                groupDepth++;
+                continue;
+            }
+            if (c == '}')
+            {
+                if (groupDepth == 0)
+                {
+                    throw new ArgumentException("unexpected '}' closing an unopened group (argument)");
+                }
+                groupDepth--;
+                if (groupDepth != 0)
+                {
+                    context.AppendResult(c);
+                }
+                continue;
+            }
             if (c == '\\')
             {
-                _ = context.PopSource();
+                // I think this is incorrect: if not grouped, only the command (and none of its arguments)
+                // are collected, leading to errors if it needs arguments.
                 ExecuteCommand(context);
             }
-            else if (c == '$')
+            if (c == '$')
             {
-                // Todo: math mode.
+                if (groupDepth == 0)
+                {
+                    throw new ArgumentException("$ cannot be used on an ungrouped argument");
+                }
+                ParseMathMode(context);
             }
 
-            else if (c == '}')
-            {
-                break;
-            }
-            else
-            {
-                context.AppendResult(c);
-            }
-
-            if (!argumentIsGroup)
-            {
-                break;
-            }
-        }
+            context.AppendResult(c);
+        } while (groupDepth > 0);
 
         int argumentLength = context.LengthResult - argumentStartI;
         return context.SliceResult(argumentStartI, argumentLength);
