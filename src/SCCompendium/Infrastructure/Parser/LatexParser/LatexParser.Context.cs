@@ -9,15 +9,16 @@ public partial class LatexParser
     {
         private int _groupDepth = 0;
         private StringBuilder Source { get; } = new();
-        private StringBuilder Result { get; } = new();
+        private StringBuilder Result { get; }
         private readonly Stack<(int depth, Typeset typeset)> _typesets = new();
 
         public int LengthSource => Source.Length;
         public int LengthResult => Result.Length;
 
-        public Context(ReadOnlySpan<char> initialSource)
+        public Context(ReadOnlySpan<char> initialSource, StringBuilder result)
         {
             Source.Append(initialSource);
+            Result = result;
         }
 
         public char PeekSource(int index = 0)
