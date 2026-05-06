@@ -179,114 +179,114 @@ public partial class LatexParser : ILatexParser
         }
     }
 
-    private static ReadOnlySpan<char> ParseTipaSection(ReadOnlySpan<char> segment, Context context)
-    {
-        StringBuilder argument = new();
-        segment = GetArgument(segment, context, argument);
+    // private static ReadOnlySpan<char> ParseTipaSection(ReadOnlySpan<char> segment, Context context)
+    // {
+    //     StringBuilder argument = new();
+    //     segment = GetArgument(segment, context, argument);
+    //
+    //     for (int i = 0; i < argument.Length; i++)
+    //     {
+    //         char c = argument[i];
+    //         if (c == TipaIgnoreNextChar)
+    //         {
+    //             context.Result.Append(argument[i]);
+    //             context.Result.Append(argument[i + 1]);
+    //             i++;
+    //             continue;
+    //         }
+    //         if (c == '\"' && i + 1 < argument.Length && argument[i + 1] == '\"')
+    //         {
+    //             context.Result.Append('ˌ');
+    //             i++;
+    //             continue;
+    //         }
+    //         if (c == '|' && i + 1 < argument.Length && argument[i + 1] == '|')
+    //         {
+    //             context.Result.Append('‖');
+    //             i++;
+    //             continue;
+    //         }
+    //         if (Char.IsWhiteSpace(c))
+    //         {
+    //             context.Result.Append(c);
+    //             continue;
+    //         }
+    //         if (_tipaSingleCharConversions.TryGetValue(c, out char converted))
+    //         {
+    //             context.Result.Append(converted);
+    //             continue;
+    //         }
+    //         if (c == '$')
+    //         {
+    //             throw new NotImplementedException();
+    //         }
+    //
+    //         context.Result.Append(c);
+    //     }
+    //
+    //     return segment;
+    // }
 
-        for (int i = 0; i < argument.Length; i++)
-        {
-            char c = argument[i];
-            if (c == TipaIgnoreNextChar)
-            {
-                context.Result.Append(argument[i]);
-                context.Result.Append(argument[i + 1]);
-                i++;
-                continue;
-            }
-            if (c == '\"' && i + 1 < argument.Length && argument[i + 1] == '\"')
-            {
-                context.Result.Append('ˌ');
-                i++;
-                continue;
-            }
-            if (c == '|' && i + 1 < argument.Length && argument[i + 1] == '|')
-            {
-                context.Result.Append('‖');
-                i++;
-                continue;
-            }
-            if (Char.IsWhiteSpace(c))
-            {
-                context.Result.Append(c);
-                continue;
-            }
-            if (_tipaSingleCharConversions.TryGetValue(c, out char converted))
-            {
-                context.Result.Append(converted);
-                continue;
-            }
-            if (c == '$')
-            {
-                throw new NotImplementedException();
-            }
+    // private static ReadOnlySpan<char> CommandSuper(ReadOnlySpan<char> segment, Context context)
+    // {
+    //     StringBuilder argument = new();
+    //     segment = GetArgument(segment, context, argument);
+    //
+    //     for (int i = 0; i < argument.Length; i++)
+    //     {
+    //         context.Result.Append(argument[i] switch
+    //         {
+    //             'h' => 'ʰ',
+    //             'l' => 'ˡ',
+    //             'm' => 'ᵐ',
+    //             'n' => 'ⁿ',
+    //             'j' => 'ʲ',
+    //             'w' => 'ʷ',
+    //             'x' => 'ˣ',
+    //             'y' => 'ʸ',
+    //             // This command is TIPA exclusive, so the capital conversions are preemptively applied.
+    //             'H' => 'ʱ',
+    //             'M' => 'ᶬ',
+    //             'N' => 'ᵑ',
+    //             'P' => 'ˀ',
+    //             'Q' => 'ˤ',
+    //             'W' => 'ᵚ',
+    //             _ => throw new ArgumentException($"Cannot raise '{argument[i]}' (limitation of encoding or not implemented)", nameof(segment))
+    //         });
+    //     }
+    //
+    //     return segment;
+    // }
 
-            context.Result.Append(c);
-        }
-
-        return segment;
-    }
-
-    private static ReadOnlySpan<char> CommandSuper(ReadOnlySpan<char> segment, Context context)
-    {
-        StringBuilder argument = new();
-        segment = GetArgument(segment, context, argument);
-
-        for (int i = 0; i < argument.Length; i++)
-        {
-            context.Result.Append(argument[i] switch
-            {
-                'h' => 'ʰ',
-                'l' => 'ˡ',
-                'm' => 'ᵐ',
-                'n' => 'ⁿ',
-                'j' => 'ʲ',
-                'w' => 'ʷ',
-                'x' => 'ˣ',
-                'y' => 'ʸ',
-                // This command is TIPA exclusive, so the capital conversions are preemptively applied.
-                'H' => 'ʱ',
-                'M' => 'ᶬ',
-                'N' => 'ᵑ',
-                'P' => 'ˀ',
-                'Q' => 'ˤ',
-                'W' => 'ᵚ',
-                _ => throw new ArgumentException($"Cannot raise '{argument[i]}' (limitation of encoding or not implemented)", nameof(segment))
-            });
-        }
-
-        return segment;
-    }
-
-    private static ReadOnlySpan<char> CommandAsterisk(ReadOnlySpan<char> segment, Context context)
-    {
-        StringBuilder argument = new();
-        segment = GetArgument(segment, context, argument);
-
-        for (int i = 0; i < argument.Length; i++)
-        {
-            context.Result.Append(argument[i] switch
-            {
-                'f' => 'ⅎ',
-                'k' => 'ʞ',
-                'r' => 'ɹ',
-                't' => 'ʇ',
-                'w' => 'ʍ',
-                'j' => 'ɟ',
-                'n' => 'ɲ',
-                'h' => 'ħ',
-                'l' => 'ɬ',
-                'z' => 'ɮ',
-                _ => TipaIgnoreNextChar
-            });
-            if (context.Result[^1] == TipaIgnoreNextChar)
-            {
-                context.Result.Append(argument[i]);
-            }
-        }
-
-        return segment;
-    }
+    // private static ReadOnlySpan<char> CommandAsterisk(ReadOnlySpan<char> segment, Context context)
+    // {
+    //     StringBuilder argument = new();
+    //     segment = GetArgument(segment, context, argument);
+    //
+    //     for (int i = 0; i < argument.Length; i++)
+    //     {
+    //         context.Result.Append(argument[i] switch
+    //         {
+    //             'f' => 'ⅎ',
+    //             'k' => 'ʞ',
+    //             'r' => 'ɹ',
+    //             't' => 'ʇ',
+    //             'w' => 'ʍ',
+    //             'j' => 'ɟ',
+    //             'n' => 'ɲ',
+    //             'h' => 'ħ',
+    //             'l' => 'ɬ',
+    //             'z' => 'ɮ',
+    //             _ => TipaIgnoreNextChar
+    //         });
+    //         if (context.Result[^1] == TipaIgnoreNextChar)
+    //         {
+    //             context.Result.Append(argument[i]);
+    //         }
+    //     }
+    //
+    //     return segment;
+    // }
 
     public string ParseLatexSegment(ReadOnlySpan<char> segment)
     {
