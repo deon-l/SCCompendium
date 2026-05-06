@@ -50,6 +50,7 @@ public partial class LatexParser : ILatexParser
                 // I think this is incorrect: if not grouped, only the command (and none of its arguments)
                 // are collected, leading to errors if it needs arguments.
                 ExecuteCommand(context);
+                continue;
             }
             if (c == '$')
             {
@@ -57,7 +58,8 @@ public partial class LatexParser : ILatexParser
                 {
                     throw new ArgumentException("'$' cannot be used on an ungrouped argument");
                 }
-                ParseMathMode(context);
+                // ParseMathMode(context);
+                continue;
             }
 
             context.AppendResult(c);
@@ -165,10 +167,11 @@ public partial class LatexParser : ILatexParser
                     continue;
                 }
                 ExecuteCommand(context);
+                continue;
             }
             if (c == '$')
             {
-                ParseMathMode(context);
+                // ParseMathMode(context);
                 continue;
             }
 
