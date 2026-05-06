@@ -6,6 +6,30 @@ namespace SCCompendium.Infrastructure.Parser.LatexParser;
 
 public partial class LatexParser : ILatexParser
 {
+    private static StringSlice LoadCommandName(Context context)
+    {
+        if (context.LengthSource == 0)
+        {
+            throw new ArgumentException("Ran out of source for command name", nameof(context));
+        }
+
+        int commandNameStart = context.LengthResult;
+        char firstC = context.ConsumeSource();
+        Debug.Assert(!_escapedChars.Contains(firstC), "Does not handle chars escaped with '\\'");
+        if (Char.IsLetterOrDigit(firstC))
+        {
+            while (Char.IsLetterOrDigit(context.PeekSource()))
+            {
+                context.ConsumeSource();
+            }
+        }
+        int commandNameLength = context.LengthResult - commandNameStart;
+
+        StringSlice commandNameSlice = context.SliceResult(commandNameStart, commandNameLength);
+        context.RemoveResult(commandNameStart, commandNameLength);
+        return commandNameSlice;
+    }
+
     private static StringSlice LoadArgument(Context context)
     {
         while (Char.IsWhiteSpace(context.PeekSource()))
@@ -19,7 +43,7 @@ public partial class LatexParser : ILatexParser
         {
             if (context.LengthSource == 0)
             {
-                throw new ArgumentException("Unclosed argument", nameof(context));
+                throw new ArgumentException("Expected chars for argument, but end of source", nameof(context));
             }
 
             char c = context.PopSource();
@@ -47,18 +71,7 @@ public partial class LatexParser : ILatexParser
             }
             if (c == '\\')
             {
-                // I think this is incorrect: if not grouped, only the command (and none of its arguments)
-                // are collected, leading to errors if it needs arguments.
-                ExecuteCommand(context);
-                continue;
-            }
-            if (c == '$')
-            {
-                if (groupDepth == 0)
-                {
-                    throw new ArgumentException("'$' cannot be used on an ungrouped argument");
-                }
-                // ParseMathMode(context);
+                LoadArgument(context);
                 continue;
             }
 
@@ -67,30 +80,6 @@ public partial class LatexParser : ILatexParser
 
         int argumentLength = context.LengthResult - argumentStartI;
         return context.SliceResult(argumentStartI, argumentLength);
-    }
-
-    private static StringSlice LoadCommandName(Context context)
-    {
-        if (context.LengthSource == 0)
-        {
-            throw new ArgumentException("Ran out of source for command name", nameof(context));
-        }
-
-        int commandNameStart = context.LengthResult;
-        char firstC = context.ConsumeSource();
-        Debug.Assert(!_escapedChars.Contains(firstC), "Does not handle chars escaped with '\\'");
-        if (Char.IsLetterOrDigit(firstC))
-        {
-            while (Char.IsLetterOrDigit(context.PeekSource()))
-            {
-                context.ConsumeSource();
-            }
-        }
-        int commandNameLength = context.LengthResult - commandNameStart;
-
-        StringSlice commandNameSlice = context.SliceResult(commandNameStart, commandNameLength);
-        context.RemoveResult(commandNameStart, commandNameLength);
-        return commandNameSlice;
     }
 
     private static void ExecuteCommand(Context context)
