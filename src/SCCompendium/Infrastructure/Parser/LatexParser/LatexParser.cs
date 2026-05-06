@@ -138,44 +138,60 @@ public partial class LatexParser : ILatexParser
         }
     }
 
+    private static void ParseCharacter(Context context)
+    {
+        char c = context.PopSource();
+        if (Char.IsWhiteSpace(c))
+        {
+            if (_spacingWhitespace.Contains(c))
+            {
+                context.AppendResult(c);
+            }
+            return;
+        }
+        if (c == '{')
+        {
+            context.IncrementGroupDepth();
+            return;
+        }
+        if (c == '}')
+        {
+            context.DecrementGroupDepth();
+            return;
+        }
+        if (c == '\\')
+        {
+            ExecuteCommand(context);
+            return;
+        }
+        if (c == '$')
+        {
+            // ParseMathMode(context);
+            return;
+        }
+
+        context.AppendResult(c);
+    }
+
     private static void ParseParagraphMode(Context context, bool isRoot = false)
     {
-        while (true)
+        int baseDepth = context.GroupDepth;
+        while (context.GroupDepth > baseDepth && context.LengthSource > 0)
         {
-            char c = context.PopSource();
-            if (Char.IsWhiteSpace(c))
+            char c = context.PeekSource();
+            if (isRoot && c == '\\' && _escapedChars.Contains(context.PeekSource(1)))
             {
-                if (_spacingWhitespace.Contains(c))
-                {
-                    context.AppendResult(c);
-                }
-                continue;
-            }
-            if (c == '}')
-            {
-                if (isRoot)
-                {
-                    throw new ArgumentException("erroneous '}'.", nameof(context));
-                }
-                return;
-            }
-            if (c == '\\')
-            {
-                if (isRoot && _escapedChars.Contains(context.PeekSource()))
-                {
-                    context.ConsumeSource();
-                    continue;
-                }
-                ExecuteCommand(context);
-                continue;
-            }
-            if (c == '$')
-            {
-                // ParseMathMode(context);
+                _ = context.PopSource();
+                context.ConsumeSource();
                 continue;
             }
 
-            context.AppendResult(c);
+            ParseCharacter(context);
+        }
+
+        if (isRoot && context.LengthSource > 0)
+        {
+            throw new ArgumentException("erroneous '}'.", nameof(context));
         }
     }
 

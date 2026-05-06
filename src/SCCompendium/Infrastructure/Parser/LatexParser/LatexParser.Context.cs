@@ -7,11 +7,11 @@ public partial class LatexParser
 {
     private class Context
     {
-        private int _groupDepth = 0;
         private StringBuilder Source { get; } = new();
         private StringBuilder Result { get; }
         private readonly Stack<(int depth, Typeset typeset)> _typesets = new();
 
+        public int GroupDepth { get; private set; } = 0;
         public int LengthSource => Source.Length;
         public int LengthResult => Result.Length;
 
@@ -58,16 +58,16 @@ public partial class LatexParser
         public void RemoveResult(int start, int length) => Result.Remove(start, length);
         public StringSlice SliceResult(int start, int length) => new StringSlice(Result, start, length);
 
-        public void IncrementGroupDepth() => _groupDepth++;
+        public void IncrementGroupDepth() => GroupDepth++;
         public void DecrementGroupDepth()
         {
-            _groupDepth--;
-            while (_typesets.Count > 0 && _typesets.Peek().depth > _groupDepth)
+            GroupDepth--;
+            while (_typesets.Count > 0 && _typesets.Peek().depth > GroupDepth)
             {
                 _typesets.Pop();
             }
         }
-        public void AddTypeset(Typeset typeset) => _typesets.Push((_groupDepth, typeset));
+        public void AddTypeset(Typeset typeset) => _typesets.Push((GroupDepth, typeset));
 
         public CommandData GetCommand(string commandName)
         {
