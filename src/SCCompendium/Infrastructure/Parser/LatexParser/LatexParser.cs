@@ -82,6 +82,26 @@ public partial class LatexParser : ILatexParser
         return context.SliceResult(argumentStartI, argumentLength);
     }
 
+    private static void PrepArguments(Context context, int argumentCount)
+    {
+        if (argumentCount <= 0)
+        {
+            return;
+        }
+
+        var argumentLengths = new int[argumentCount];
+        for (int i = 0; i < argumentCount; i++)
+        {
+            argumentLengths[i] = LoadArgument(context).Length;
+        }
+
+        for (int i = argumentCount - 1; i >= 0; i--)
+        {
+            context.AppendSource('}');
+            context.ConsumeResult(argumentLengths[i]);
+        }
+    }
+
     private static void ExecuteCommand(Context context)
     {
         if (_escapedChars.Contains(context.PeekSource()))

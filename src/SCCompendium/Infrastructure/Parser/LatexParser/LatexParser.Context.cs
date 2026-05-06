@@ -52,6 +52,7 @@ public partial class LatexParser
             Result.Remove(Result.Length - 1, length);
         }
 
+        public void AppendSource(char c) => Source.Append(c);
         public void AppendResult(char c) => Result.Append(c);
 
         public void RemoveResult(int start, int length) => Result.Remove(start, length);
