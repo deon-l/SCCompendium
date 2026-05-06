@@ -107,6 +107,12 @@ public partial class LatexParser : ILatexParser
         var arguments = commandData.Arguments != 0
             ? new StringSlice[commandData.Arguments]
             : Array.Empty<StringSlice>();
+        bool incrementDepth = commandData.Arguments != 0 && commandData.Typeset is not null;
+        if (incrementDepth)
+        {
+            context.IncrementGroupDepth();
+            context.AddTypeset(commandData.Typeset!.Value);
+        }
 
         for (int i = 0; i < arguments.Length; i++)
         {
@@ -122,6 +128,11 @@ public partial class LatexParser : ILatexParser
         {
             StringSlice argument = arguments[i];
             context.RemoveResult(argument.Start, argument.Length);
+        }
+
+        if (incrementDepth)
+        {
+            context.DecrementGroupDepth();
         }
     }
 
