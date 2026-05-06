@@ -69,7 +69,7 @@ public partial class LatexParser : ILatexParser
         return context.SliceResult(argumentStartI, argumentLength);
     }
 
-    private static string GetCommandName(Context context)
+    private static StringSlice LoadCommandName(Context context)
     {
         if (context.LengthSource == 0)
         {
@@ -88,9 +88,9 @@ public partial class LatexParser : ILatexParser
         }
         int commandNameLength = context.LengthResult - commandNameStart;
 
-        string commandName = context.SliceResult(commandNameStart, commandNameLength).ToString();
+        StringSlice commandNameSlice = context.SliceResult(commandNameStart, commandNameLength);
         context.RemoveResult(commandNameStart, commandNameLength);
-        return commandName;
+        return commandNameSlice;
     }
 
     private static void ExecuteCommand(Context context)
@@ -102,7 +102,10 @@ public partial class LatexParser : ILatexParser
             return;
         }
 
-        string commandName = GetCommandName(context);
+        StringSlice commandNameSlice = LoadCommandName(context);
+        string commandName = commandNameSlice.ToString();
+        context.RemoveResult(commandNameSlice.Start,commandNameSlice.Length);
+        commandNameSlice = default;
 
         CommandData commandData = context.GetCommand(commandName);
 
