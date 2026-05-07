@@ -166,7 +166,7 @@ public partial class LatexParser : ILatexParser
         }
         if (c == '$')
         {
-            // ParseMathMode(context);
+            ParseMathMode(context);
             return;
         }
 
@@ -193,6 +193,62 @@ public partial class LatexParser : ILatexParser
         {
             throw new ArgumentException("erroneous '}'.", nameof(context));
         }
+    }
+
+    private static void ParseMathMode(Context context)
+    {
+        context.IncrementGroupDepth();
+        // Todo: add Math typeset
+        int baseDepth = context.GroupDepth;
+        while (true)
+        {
+            char c = context.PeekSource();
+            if (Char.IsWhiteSpace(c))
+            {
+                context.PopSource();
+                continue;
+            }
+            if (c == '^')
+            {
+                _ = context.PopSource();
+                PrepArguments(context, 1);
+                while (context.PeekSource() != '}')
+                {
+                    c = context.PopSource();
+                    context.AppendSource(c switch
+                    {
+                        // code value for superscript 1/2/3 is not in sequence with 4-0.
+                        '1' => '¹',
+                        '2' => '²',
+                        '3' => '³',
+                        _ => (char)(c - '0' + '⁰')
+                    });
+                }
+                continue;
+            }
+            if (c == '_')
+            {
+                _ = context.PopSource();
+                PrepArguments(context, 1);
+                while (context.PeekSource() != '}')
+                {
+                    c = context.PopSource();
+                    context.AppendSource((char)(c - '0' + '₀'));
+                }
+                continue;
+            }
+            if (c == '$')
+            {
+                break;
+            }
+            ParseCharacter(context);
+        }
+
+        if (context.GroupDepth != baseDepth)
+        {
+            throw new ArgumentException("Math segment has improperly closed group");
+        }
+        context.DecrementGroupDepth();
     }
 
     // private static ReadOnlySpan<char> ParseTipaSection(ReadOnlySpan<char> segment, Context context)
@@ -315,64 +371,5 @@ public partial class LatexParser : ILatexParser
     {
         Context context = new(segment, builder);
         ParseParagraphMode(context, isRoot: true);
-    }
-
-    // assumes only one command per segment
-    public void ParseLatexMathSegment(ReadOnlySpan<char> segment, StringBuilder builder)
-    {
-        if (segment.Length == 0)
-        {
-            return;
-        }
-
-        char command = segment[0];
-        if (command == '^')
-        {
-            builder.EnsureCapacity(builder.Length + segment[1..].Length);
-            foreach (char num in segment[1..])
-            {
-                Debug.Assert(Char.IsDigit(num));
-                builder.Append(num switch
-                {
-                    // code value for superscript 1/2/3 is
-                    '1' => '¹',
-                    '2' => '²',
-                    '3' => '³',
-                    _ => (char)(num - '0' + '⁰')
-                });
-            }
-            return;
-        }
-        if (command == '_')
-        {
-            builder.EnsureCapacity(builder.Length + segment[1..].Length);
-            foreach (char num in segment[1..])
-            {
-                Debug.Assert(Char.IsDigit(num));
-                builder.Append((char)(num - '0' + '₀'));
-            }
-            return;
-        }
-        if (command != '\\')
-        {
-            throw new ArgumentException($"unrecognized command ({{command}}) in $$ sequence: '{segment}'",
-                nameof(segment));
-        }
-
-        char simpleTokenResult = segment[1..] switch
-        {
-            "Omega" => 'Ω',
-            "langle" => '⟨',
-            "rangle" => '⟩',
-            _ => '\0'
-        };
-
-        if (simpleTokenResult != '\0')
-        {
-            builder.Append(simpleTokenResult);
-            return;
-        }
-        throw new ArgumentException($"unrecognized \\command ({segment[1..]}) in $$ sequence: '{segment}'",
-            nameof(segment));
     }
 }
