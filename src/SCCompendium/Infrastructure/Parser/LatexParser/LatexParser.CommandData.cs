@@ -6,6 +6,6 @@ public partial class LatexParser
 {
     private record struct CommandData(
         int Arguments,
-        Action<Context, ReadOnlySpan<StringSlice>> Command,
+        Action<Context> Command,
         Typeset? Typeset = null);
 }

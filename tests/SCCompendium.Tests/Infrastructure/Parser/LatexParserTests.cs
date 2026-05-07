@@ -1,5 +1,5 @@
 using System.Text;
-using SCCompendium.Infrastructure.Parser;
+using SCCompendium.Infrastructure.Parser.LatexParser;
 
 namespace SCCompendium.Tests.Infrastructure.Parser;
 
@@ -7,7 +7,7 @@ public class LatexParserTests
 {
     public class DataSource
     {
-        public const string SimpleTipaInput  = ":;0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ|";
+        public const string SimpleTipaInput  = ":;\"0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ|";
         public const string SimpleTipaOutput = "ː\u02D1ˈʉɨʌɜɥɐɒɤɵɘəɑβɕðɛɸɣɦɪʝʁʎɱŋɔʕɾʃθʊʋɯχʏʒ|";
         public static IEnumerable<(char, char)> TipaSourceToOutput()
         {
@@ -32,26 +32,26 @@ public class LatexParserTests
 
     [Test]
     [MethodDataSource<DataSource>(nameof(DataSource.TipaSourceToOutput))]
-    public async Task ParseLatexTipaSegment_1CharInputs_ExpectedOutputs(char inputSegment, char outputSegment)
+    public async Task ParseLatex_Tipa1ReplacedChar_GetReplacementChar(char inputSegment, char outputSegment)
     {
         LatexParser parser = new();
         StringBuilder sb = new();
 
-        parser.ParseLatexTipaSegment(new(ref inputSegment), sb);
+        parser.ParseLatexSegment(@$"\ipa{{{inputSegment}}}");
 
         await Assert.That(sb.Length).IsEqualTo(1);
         await Assert.That(sb[0]).IsEqualTo(outputSegment);
     }
 
     [Test]
-    public async Task ParseLatexTipaSegment_Ligatures_ExpectedOutput()
+    public async Task ParseLatex_TipaLigaturesSource_GetLigatures()
     {
         const string input = "\" \"\" | ||";
         const string expectedOutput = "ˈ ˌ | ‖";
         LatexParser parser = new();
         StringBuilder sb = new();
 
-        parser.ParseLatexTipaSegment(input, sb);
+        parser.ParseLatexSegment(@$"\ipa{{{input}}}");
 
         await Assert.That(sb.ToString()).IsEqualTo(expectedOutput);
     }
@@ -64,23 +64,23 @@ public class LatexParserTests
     [Arguments(@"\*A \*B \*C \*1 \*2 \*3", "A B C 1 2 3")]
     [Arguments(@"\*; \*: \*@ \*\# \*\$ \*\& \*\% \*\{ \*\}", "; : @ # $ & % { }")]
     [Arguments(@"\*{123}", "123")]
-    public async Task ParseLatexTipaSegment_AsteriskMacros_ExpectedOutput(string input, string expectedOutput)
+    public async Task ParseLatex_TipaAsteriskMacros_ExpectedOutput(string input, string expectedOutput)
     {
         LatexParser parser = new();
         StringBuilder sb = new();
 
-        parser.ParseLatexTipaSegment(input, sb);
+        parser.ParseLatexSegment(@$"\ipa{{{input}}}", sb);
 
         await Assert.That(sb.ToString()).IsEqualTo(expectedOutput);
     }
 
     [Test]
-    public async Task ParseLatexMathSegment_EmptyInput_NoModification()
+    public async Task ParseLatex_EmptyMathInput_NoModification()
     {
         LatexParser parser = new();
         StringBuilder sb = new();
 
-        parser.ParseLatexMathSegment(String.Empty, sb);
+        parser.ParseLatexSegment("$$", sb);
 
         await Assert.That(sb).IsEmpty();
     }
@@ -91,12 +91,12 @@ public class LatexParserTests
     [Arguments(@"\Omega", "Ω")]
     [Arguments(@"\langle", "⟨")]
     [Arguments(@"\rangle", "⟩")]
-    public async Task ParseLatexMathSegment_SingleCommands_ExpectedOutputs(string inputSegment, string expectedOutput)
+    public async Task ParseLatex_MathSingleCommands_ExpectedOutputs(string inputSegment, string expectedOutput)
     {
         LatexParser parser = new();
         StringBuilder sb = new();
 
-        parser.ParseLatexMathSegment(inputSegment, sb);
+        parser.ParseLatexSegment(inputSegment, sb);
         string actualOutput = sb.ToString();
 
         await Assert.That(actualOutput).IsEqualTo(expectedOutput);
@@ -106,11 +106,11 @@ public class LatexParserTests
     [Arguments("aaaaa")]
     [Arguments("\\bbbbb")]
     [Arguments("\\")]
-    public async Task ParseLatexMathSegment_InvalidInput_ThrowsException(string invalidInput)
+    public async Task ParseLatex_InvalidInput_ThrowsException(string invalidInput)
     {
         LatexParser parser = new();
 
-        void ErrorAction() => parser.ParseLatexMathSegment(invalidInput, new());
+        void ErrorAction() => parser.ParseLatexSegment(invalidInput, new());
 
         await Assert.That(ErrorAction).ThrowsExactly<ArgumentException>();
     }

@@ -1,4 +1,5 @@
 using SCCompendium.Infrastructure.Parser;
+using SCCompendium.Infrastructure.Parser.LatexParser;
 
 namespace SCCompendium.Tests.Infrastructure.Parser;
 
