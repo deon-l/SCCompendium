@@ -5,6 +5,66 @@ namespace SCCompendium.Tests.Infrastructure.Parser;
 
 public class LatexParserTests
 {
+    [Test]
+    public async Task ParseLatexSegment_EscapedChars_GetCharsWithoutBackslash()
+    {
+        const string input = @"\#\$\&\%\{\}\ ";
+        const string expectedOutput = "#$&%{} ";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    public async Task ParseLatexSegment_WhitespaceChars_GetOnlySpacesTabs()
+    {
+        string input = new String(' ', 2) + "\n\n\t\r" + ' ';
+        const string expectedOutput = "  \t ";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    public async Task ParseLatexSegment_BasicNoParamCommands_GetParsedOutput()
+    {
+        const string input = @"\change\textrightarrow";
+        const string expectedOutput = "→→";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    public async Task ParseLatexSegment_GroupCommandBF_ResetsOutsideGroup()
+    {
+        const string input = @"{\bf abc}def";
+        const string expectedOutput = "𝐚𝐛𝐜def";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    public async Task ParseLatexSegment_SourceLigatures_GetLigatures()
+    {
+        const string input = @"``''-- ---";
+        const string expectedOutput = "“”– —";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
     public class DataSource
     {
         public const string SimpleTipaInput  = ":;\"0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ|";
