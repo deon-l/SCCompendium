@@ -22,10 +22,15 @@ public partial class LatexParser
     private static readonly Dictionary<string, CommandData> _tipaCommands = new();
     private static readonly Dictionary<string, CommandData> _mathCommands = new();
 
+    private static readonly Typeset _paragraphTypeset = new(_normalCommands, null, null);
+
     static LatexParser()
     {
         _normalCommands.Add("ipa", _commandTextIpaData);
         _normalCommands.Add("textipa", _commandTextIpaData);
+        _normalCommands.Add("change", new(0, context => context.AppendResult('→')));
+        _normalCommands.Add("textrightarrow", _normalCommands["change"]);
+        _normalCommands.Add("bf", _commandBfData);
     }
 
     private static readonly CommandData _commandTextIpaData = new(1, CommandTextIpa,

@@ -26,7 +26,6 @@ public partial class LatexParser : ILatexParser
         int commandNameLength = context.LengthResult - commandNameStart;
 
         StringSlice commandNameSlice = context.SliceResult(commandNameStart, commandNameLength);
-        context.RemoveResult(commandNameStart, commandNameLength);
         return commandNameSlice;
     }
 
@@ -176,7 +175,8 @@ public partial class LatexParser : ILatexParser
     private static void ParseParagraphMode(Context context, bool isRoot = false)
     {
         int baseDepth = context.GroupDepth;
-        while (context.GroupDepth > baseDepth && context.LengthSource > 0)
+        context.AddTypeset(_paragraphTypeset);
+        while (context.GroupDepth >= baseDepth && context.LengthSource > 0)
         {
             char c = context.PeekSource();
             if (isRoot && c == '\\' && _escapedChars.Contains(context.PeekSource(1)))
