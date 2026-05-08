@@ -7,5 +7,6 @@ public partial class LatexParser
     private record struct CommandData(
         int Arguments,
         Action<Context> Command,
-        Typeset? Typeset = null);
+        Typeset? Typeset = null,
+        bool AutoSurroundGroup = true);
 }

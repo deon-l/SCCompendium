@@ -4,9 +4,24 @@ public partial class LatexParser
 {
     private static readonly Action<Context> _nullCommand = context => { };
 
+    private static Dictionary<char, string> CreateReplacements(string input, string output)
+    {
+        Debug.Assert(output.Length % input.Length == 0);
+        int charsPerReplace = output.Length / input.Length;
+        Dictionary<char, string> replacements = new();
+        for (int i = 0; i < input.Length; i++)
+        {
+            replacements.Add(input[i], output.Substring(i * charsPerReplace, charsPerReplace));
+        }
+
+        return replacements;
+    }
+
 
     private static readonly CommandData _commandBfData = new(0, _nullCommand, new(null, null,
-        Enumerable.Zip("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", "𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳").Select(p => (p.First, p.Second.ToString())).ToDictionary()));
+            CreateReplacements("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+                "𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳")
+            ),false);
 
     private static void CommandTextIpa(Context context)
     {

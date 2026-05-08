@@ -26,6 +26,11 @@ public partial class LatexParser : ILatexParser
         int commandNameLength = context.LengthResult - commandNameStart;
 
         StringSlice commandNameSlice = context.SliceResult(commandNameStart, commandNameLength);
+
+        if (Char.IsWhiteSpace(context.PeekSource()))
+        {
+            _ = context.PopSource();
+        }
         return commandNameSlice;
     }
 
@@ -119,17 +124,21 @@ public partial class LatexParser : ILatexParser
 
         PrepArguments(context, commandData.Arguments);
 
-        bool incrementDepth = commandData.Arguments != 0 && commandData.Typeset is not null;
+        bool incrementDepth = commandData.AutoSurroundGroup;
         if (incrementDepth)
         {
             context.IncrementGroupDepth();
-            context.AddTypeset(commandData.Typeset!.Value);
         }
+
+        context.AddTypeset(commandData.Typeset!.Value);
 
         int addedStartI = context.LengthResult;
         commandData.Command(context);
         int addedLength = context.LengthResult - addedStartI;
-        context.ConsumeResult(addedLength);
+        if (addedLength > 0)
+        {
+            context.ConsumeResult(addedLength);
+        }
 
         if (incrementDepth)
         {
@@ -140,6 +149,15 @@ public partial class LatexParser : ILatexParser
     private static void ParseCharacter(Context context)
     {
         char c = context.PopSource();
+
+        if (context.TryGetReplacement(c, out string replacement))
+        {
+            foreach (char replace in replacement)
+            {
+                context.AppendResult(replace);
+            }
+            return;
+        }
         if (Char.IsWhiteSpace(c))
         {
             if (_spacingWhitespace.Contains(c))

@@ -47,6 +47,8 @@ public partial class LatexParser
 
         public void ConsumeResult(int length)
         {
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(length);
+
             Source.EnsureCapacity(Source.Length + length);
             Source.Append(Result, Result.Length - 1, length);
             Result.Remove(Result.Length - 1, length);
@@ -81,6 +83,20 @@ public partial class LatexParser
             }
 
             throw new InvalidOperationException($"command \\'{commandName}' is not defined at this point");
+        }
+
+        public bool TryGetReplacement(char c, out string replacement)
+        {
+            foreach (var (_, typeset) in _typesets)
+            {
+                if (typeset.Replacements?.TryGetValue(c, out replacement!) is true)
+                {
+                    return true;
+                }
+            }
+
+            replacement = String.Empty;
+            return false;
         }
     }
 }
