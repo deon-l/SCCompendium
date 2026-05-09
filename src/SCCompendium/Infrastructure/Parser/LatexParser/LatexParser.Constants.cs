@@ -11,7 +11,7 @@ public partial class LatexParser
     private static readonly HashSet<char> _spacingWhitespace = new(" \t");
 
     private const string TipaInput  = ":;\"0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ|";
-    private const string TipaOutput = "ː\u02D1ˈʉɨʌɜɥɐɒɤɵɘəɑβɕðɛɸɣɦɪʝʁʎɱŋɔʕɾʃθʊʋɯχʏʒ|";
+    private const string TipaOutput = "ː\u02D1ˈʉɨʌɜɥɐɒɤɵɘəɑβɕðɛɸɣɦɪʝʁʎɱŋɔʔʕɾʃθʊʋɯχʏʒ|";
 
     private static readonly Dictionary<char, string> _tipaSingleCharConversions =
         Enumerable.Zip(TipaInput, TipaOutput)

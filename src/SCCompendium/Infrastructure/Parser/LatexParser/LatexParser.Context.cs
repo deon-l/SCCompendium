@@ -50,8 +50,11 @@ public partial class LatexParser
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(length);
 
             Source.EnsureCapacity(Source.Length + length);
-            Source.Append(Result, Result.Length - 1, length);
-            Result.Remove(Result.Length - 1, length);
+            for (int i = 0; i < length; i++)
+            {
+                Source.Insert(0, Result[Result.Length - i - 1]);
+            }
+            Result.Remove(Result.Length - length, length);
         }
 
         public void AppendSource(char c) => Source.Insert(0, c);

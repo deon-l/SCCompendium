@@ -68,11 +68,11 @@ public class LatexParserTests
     public class DataSource
     {
         public const string SimpleTipaInput  = ":;\"0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ|";
-        public const string SimpleTipaOutput = "ː\u02D1ˈʉɨʌɜɥɐɒɤɵɘəɑβɕðɛɸɣɦɪʝʁʎɱŋɔʕɾʃθʊʋɯχʏʒ|";
+        public const string SimpleTipaOutput = "ːˑˈʉɨʌɜɥɐɒɤɵɘəɑβɕðɛɸɣɦɪʝʁʎɱŋɔʔʕɾʃθʊʋɯχʏʒ|";
         public static IEnumerable<(char, char)> TipaSourceToOutput()
         {
-            Debug.Assert(SimpleTipaInput.Length == SimpleTipaOutput.Length);
-            for (int i = 0; i < SimpleTipaInput.Length; i++)
+            Debug.Assert(SimpleTipaInput.Length == SimpleTipaOutput.Length, $"{SimpleTipaInput.Length} != {SimpleTipaOutput.Length}");
+            for (int i = 0; i < SimpleTipaOutput.Length; i++)
             {
                 yield return (SimpleTipaInput[i], SimpleTipaOutput[i]);
             }
@@ -95,12 +95,10 @@ public class LatexParserTests
     public async Task ParseLatex_Tipa1ReplacedChar_GetReplacementChar(char inputSegment, char outputSegment)
     {
         LatexParser parser = new();
-        StringBuilder sb = new();
 
-        parser.ParseLatexSegment(@$"\ipa{{{inputSegment}}}");
+        string result = parser.ParseLatexSegment(@$"\ipa{{{inputSegment}}}");
 
-        await Assert.That(sb.Length).IsEqualTo(1);
-        await Assert.That(sb[0]).IsEqualTo(outputSegment);
+        await Assert.That(result).IsEqualTo(outputSegment.ToString());
     }
 
     [Test]

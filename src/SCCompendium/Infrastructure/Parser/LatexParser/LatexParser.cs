@@ -103,6 +103,7 @@ public partial class LatexParser : ILatexParser
         {
             context.AppendSource('}');
             context.ConsumeResult(argumentLengths[i]);
+            context.AppendSource('{');
         }
     }
 
