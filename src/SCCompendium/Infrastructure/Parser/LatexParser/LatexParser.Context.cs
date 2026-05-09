@@ -54,7 +54,7 @@ public partial class LatexParser
             Result.Remove(Result.Length - 1, length);
         }
 
-        public void AppendSource(char c) => Source.Append(c);
+        public void AppendSource(char c) => Source.Insert(0, c);
         public void AppendResult(char c) => Result.Append(c);
 
         public void RemoveResult(int start, int length) => Result.Remove(start, length);
@@ -96,6 +96,20 @@ public partial class LatexParser
             }
 
             replacement = String.Empty;
+            return false;
+        }
+
+        public bool TryGetLigature(char c1, char c2, out string ligature)
+        {
+            foreach (var (_, typeset) in _typesets)
+            {
+                if (typeset.Ligatures?.TryGetValue((c1, c2), out ligature!) is true)
+                {
+                    return true;
+                }
+            }
+
+            ligature = String.Empty;
             return false;
         }
     }

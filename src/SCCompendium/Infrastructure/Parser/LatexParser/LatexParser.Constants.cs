@@ -22,7 +22,15 @@ public partial class LatexParser
     private static readonly Dictionary<string, CommandData> _tipaCommands = new();
     private static readonly Dictionary<string, CommandData> _mathCommands = new();
 
-    private static readonly Typeset _paragraphTypeset = new(_normalCommands, null, null);
+    private static readonly Dictionary<(char, char), string> _paragraphLigatures = new()
+    {
+        { ('`', '`'), "“" },
+        { ('\'', '\''), "”"},
+        { ('-', '-'), "–"},
+        { ('–', '-'), "—"},
+    };
+
+    private static readonly Typeset _paragraphTypeset = new(_normalCommands, _paragraphLigatures, null);
 
     static LatexParser()
     {

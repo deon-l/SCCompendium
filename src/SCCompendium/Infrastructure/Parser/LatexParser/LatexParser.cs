@@ -150,6 +150,16 @@ public partial class LatexParser : ILatexParser
     {
         char c = context.PopSource();
 
+        if (context.TryGetLigature(c, context.PeekSource(), out string ligature))
+        {
+            _ = context.PopSource();
+            foreach (char ligC in ligature.Reverse())
+            {
+                // append to source exclusively as em-dash ligature uses on en-dash as source
+                context.AppendSource(ligC);
+            }
+            return;
+        }
         if (context.TryGetReplacement(c, out string replacement))
         {
             foreach (char replace in replacement)
