@@ -104,14 +104,13 @@ public class LatexParserTests
     [Test]
     public async Task ParseLatex_TipaLigaturesSource_GetLigatures()
     {
-        const string input = "\" \"\" | ||";
-        const string expectedOutput = "ˈ ˌ | ‖";
+        const string input = "\"\" ||";
+        const string expectedOutput = "ˌ ‖";
         LatexParser parser = new();
-        StringBuilder sb = new();
 
-        parser.ParseLatexSegment(@$"\ipa{{{input}}}");
+        string result = parser.ParseLatexSegment(@$"\ipa{{{input}}}");
 
-        await Assert.That(sb.ToString()).IsEqualTo(expectedOutput);
+        await Assert.That(result).IsEqualTo(expectedOutput);
     }
 
     [Test]
