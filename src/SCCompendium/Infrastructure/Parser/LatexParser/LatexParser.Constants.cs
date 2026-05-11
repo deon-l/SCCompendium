@@ -39,6 +39,8 @@ public partial class LatexParser
         _normalCommands.Add("change", new(0, context => context.AppendResult('→')));
         _normalCommands.Add("textrightarrow", _normalCommands["change"]);
         _normalCommands.Add("bf", _commandBfData);
+
+        _tipaCommands.Add("*", new(1, CommandAsterisk));
     }
 
     private static readonly CommandData _commandTextIpaData = new(1, CommandTextIpa,

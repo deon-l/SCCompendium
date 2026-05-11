@@ -15,7 +15,6 @@ public partial class LatexParser : ILatexParser
 
         int commandNameStart = context.LengthResult;
         char firstC = context.ConsumeSource();
-        Debug.Assert(!_escapedChars.Contains(firstC), "Does not handle chars escaped with '\\'");
         if (Char.IsLetterOrDigit(firstC))
         {
             while (Char.IsLetterOrDigit(context.PeekSource()))
@@ -27,10 +26,6 @@ public partial class LatexParser : ILatexParser
 
         StringSlice commandNameSlice = context.SliceResult(commandNameStart, commandNameLength);
 
-        if (Char.IsWhiteSpace(context.PeekSource()))
-        {
-            _ = context.PopSource();
-        }
         return commandNameSlice;
     }
 
@@ -75,7 +70,8 @@ public partial class LatexParser : ILatexParser
             }
             if (c == '\\')
             {
-                LoadArgument(context);
+                context.AppendResult('\\');
+                LoadCommandName(context);
                 continue;
             }
 
@@ -131,7 +127,10 @@ public partial class LatexParser : ILatexParser
             context.IncrementGroupDepth();
         }
 
-        context.AddTypeset(commandData.Typeset!.Value);
+        if (commandData.Typeset is not null)
+        {
+            context.AddTypeset(commandData.Typeset.Value);
+        }
 
         int addedStartI = context.LengthResult;
         commandData.Command(context);

@@ -35,13 +35,13 @@ public partial class LatexParser
                 c = context.PeekSource();
                 if (c == '\\')
                 {
-                    Debug.Assert(_escapedChars.Contains(context.PeekSource(1)));
                     context.ConsumeSource();
-                    context.ConsumeSource();
+                    LoadCommandName(context);
                     continue;
                 }
 
                 context.ConsumeSource();
+                continue;
             }
             ParseCharacter(context);
         } while (context.GroupDepth > baseDepth);
@@ -77,33 +77,64 @@ public partial class LatexParser
     //     return segment;
     // }
 
-    // private static ReadOnlySpan<char> CommandAsterisk(ReadOnlySpan<char> segment, Context context)
-    // {
-    //     StringBuilder argument = new();
-    //     segment = GetArgument(segment, context, argument);
-    //
-    //     for (int i = 0; i < argument.Length; i++)
-    //     {
-    //         context.Result.Append(argument[i] switch
-    //         {
-    //             'f' => 'ⅎ',
-    //             'k' => 'ʞ',
-    //             'r' => 'ɹ',
-    //             't' => 'ʇ',
-    //             'w' => 'ʍ',
-    //             'j' => 'ɟ',
-    //             'n' => 'ɲ',
-    //             'h' => 'ħ',
-    //             'l' => 'ɬ',
-    //             'z' => 'ɮ',
-    //             _ => TipaIgnoreNextChar
-    //         });
-    //         if (context.Result[^1] == TipaIgnoreNextChar)
-    //         {
-    //             context.Result.Append(argument[i]);
-    //         }
-    //     }
-    //
-    //     return segment;
-    // }
+    private static void CommandAsterisk(Context context)
+    {
+        int baseDepth = context.GroupDepth;
+        do
+        {
+            char c = context.PopSource();
+            if (c == '\\')
+            {
+                context.AppendResult(TipaIgnoreNextChar);
+                context.AppendResult('\\');
+                LoadCommandName(context);
+                continue;
+            }
+            if (c == '{')
+            {
+                context.IncrementGroupDepth();
+                context.AppendResult(c);
+                continue;
+            }
+            if (c == '}')
+            {
+                context.DecrementGroupDepth();
+                context.AppendResult(c);
+                continue;
+            }
+            if (c == '$')
+            {
+                int startLength = context.LengthResult;
+                ParseMathMode(context);
+                int length = context.LengthResult - startLength;
+
+                context.AppendSource('}');
+                context.ConsumeResult(length);
+                context.AppendSource('{');
+                CommandAsterisk(context);
+                continue;
+            }
+
+            char replace = c switch
+            {
+                'f' => 'ⅎ',
+                'k' => 'ʞ',
+                'r' => 'ɹ',
+                't' => 'ʇ',
+                'w' => 'ʍ',
+                'j' => 'ɟ',
+                'n' => 'ɲ',
+                'h' => 'ħ',
+                'l' => 'ɬ',
+                'z' => 'ɮ',
+                _ => TipaIgnoreNextChar
+            };
+
+            context.AppendResult(replace);
+            if (replace == TipaIgnoreNextChar)
+            {
+                context.AppendResult(c);
+            }
+        } while (context.GroupDepth > baseDepth);
+    }
 }
