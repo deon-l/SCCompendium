@@ -47,35 +47,58 @@ public partial class LatexParser
         } while (context.GroupDepth > baseDepth);
     }
 
-    // private static void CommandSuper(Context context)
-    // {
-    //     int baseDepth = context.GroupDepth;
-    //     do
-    //     {
-    //         context.Result.Append(argument[i] switch
-    //         {
-    //             'h' => 'ʰ',
-    //             'l' => 'ˡ',
-    //             'm' => 'ᵐ',
-    //             'n' => 'ⁿ',
-    //             'j' => 'ʲ',
-    //             'w' => 'ʷ',
-    //             'x' => 'ˣ',
-    //             'y' => 'ʸ',
-    //             // This command is TIPA exclusive, so the capital conversions are preemptively applied.
-    //             'H' => 'ʱ',
-    //             'M' => 'ᶬ',
-    //             'N' => 'ᵑ',
-    //             'P' => 'ˀ',
-    //             'Q' => 'ˤ',
-    //             'W' => 'ᵚ',
-    //             _ => throw new ArgumentException(
-    //                 $"Cannot raise '{argument[i]}' (limitation of encoding or not implemented)", nameof(segment))
-    //         });
-    //     } while (context.GroupDepth > baseDepth);
-    //
-    //     return segment;
-    // }
+    private static void CommandSuper(Context context)
+    {
+        int baseDepth = context.GroupDepth;
+        do
+        {
+            char c = context.PopSource();
+            if (c == '\\')
+            {
+                if (!_escapedChars.TryGetValue(context.PeekSource(), out c))
+                {
+                    ExecuteCommand(context);
+                    continue;
+                }
+            }
+            if (c == '{')
+            {
+                context.IncrementGroupDepth();
+                continue;
+            }
+            if (c == '}')
+            {
+                context.DecrementGroupDepth();
+                continue;
+            }
+
+            if (c == '$')
+            {
+                throw new NotSupportedException("Command Super doesn't support math mode");
+            }
+            
+            context.AppendResult(c switch
+            {
+                'h' => 'ʰ',
+                'l' => 'ˡ',
+                'm' => 'ᵐ',
+                'n' => 'ⁿ',
+                'j' => 'ʲ',
+                'w' => 'ʷ',
+                'x' => 'ˣ',
+                'y' => 'ʸ',
+                // This command is TIPA exclusive, so the capital conversions are preemptively applied.
+                'H' => 'ʱ',
+                'M' => 'ᶬ',
+                'N' => 'ᵑ',
+                'P' => 'ˀ',
+                'Q' => 'ˤ',
+                'W' => 'ᵚ',
+                _ => throw new ArgumentException(
+                    $"Cannot raise '{c}' (limitation of encoding or not implemented)", nameof(context))
+            });
+        } while (context.GroupDepth > baseDepth);
+    }
 
     private static void CommandAsterisk(Context context)
     {

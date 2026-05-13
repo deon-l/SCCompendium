@@ -41,6 +41,7 @@ public partial class LatexParser
         _normalCommands.Add("bf", _commandBfData);
 
         _tipaCommands.Add("*", new(1, CommandAsterisk));
+        _tipaCommands.Add("super", new (1, CommandSuper));
     }
 
     private static readonly CommandData _commandTextIpaData = new(1, CommandTextIpa,
