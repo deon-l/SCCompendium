@@ -132,6 +132,18 @@ public class LatexParserTests
     }
 
     [Test]
+    public async Task ParseLatex_TipaCommandSuper_ReturnsExpectedOutput()
+    {
+        const string input = @"\ipa{\super{hlmnjwxyHMNPQW}}";
+        const string expectedOutput = "ʰˡᵐⁿʲʷˣʸʱᶬᵑˀˤᵚ";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
     public async Task ParseLatex_EmptyMathInput_NoModification()
     {
         LatexParser parser = new();
