@@ -155,11 +155,11 @@ public class LatexParserTests
     }
 
     [Test]
-    [Arguments("_0", "₀")]
-    [Arguments("^1", "¹")]
-    [Arguments(@"\Omega", "Ω")]
-    [Arguments(@"\langle", "⟨")]
-    [Arguments(@"\rangle", "⟩")]
+    [Arguments("$_0$", "₀")]
+    [Arguments("$^1$", "¹")]
+    [Arguments(@"$\Omega$", "Ω")]
+    [Arguments(@"$\langle$", "⟨")]
+    [Arguments(@"$\rangle$", "⟩")]
     public async Task ParseLatex_MathSingleCommands_ExpectedOutputs(string inputSegment, string expectedOutput)
     {
         LatexParser parser = new();

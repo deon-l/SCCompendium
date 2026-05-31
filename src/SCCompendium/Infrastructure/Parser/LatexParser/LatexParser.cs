@@ -226,9 +226,9 @@ public partial class LatexParser : ILatexParser
     private static void ParseMathMode(Context context)
     {
         context.IncrementGroupDepth();
-        // Todo: add Math typeset
+        context.AddTypeset(_mathModeTypeset);
         int baseDepth = context.GroupDepth;
-        while (true)
+        while (context.GroupDepth >= baseDepth)
         {
             if (context.LengthSource == 0)
             {
@@ -245,10 +245,12 @@ public partial class LatexParser : ILatexParser
             {
                 _ = context.PopSource();
                 PrepArguments(context, 1);
+                Debug.Assert(context.PeekSource() == '{');
+                _ = context.PopSource();
                 while (context.PeekSource() != '}')
                 {
                     c = context.PopSource();
-                    context.AppendSource(c switch
+                    context.AppendResult(c switch
                     {
                         // code value for superscript 1/2/3 is not in sequence with 4-0.
                         '1' => '¹',
@@ -257,17 +259,23 @@ public partial class LatexParser : ILatexParser
                         _ => (char)(c - '0' + '⁰')
                     });
                 }
+                Debug.Assert(context.PeekSource() == '}');
+                _ = context.PopSource();
                 continue;
             }
             if (c == '_')
             {
                 _ = context.PopSource();
                 PrepArguments(context, 1);
+                Debug.Assert(context.PeekSource() == '{');
+                _ = context.PopSource();
                 while (context.PeekSource() != '}')
                 {
                     c = context.PopSource();
-                    context.AppendSource((char)(c - '0' + '₀'));
+                    context.AppendResult((char)(c - '0' + '₀'));
                 }
+                Debug.Assert(context.PeekSource() == '}');
+                _ = context.PopSource();
                 continue;
             }
             if (c == '$')
