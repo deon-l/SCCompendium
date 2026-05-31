@@ -230,6 +230,11 @@ public partial class LatexParser : ILatexParser
         int baseDepth = context.GroupDepth;
         while (true)
         {
+            if (context.LengthSource == 0)
+            {
+                throw new ArgumentException("Unclosed math segment.");
+            }
+
             char c = context.PeekSource();
             if (Char.IsWhiteSpace(c))
             {
@@ -267,6 +272,7 @@ public partial class LatexParser : ILatexParser
             }
             if (c == '$')
             {
+                _ = context.PopSource();
                 break;
             }
             ParseCharacter(context);
