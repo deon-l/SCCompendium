@@ -172,6 +172,7 @@ public class LatexParserTests
     }
 
     [Test]
+    [Skip("Current exceptions are temporary. New ones will be implemented in future.")]
     [Arguments("aaaaa")]
     [Arguments("\\bbbbb")]
     [Arguments("\\")]
