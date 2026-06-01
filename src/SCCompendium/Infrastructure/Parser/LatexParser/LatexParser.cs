@@ -4,8 +4,25 @@ using SCCompendium.Application.Parser;
 
 namespace SCCompendium.Infrastructure.Parser.LatexParser;
 
+/// <summary>
+/// Provides parsing of Latex into a string.
+/// Assumes the TIPA package is being used.
+/// </summary>
+/// <remarks>
+/// As the class parses Latex in strings, not all functionality can be represented.
+/// Furthermore, various other features aren't supported.
+/// Generally, this class assumes what is being parsed is "content" part of a Latex document,
+/// and not things like macro/command definition, document specification, other package using, etc.
+/// </remarks>
 public partial class LatexParser : ILatexParser
 {
+    /// <summary>
+    /// Pops the next command name from the source of <paramref name="context"/>, and adds it to the result sb.
+    /// It returns a <see cref="StringSlice"/> of that command name in the result sb.
+    /// </summary>
+    /// <remarks>
+    /// A command name is either a contiguous sequence of alphabetic chars, or 1 non-alphabetic char.
+    /// </remarks>
     private static StringSlice LoadCommandName(Context context)
     {
         if (context.LengthSource == 0)
@@ -15,6 +32,7 @@ public partial class LatexParser : ILatexParser
 
         int commandNameStart = context.LengthResult;
         char firstC = context.ConsumeSource();
+        // Todo: should be IsLetter.
         if (Char.IsLetterOrDigit(firstC))
         {
             while (Char.IsLetterOrDigit(context.PeekSource()))
@@ -29,6 +47,13 @@ public partial class LatexParser : ILatexParser
         return commandNameSlice;
     }
 
+    /// <summary>
+    /// Pop a command argument from <paramref name="context"/>'s source sb and onto the result sb.
+    /// Returns said command argument as a <see cref="StringSlice"/>
+    /// </summary>
+    /// <remarks>
+    /// An argument is either 1 character, or multiple enclosed in curly braces. Leading whitespace is ignored.
+    /// </remarks>
     private static StringSlice LoadArgument(Context context)
     {
         while (Char.IsWhiteSpace(context.PeekSource()))
@@ -82,6 +107,11 @@ public partial class LatexParser : ILatexParser
         return context.SliceResult(argumentStartI, argumentLength);
     }
 
+    /// <summary>
+    /// Preps the next <paramref name="argumentCount"/> arguments (as defined in <see cref="LoadArgument"/>)
+    /// by surrounding them in curly braces and removing leading/in-between whitespace
+    /// in <paramref name="context"/>'s source sb.
+    /// </summary>
     private static void PrepArguments(Context context, int argumentCount)
     {
         if (argumentCount <= 0)
@@ -103,6 +133,14 @@ public partial class LatexParser : ILatexParser
         }
     }
 
+    /// <summary>
+    /// Executes the next command in <see cref="Context"/>'s source sb, consuming the appropriate command name/arguments
+    /// and putting the result back onto the source sb.
+    /// Also handles escaped characters by instead appending them (still escaped) to the result sb.
+    /// </summary>
+    /// <remarks>
+    /// Assumes the leading '\' has already been consumed
+    /// </remarks>
     private static void ExecuteCommand(Context context)
     {
         if (_escapedChars.Contains(context.PeekSource()))
@@ -146,6 +184,12 @@ public partial class LatexParser : ILatexParser
         }
     }
 
+    /// <summary>
+    /// Parses the next token (e.g. ligatures, replaced chars, commands, groups).
+    /// This provides default parsing implementation.
+    /// Ligatures, Commands, math mode parsed results are added to <paramref name="context"/>'s source sb.
+    /// Everything else (including escaped chars) are added to the result sb.
+    /// </summary>
     private static void ParseCharacter(Context context)
     {
         char c = context.PopSource();
@@ -200,6 +244,17 @@ public partial class LatexParser : ILatexParser
         context.AppendResult(c);
     }
 
+    /// <summary>
+    /// Parse latex segment in Paragraph Mode.
+    /// Entry point to begin parsing latex if <paramref name="isRoot"/> is <see langword="true"/>.
+    /// Otherwise, assumes it is parsing inside a group, where leading '{' has already been consumed.
+    /// </summary>
+    /// <param name="isRoot">
+    /// If <see langword="true"/>, signals this is entry point for latex parsing,
+    /// and that no other parsing methods parse its results.
+    /// So it will do additional tasks, such as finally handling escaped characters.
+    /// </param>
+
     private static void ParseParagraphMode(Context context, bool isRoot = false)
     {
         int baseDepth = context.GroupDepth;
@@ -223,6 +278,12 @@ public partial class LatexParser : ILatexParser
         }
     }
 
+    /// <summary>
+    /// Parses the section of Latex that has been denoted as being in Math Mode (by '$')
+    /// </summary>
+    /// <remarks>
+    /// Assumes the opening '$' has already been consumed.
+    /// </remarks>
     private static void ParseMathMode(Context context)
     {
         context.IncrementGroupDepth();
@@ -293,6 +354,9 @@ public partial class LatexParser : ILatexParser
         context.DecrementGroupDepth();
     }
 
+    /// <summary>
+    /// Parse the latex <paramref name="segment"/> into a string and return it.
+    /// </summary>
     public string ParseLatexSegment(ReadOnlySpan<char> segment)
     {
         StringBuilder sb = new();
@@ -300,6 +364,9 @@ public partial class LatexParser : ILatexParser
         return sb.ToString();
     }
 
+    /// <summary>
+    /// Parse the latex <paramref name="segment"/>, appending the result onto <paramref name="builder"/>.
+    /// </summary>
     public void ParseLatexSegment(ReadOnlySpan<char> segment, StringBuilder builder)
     {
         Context context = new(segment, builder);
