@@ -1,9 +1,18 @@
 namespace SCCompendium.Infrastructure.Parser.LatexParser;
 
+// This file stores all other commands and their associated data.
+// Also holds a few helper methods in that regard.
+// Note that some commands are implemented inline in static ctor in LatexParser.Constants.cs
 public partial class LatexParser
 {
+    /// <summary>Command implementation that does nothing.</summary>
     private static readonly Action<Context> _nullCommand = context => { };
 
+    /// <summary>
+    /// Helper command for creating replacements.
+    /// Assumes replacements are all the same length <c>n</c>, and
+    /// <paramref name="output"/> length is exactly <c>n</c> times the length of <paramref name="input"/>.
+    /// </summary>
     private static Dictionary<char, string> CreateReplacements(string input, string output)
     {
         Debug.Assert(output.Length % input.Length == 0);
@@ -25,6 +34,10 @@ public partial class LatexParser
                 "𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳")
         ), false);
 
+    /// <summary>
+    /// Parsing for adding IPA characters quickly
+    /// </summary>
+    /// <seealso cref="TipaIgnoreNextChar"/>
     private static void CommandTextIpa(Context context)
     {
         int baseDepth = context.GroupDepth;
@@ -49,6 +62,9 @@ public partial class LatexParser
         } while (context.GroupDepth > baseDepth);
     }
 
+    /// <summary>
+    /// Convert its argument into superscript text.
+    /// </summary>
     private static void CommandSuper(Context context)
     {
         int baseDepth = context.GroupDepth;
@@ -102,6 +118,9 @@ public partial class LatexParser
         } while (context.GroupDepth > baseDepth);
     }
 
+    /// <summary>
+    /// Transforms a select few chars, and marks the rest to not be replaced by Tipa defiend replacements
+    /// </summary>
     private static void CommandAsterisk(Context context)
     {
         int baseDepth = context.GroupDepth;

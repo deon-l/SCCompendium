@@ -3,8 +3,15 @@ using OneOf;
 
 namespace SCCompendium.Infrastructure.Parser.LatexParser;
 
+// Todo: Move much of this stuff to LatexParser.Commands.cs
+
+// This file stores Miscellaneous constants,
+// and performs other setup such as populating command lists.
 public partial class LatexParser
 {
+    /// <summary>
+    /// Char used to signal to <see cref="CommandTextIpa"/> to not apply replacements to next character.
+    /// </summary>
     private const char TipaIgnoreNextChar = (char)26; // 'Substitute' character, used as it seems unused and thematically similar.
 
     private static readonly HashSet<char> _escapedChars = new("#$&%{} ");
