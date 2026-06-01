@@ -31,6 +31,7 @@ public partial class LatexParser
     };
 
     private static readonly Typeset _paragraphTypeset = new(_normalCommands, _paragraphLigatures, null);
+    private static readonly Typeset _mathModeTypeset = new(_mathCommands, null, null);
 
     static LatexParser()
     {
@@ -42,6 +43,10 @@ public partial class LatexParser
 
         _tipaCommands.Add("*", new(1, CommandAsterisk));
         _tipaCommands.Add("super", new (1, CommandSuper));
+
+        _mathCommands.Add("Omega", new(0, context => context.AppendResult('Ω')) );
+        _mathCommands.Add("langle", new(0, context => context.AppendResult('⟨')) );
+        _mathCommands.Add("rangle", new(0, context => context.AppendResult('⟩')) );
     }
 
     private static readonly CommandData _commandTextIpaData = new(1, CommandTextIpa,
