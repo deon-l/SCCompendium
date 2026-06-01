@@ -11,25 +11,25 @@ public partial class LatexParser
     private class Context
     {
         /// <summary>Chars to still parse.</summary>
-        private StringBuilder Source { get; } = new();
+        private readonly StringBuilder _source = new();
         /// <summary>Result from parsing.</summary>
-        private StringBuilder Result { get; }
+        private readonly StringBuilder _result;
         /// <summary>Stack of typesets, and the group depth they're instantiated at.</summary>
         private readonly Stack<(int depth, Typeset typeset)> _typesets = new();
 
         /// <summary>Current depth in groups (i.e. how many groups have been entered and not exited).</summary>
         public int GroupDepth { get; private set; } = 0;
         /// <summary>Number of chars to parse.</summary>
-        public int LengthSource => Source.Length;
+        public int LengthSource => _source.Length;
         /// <summary>Number of chars in current result.</summary>
-        public int LengthResult => Result.Length;
+        public int LengthResult => _result.Length;
 
         /// <param name="initialSource">Used to initiate the source chars to parse</param>
         /// <param name="result">Used as the result <see cref="StringBuilder"/>, modified by this class.</param>
         public Context(ReadOnlySpan<char> initialSource, StringBuilder result)
         {
-            Source.Append(initialSource);
-            Result = result;
+            _source.Append(initialSource);
+            _result = result;
         }
 
         /// <summary>
@@ -38,12 +38,12 @@ public partial class LatexParser
         /// <remarks>If the specified char doesn't exist, returns <c>'\0'</c></remarks>
         public char PeekSource(int index = 0)
         {
-            if (index >= Source.Length)
+            if (index >= _source.Length)
             {
                 return '\0';
             }
 
-            return Source[index];
+            return _source[index];
         }
 
         /// <summary>
@@ -52,8 +52,8 @@ public partial class LatexParser
         /// <remarks>Unlike <see cref="PeekSource"/>, throws an exception if the next char doesn't exist.</remarks>
         public char PopSource()
         {
-            char c = Source[0];
-            Source.Remove(0, 1);
+            char c = _source[0];
+            _source.Remove(0, 1);
             return c;
         }
 
@@ -64,7 +64,7 @@ public partial class LatexParser
         public char ConsumeSource()
         {
             char c = PopSource();
-            Result.Append(c);
+            _result.Append(c);
             return c;
         }
 
@@ -75,22 +75,22 @@ public partial class LatexParser
         {
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(length);
 
-            Source.EnsureCapacity(Source.Length + length);
+            _source.EnsureCapacity(_source.Length + length);
             for (int i = 0; i < length; i++)
             {
-                Source.Insert(0, Result[Result.Length - i - 1]);
+                _source.Insert(0, _result[_result.Length - i - 1]);
             }
-            Result.Remove(Result.Length - length, length);
+            _result.Remove(_result.Length - length, length);
         }
 
-        public void AppendSource(char c) => Source.Insert(0, c);
-        public void AppendResult(char c) => Result.Append(c);
+        public void AppendSource(char c) => _source.Insert(0, c);
+        public void AppendResult(char c) => _result.Append(c);
 
-        public void RemoveResult(int start, int length) => Result.Remove(start, length);
+        public void RemoveResult(int start, int length) => _result.Remove(start, length);
         /// <summary>
         /// Create a <see cref="StringSlice"/> of the result sb, at the corresponding index/length.
         /// </summary>
-        public StringSlice SliceResult(int start, int length) => new StringSlice(Result, start, length);
+        public StringSlice SliceResult(int start, int length) => new StringSlice(_result, start, length);
 
         public void IncrementGroupDepth() => GroupDepth++;
         /// <remarks>Automatically removes typesets that were at the now left depth.</remarks>
