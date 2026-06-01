@@ -12,7 +12,6 @@ public partial class LatexParser
     {
         /// <summary>Chars to still parse.</summary>
         private readonly StringBuilder _source = new();
-
         /// <summary>Result from parsing.</summary>
         private readonly StringBuilder _result;
         /// <summary>Stack of typesets, and the group depth they're instantiated at.</summary>
