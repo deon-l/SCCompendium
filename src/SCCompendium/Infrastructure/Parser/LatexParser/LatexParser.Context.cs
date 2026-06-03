@@ -1,4 +1,3 @@
-using OneOf;
 using System.Text;
 
 namespace SCCompendium.Infrastructure.Parser.LatexParser;
