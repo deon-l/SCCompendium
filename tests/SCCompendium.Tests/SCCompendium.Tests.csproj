@@ -16,8 +16,4 @@
     <ProjectReference Include="..\..\src\SCCompendium\SCCompendium.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Application\" />
-  </ItemGroup>
-
 </Project>
