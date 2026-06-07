@@ -128,11 +128,12 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
                         break;
                     }
 
-                    diacritics.Add(segment[i..(diacriticLength + 1)].ToString());
-                    i = i + diacriticLength + 1;
+                    Debug.Assert(segment[i..(i + diacriticLength + 1)].EndsWith(']'));
+                    diacritics.Add(segment[i..(i + diacriticLength + 1)].ToString());
+                    i += diacriticLength + 1;
                     continue;
                 }
-                if (Char.GetUnicodeCategory(segment[characterEndI]) is UnicodeCategory.ModifierLetter
+                if (Char.GetUnicodeCategory(c2) is UnicodeCategory.ModifierLetter
                     or UnicodeCategory.ModifierSymbol or UnicodeCategory.SpacingCombiningMark
                     or UnicodeCategory.NonSpacingMark)
                 {
@@ -144,7 +145,12 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
                 break;
             }
 
-            foundChars.Add(new IpaCharacter(character, diacritics.ToArray()));
+            diacritics.Sort(StringComparer.Ordinal);
+            IpaCharacter ipaChar = new(character, diacritics.ToArray());
+            if (!foundChars.Contains(ipaChar))
+            {
+                foundChars.Add(ipaChar);
+            }
         }
 
         bool IsIpaChar(char c)
