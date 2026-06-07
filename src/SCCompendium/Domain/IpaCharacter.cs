@@ -13,7 +13,7 @@ public readonly struct IpaCharacter : IEquatable<IpaCharacter>
         {
             ArgumentNullException.ThrowIfNull(diacritics[i]);
             Debug.Assert(i == 0 || diacritics[i - 1].CompareTo(diacritics[i], StringComparison.Ordinal) <= 0,
-                "param 'diacritics' is sorted");
+                "param 'diacritics' should be is sorted");
         }
         Character = character;
         Diacritics = diacritics;
@@ -21,7 +21,7 @@ public readonly struct IpaCharacter : IEquatable<IpaCharacter>
 
     public bool Equals(IpaCharacter other)
     {
-        if (Diacritics != other.Diacritics)
+        if (Character != other.Character)
         {
             return false;
         }
@@ -47,11 +47,14 @@ public readonly struct IpaCharacter : IEquatable<IpaCharacter>
     public override int GetHashCode()
     {
         HashCode hash = new();
-        hash.Add(Diacritics);
+        hash.Add(Character);
         foreach (string diacritic in Diacritics)
         {
             hash.Add(diacritic);
         }
         return hash.ToHashCode();
     }
+
+    public static bool operator ==(IpaCharacter left, IpaCharacter right) => left.Equals(right);
+    public static bool operator !=(IpaCharacter left, IpaCharacter right) => !(left == right);
 }
