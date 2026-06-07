@@ -62,12 +62,12 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         if (context.Success && !context.ValueSpan.IsWhiteSpace())
         {
             ruleBuilder.Append('/');
-            ParseRuleSegment(output, ruleBuilder, contextChars);
+            ParseRuleSegment(context, ruleBuilder, contextChars);
         }
         if (exception.Success && !context.ValueSpan.IsWhiteSpace())
         {
             ruleBuilder.Append('!');
-            ParseRuleSegment(output, ruleBuilder, contextChars);
+            ParseRuleSegment(exception, ruleBuilder, contextChars);
         }
 
         rule = new PhonologicalRule(ruleBuilder.ToString(), inputChars.ToArray(), outputChars.ToArray(), contextChars.ToArray());
@@ -128,11 +128,12 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
                         break;
                     }
 
-                    diacritics.Add(segment[i..(diacriticLength + 1)].ToString());
-                    i = i + diacriticLength + 1;
+                    Debug.Assert(segment[i + diacriticLength] ==']');
+                    ParseProperties(segment[(i + 1)..(i + diacriticLength)], diacritics);
+                    i += diacriticLength + 1;
                     continue;
                 }
-                if (Char.GetUnicodeCategory(segment[characterEndI]) is UnicodeCategory.ModifierLetter
+                if (Char.GetUnicodeCategory(c2) is UnicodeCategory.ModifierLetter
                     or UnicodeCategory.ModifierSymbol or UnicodeCategory.SpacingCombiningMark
                     or UnicodeCategory.NonSpacingMark)
                 {
@@ -144,14 +145,73 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
                 break;
             }
 
-            foundChars.Add(new IpaCharacter(character, diacritics.ToArray()));
+            diacritics.Sort(StringComparer.Ordinal);
+            IpaCharacter ipaChar = new(character, diacritics.ToArray());
+            if (!foundChars.Contains(ipaChar))
+            {
+                foundChars.Add(ipaChar);
+            }
         }
 
-        bool IsIpaChar(char c)
+        // Parse properties contained in segment, and add them to param `diacritics`.
+        // Assumes segment isn't surrounded by '[ ]'.
+        static void ParseProperties(ReadOnlySpan<char> segment, List<string> diacritics)
+        {
+            segment = segment.TrimStart();
+            if (segment.IsEmpty || segment.IsWhiteSpace())
+            {
+                return;
+            }
+
+            Debug.Assert(segment[0] is '+' or '-');
+            bool positiveProperty = segment[0] == '+';
+
+            segment = segment[1..].TrimStart();
+            if (segment.Length < 0)
+            {
+                // Todo: more appropriate Exception, maybe
+                throw new ArgumentException("Has property with no associated name", nameof(segment));
+            }
+            if (segment[0] is '+' or '-')
+            {
+                throw new ArgumentException("duplicated +/- sequence", nameof(segment));
+            }
+
+            int parsedLength = 0;
+            while (parsedLength < segment.Length)
+            {
+                char c = segment[parsedLength];
+                if (Char.IsLetter(c))
+                {
+                    parsedLength++;
+                    continue;
+                }
+                ReadOnlySpan<char> maybeNext = segment[(parsedLength + 1)..].TrimStart();
+                if (maybeNext.IsEmpty || maybeNext[0] is '+' or '-')
+                {
+                    break;
+                }
+
+                parsedLength++;
+            }
+
+            if (parsedLength == 0)
+            {
+                throw new ArgumentException("Property name is just a symbol.", nameof(segment));
+            }
+            diacritics.Add($"[{(positiveProperty ? '+' : '-')}{segment[..parsedLength]}]");
+            if (parsedLength < segment.Length)
+            {
+                parsedLength++;
+            }
+            ParseProperties(segment[parsedLength..], diacritics);
+        }
+
+        static bool IsIpaChar(char c)
         {
             return !(
                 Char.IsWhiteSpace(c) ||
-                "[](){}_".Contains(c)
+                "[](){}_~".Contains(c)
             );
         }
     }
