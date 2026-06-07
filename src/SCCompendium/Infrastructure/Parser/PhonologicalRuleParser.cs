@@ -212,7 +212,7 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         {
             return !(
                 Char.IsWhiteSpace(c) ||
-                "[](){}_".Contains(c)
+                "[](){}_~".Contains(c)
             );
         }
     }
