@@ -75,6 +75,37 @@ public class PhonologicalRuleParserTests
     }
 
     [Test]
+    public async Task TryParseRule_MultiProperties_DifferentiatesProperties()
+    {
+        const string inputRule = @"\ipa{x}[+high +back] \change\ \ipa{y}[- back +falling tone] / \ipa{z}[+dental/+velar]";
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            if (str.Contains('z'))
+                sb.Append("z[+dental/+velar]");
+            else if (str.Contains('y'))
+                sb.Append("y[- back + falling tone]");
+            else
+                sb.Append("x[+high +back]");
+        });
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+        IpaCharacter expectedInChar = new("x", ["[+back]", "[+high]"]);
+        IpaCharacter expectedOutChar = new("y", ["[+falling tone]", "[-back]"]);
+        IpaCharacter expectedContextChar = new("z", ["[+dental]", "[+velar]"]);
+
+
+        bool success = parser.TryParseRule(inputRule, out PhonologicalRule resultRule);
+
+        await Assert.That(success).IsTrue();
+        await Assert.That(resultRule.InputCharacters.Length).IsEqualTo(1);
+        await Assert.That(resultRule.OutputCharacters.Length).IsEqualTo(1);
+        await Assert.That(resultRule.ContextCharacters.Length).IsEqualTo(1);
+        await Assert.That(resultRule.InputCharacters[0]).IsEqualTo(expectedInChar);
+        await Assert.That(resultRule.OutputCharacters[0]).IsEqualTo(expectedOutChar);
+        await Assert.That(resultRule.ContextCharacters[0]).IsEqualTo(expectedContextChar);
+    }
+
+    [Test]
     [Arguments(@"\ipa{a} \change\ \ipa{a} ``quoted note here \ipa{z}''")]
     [Arguments(@"\ipa{a} \change\ \ipa{a} ``quoted note here \ipa{z}""")]
     [Arguments(@"\ipa{a} \change\ \ipa{a} / \ipa{a}_ ``when near \ipa{z}""", true)]
