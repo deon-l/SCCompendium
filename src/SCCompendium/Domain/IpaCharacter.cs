@@ -1,10 +1,20 @@
 namespace SCCompendium.Domain;
 
+/// <summary>
+/// Represents a specific Ipa sound and some diacritics it has.
+/// </summary>
 public readonly struct IpaCharacter : IEquatable<IpaCharacter>
 {
+    /// <summary>Symbol of the represented Ipa Sound.</summary>
     public string Character { get; }
+    /// <summary>Array of diacritics for Ipa sound.</summary>
+    /// <remarks>For equality purposes, this should be sorted (by ordinal).</remarks>
     public string[] Diacritics { get; }
 
+    /// <summary>
+    /// Creates an Ipa Character with the specified character and diacritics
+    /// </summary>
+    /// <remarks><paramref name="diacritics"/> <i>isn't</i> copied. It should also be sorted (by ordinal)</remarks>
     public IpaCharacter(string character, string[] diacritics)
     {
         ArgumentNullException.ThrowIfNull(character);
