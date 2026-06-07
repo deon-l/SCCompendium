@@ -106,6 +106,30 @@ public class PhonologicalRuleParserTests
     }
 
     [Test]
+    public async Task TryParseRule_RuleUsingTilde_DoesntParseTilde()
+    {
+        const string inputRule = @"\ipa{x} \change \ipa{y}[+high]\textasciitilde\ipa{z}ʰ\textasciitilde\ipa{a}";
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            if (str.Contains('y'))
+                sb.Append("y[+high]~zʰ~a");
+            else
+                sb.Append("x");
+        });
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+
+        bool success = parser.TryParseRule(inputRule, out PhonologicalRule resultRule);
+
+        await Assert.That(success).IsTrue();
+        await Assert.That(resultRule.OutputCharacters).DoesNotContain(ipaChar =>
+            ipaChar.Character.Contains('~') || ipaChar.Diacritics.Any(str => str.Contains('~')));
+        await Assert.That(resultRule.InputCharacters.Length).IsEqualTo(1);
+        await Assert.That(resultRule.OutputCharacters.Length).IsEqualTo(3);
+        await Assert.That(resultRule.ContextCharacters.Length).IsEqualTo(0);
+    }
+
+    [Test]
     [Arguments(@"\ipa{a} \change\ \ipa{a} ``quoted note here \ipa{z}''")]
     [Arguments(@"\ipa{a} \change\ \ipa{a} ``quoted note here \ipa{z}""")]
     [Arguments(@"\ipa{a} \change\ \ipa{a} / \ipa{a}_ ``when near \ipa{z}""", true)]
