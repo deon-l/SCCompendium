@@ -64,10 +64,10 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
             ruleBuilder.Append('/');
             ParseRuleSegment(StripNote(context.ValueSpan, FieldType.Context), ruleBuilder, contextChars);
         }
-        if (exception.Success && !context.ValueSpan.IsWhiteSpace())
+        if (exception.Success && !exception.ValueSpan.IsWhiteSpace())
         {
             ruleBuilder.Append('!');
-            ParseRuleSegment(StripNote(context.ValueSpan, FieldType.Context), ruleBuilder, contextChars);
+            ParseRuleSegment(StripNote(exception.ValueSpan, FieldType.Context), ruleBuilder, contextChars);
         }
 
         rule = new PhonologicalRule(ruleBuilder.ToString(), inputChars.ToArray(), outputChars.ToArray(), contextChars.ToArray());

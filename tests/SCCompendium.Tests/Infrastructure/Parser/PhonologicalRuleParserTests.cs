@@ -51,16 +51,14 @@ public class PhonologicalRuleParserTests
     {
         const string inputRule = @"\ipa{a a}\ \change\ \ipa{bb} / \ipa{cc}_\ipa{c}";
         var latexParserMock = MockableILatexParser.Mock();
-        int count = 0;
         latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
         {
-            count++;
             if (str.Contains("a a"))
                 sb.Append($"a{dia1}{dia2} a{dia2}{dia1}");
             else if (str.Contains("bb"))
                 sb.Append($"a{dia1}{dia2}a{dia2}{dia1}");
             else if (str.Contains('_'))
-                sb.Append($"a{dia1}{dia2}a{dia2}{dia1}_{dia2}{dia1}");
+                sb.Append($"a{dia1}{dia2}a{dia2}{dia1}_a{dia2}{dia1}");
             else
                 sb.Append($"a{dia1}{dia2}a{dia1}{dia2}a{dia1}{dia2}");
         });
@@ -77,12 +75,12 @@ public class PhonologicalRuleParserTests
     [Test]
     public async Task TryParseRule_MultiProperties_DifferentiatesProperties()
     {
-        const string inputRule = @"\ipa{x}[+high +back] \change\ \ipa{y}[- back +falling tone] / \ipa{z}[+dental/+velar]";
+        const string inputRule = @"\ipa{x}[+high +back] \change\ \ipa{y}[- back +falling tone] / _\ipa{z}[+dental/+velar]";
         var latexParserMock = MockableILatexParser.Mock();
         latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
         {
             if (str.Contains('z'))
-                sb.Append("z[+dental/+velar]");
+                sb.Append("_z[+dental/+velar]");
             else if (str.Contains('y'))
                 sb.Append("y[- back + falling tone]");
             else
