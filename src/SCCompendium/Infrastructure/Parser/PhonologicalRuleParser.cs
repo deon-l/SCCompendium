@@ -55,30 +55,30 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
             ruleBuilder.Append('—');
         }
         Debug.Assert(input.Success && !input.ValueSpan.IsWhiteSpace());
-        ParseRuleSegment(input, ruleBuilder, inputChars);
+        ParseRuleSegment(StripNote(input.ValueSpan, FieldType.Input), ruleBuilder, inputChars);
         ruleBuilder.Append('→');
         Debug.Assert(output.Success && !output.ValueSpan.IsWhiteSpace());
-        ParseRuleSegment(output, ruleBuilder, outputChars);
+        ParseRuleSegment(StripNote(output.ValueSpan, FieldType.Output), ruleBuilder, outputChars);
         if (context.Success && !context.ValueSpan.IsWhiteSpace())
         {
             ruleBuilder.Append('/');
-            ParseRuleSegment(context, ruleBuilder, contextChars);
+            ParseRuleSegment(StripNote(context.ValueSpan, FieldType.Context), ruleBuilder, contextChars);
         }
         if (exception.Success && !context.ValueSpan.IsWhiteSpace())
         {
             ruleBuilder.Append('!');
-            ParseRuleSegment(exception, ruleBuilder, contextChars);
+            ParseRuleSegment(StripNote(context.ValueSpan, FieldType.Context), ruleBuilder, contextChars);
         }
 
         rule = new PhonologicalRule(ruleBuilder.ToString(), inputChars.ToArray(), outputChars.ToArray(), contextChars.ToArray());
         return true;
 
 
-        void ParseRuleSegment(Group segment, StringBuilder builder, List<IpaCharacter> foundCharacters)
+        void ParseRuleSegment(ReadOnlySpan<char> segment, StringBuilder builder, List<IpaCharacter> foundCharacters)
         {
             // TODO: Strip english parts.
             int startI = builder.Length;
-            _latexParser.ParseLatexSegment(segment.ValueSpan, builder);
+            _latexParser.ParseLatexSegment(segment, builder);
 
             var addedSegment = builder.ToString(startI, builder.Length - startI).AsSpan();
             ExtractCharacters(addedSegment, foundCharacters);
@@ -214,5 +214,90 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
                 "[](){}_~".Contains(c)
             );
         }
+    }
+
+    /// <summary>
+    /// Indicates the part of a phonological rule a segment is from.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="FieldType.Context"/> refers to both context and exception parts.
+    /// Merged as they are often parsed identically.
+    /// </remarks>
+    private enum FieldType
+    {
+        Input, Output, Context
+    }
+
+    /// <summary>
+    /// Takes in <i>unparsed</i> ipa in <paramref name="segment"/>,
+    /// and returns segment stripped of notes (non-phonological data).
+    /// </summary>
+    private ReadOnlySpan<char> StripNote(ReadOnlySpan<char> segment, FieldType fieldType)
+    {
+        const int significantNoteLength = 5;
+        const int edgeBuffer = 4;
+
+        if (fieldType == FieldType.Input)
+        {
+            for (int i = 0; i < segment.Length; i++)
+            {
+                char c = segment[i];
+                if (Char.IsUpper(c))
+                {
+                    continue;
+                }
+                if (Char.IsLower(c))
+                {
+                    while (i < segment.Length
+                           && Char.IsLetterOrDigit(segment[i]))
+                    {
+                        i++;
+                    }
+                    if (i < segment.Length && ":;.?! ".Contains(segment[i]))
+                    {
+                        i++;
+                    }
+                    segment = segment[i..];
+                }
+                break;
+            }
+        }
+        if (fieldType == FieldType.Context)
+        {
+            int place = segment.IndexOf('_');
+            if (place == -1)
+            {
+                return new();
+            }
+        }
+
+        int quoteStart = segment.LastIndexOf("``");
+        int parenthesisStart = segment.LastIndexOf('(');
+        int parenthesisEnd = segment.LastIndexOf(')');
+
+        if ((quoteStart < parenthesisStart || parenthesisEnd < quoteStart)
+            && quoteStart > 0 && segment.Length - quoteStart > significantNoteLength)
+        {
+            segment = segment[..quoteStart];
+            return StripNote(segment, fieldType);
+        }
+
+        if (parenthesisStart != -1 && parenthesisEnd != -1 && parenthesisEnd > parenthesisStart
+            && parenthesisEnd - parenthesisStart > significantNoteLength
+            && !segment[parenthesisStart..parenthesisEnd].Contains('\\')
+           )
+        {
+            if (parenthesisStart < edgeBuffer)
+            {
+                segment = segment[(parenthesisEnd + 1)..];
+            }
+            else if (parenthesisEnd > segment.Length - edgeBuffer)
+            {
+                segment = segment[..parenthesisStart];
+            }
+        }
+
+
+        return segment;
     }
 }
