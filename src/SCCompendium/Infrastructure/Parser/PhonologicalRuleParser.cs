@@ -49,38 +49,26 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
             outputChars = [],
             contextChars = [];
 
-        StringBuilder ruleBuilder = new();
-        if (inSubgroup)
-        {
-            ruleBuilder.Append('—');
-        }
         Debug.Assert(input.Success && !input.ValueSpan.IsWhiteSpace());
-        ParseRuleSegment(StripNote(input.ValueSpan, FieldType.Input), ruleBuilder, inputChars);
-        ruleBuilder.Append('→');
+        ParseRuleSegment(StripNote(input.ValueSpan, FieldType.Input), inputChars);
         Debug.Assert(output.Success && !output.ValueSpan.IsWhiteSpace());
-        ParseRuleSegment(StripNote(output.ValueSpan, FieldType.Output), ruleBuilder, outputChars);
+        ParseRuleSegment(StripNote(output.ValueSpan, FieldType.Output), outputChars);
         if (context.Success && !context.ValueSpan.IsWhiteSpace())
         {
-            ruleBuilder.Append('/');
-            ParseRuleSegment(StripNote(context.ValueSpan, FieldType.Context), ruleBuilder, contextChars);
+            ParseRuleSegment(StripNote(context.ValueSpan, FieldType.Context), contextChars);
         }
         if (exception.Success && !exception.ValueSpan.IsWhiteSpace())
         {
-            ruleBuilder.Append('!');
-            ParseRuleSegment(StripNote(exception.ValueSpan, FieldType.Context), ruleBuilder, contextChars);
+            ParseRuleSegment(StripNote(exception.ValueSpan, FieldType.Context), contextChars);
         }
 
-        rule = new PhonologicalRule(ruleBuilder.ToString(), inputChars.ToArray(), outputChars.ToArray(), contextChars.ToArray());
+        string ruleString = _latexParser.ParseLatexSegment(line);
+        rule = new PhonologicalRule(ruleString, inputChars.ToArray(), outputChars.ToArray(), contextChars.ToArray());
         return true;
 
-
-        void ParseRuleSegment(ReadOnlySpan<char> segment, StringBuilder builder, List<IpaCharacter> foundCharacters)
+        void ParseRuleSegment(ReadOnlySpan<char> segment, List<IpaCharacter> foundCharacters)
         {
-            // TODO: Strip english parts.
-            int startI = builder.Length;
-            _latexParser.ParseLatexSegment(segment, builder);
-
-            var addedSegment = builder.ToString(startI, builder.Length - startI).AsSpan();
+            string addedSegment = _latexParser.ParseLatexSegment(segment);
             ExtractCharacters(addedSegment, foundCharacters);
         }
     }
