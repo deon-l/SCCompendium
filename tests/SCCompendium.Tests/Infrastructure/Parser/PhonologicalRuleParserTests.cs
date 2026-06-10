@@ -41,6 +41,7 @@ public class PhonologicalRuleParserTests
         await Assert.That(resultRule.InputCharacters.Length).IsEqualTo(1);
         await Assert.That(resultRule.OutputCharacters.Length).IsEqualTo(1);
         await Assert.That(resultRule.ContextCharacters.Length).IsEqualTo(1);
+        await Assert.That(resultRule.Note).IsEmpty();
     }
 
     [Test]
@@ -70,6 +71,7 @@ public class PhonologicalRuleParserTests
         await Assert.That(resultRule.InputCharacters.Length).IsEqualTo(1);
         await Assert.That(resultRule.OutputCharacters.Length).IsEqualTo(1);
         await Assert.That(resultRule.ContextCharacters.Length).IsEqualTo(1);
+        await Assert.That(resultRule.Note).IsEmpty();
     }
 
     [Test]
@@ -101,6 +103,7 @@ public class PhonologicalRuleParserTests
         await Assert.That(resultRule.InputCharacters[0]).IsEqualTo(expectedInChar);
         await Assert.That(resultRule.OutputCharacters[0]).IsEqualTo(expectedOutChar);
         await Assert.That(resultRule.ContextCharacters[0]).IsEqualTo(expectedContextChar);
+        await Assert.That(resultRule.Note).IsEmpty();
     }
 
     [Test]
@@ -125,6 +128,7 @@ public class PhonologicalRuleParserTests
         await Assert.That(resultRule.InputCharacters.Length).IsEqualTo(1);
         await Assert.That(resultRule.OutputCharacters.Length).IsEqualTo(3);
         await Assert.That(resultRule.ContextCharacters.Length).IsEqualTo(0);
+        await Assert.That(resultRule.Note).IsEmpty();
     }
 
     [Test]
@@ -132,14 +136,14 @@ public class PhonologicalRuleParserTests
     [Arguments(@"\ipa{a} \change\ \ipa{a} ``quoted note here \ipa{z}""")]
     [Arguments(@"\ipa{a} \change\ \ipa{a} / \ipa{a}_ ``when near \ipa{z}""", true)]
     [Arguments(@"\ipa{a} \change\ \ipa{a} / \ipa{a}_ ! ``near \ipa{z}""", true)]
-    public async Task TryParseRule_RuleWithQuoteNote_NoExtractedCharsFromNote(string input, bool checkContext = false)
+    public async Task TryParseRule_RuleWithQuoteNote_ExtractsNoteAndNotInCharList(string input, bool checkContext = false)
     {
         Debug.Assert(input.Contains('z'), "use char 'z' to indicate value that shouldn't be analyzed as ipa char.");
         var latexParserMock = MockableILatexParser.Mock();
         latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
         {
             if (str.Contains('z'))
-                sb.Append('z');
+                sb.Append(str);
             else if (str.Contains('_'))
                 sb.Append("a_");
             else
@@ -160,6 +164,7 @@ public class PhonologicalRuleParserTests
         await Assert.That(resultRule.InputCharacters).DoesNotContain(ipaChar => ipaChar.Character == "z");
         await Assert.That(resultRule.OutputCharacters).DoesNotContain(ipaChar => ipaChar.Character == "z");
         await Assert.That(resultRule.ContextCharacters).DoesNotContain(ipaChar => ipaChar.Character == "z");
+        await Assert.That(resultRule.Note).Contains('z');
     }
 
     public partial class DataSource
@@ -192,6 +197,7 @@ public class PhonologicalRuleParserTests
         await Assert.That(resultRule.OutputCharacters.Length).IsEqualTo(1);
         await Assert.That(resultRule.OutputCharacters).Contains(expectedIpaCharacter);
         await Assert.That(resultRule.ContextCharacters).IsEmpty();
+        await Assert.That(resultRule.Note).IsEmpty();
     }
 
     [Test]
@@ -200,14 +206,14 @@ public class PhonologicalRuleParserTests
     [Arguments(@"\ipa{a} \change \ipa{a} / \ipa{a}_ (z sentence here with)")]
     [Arguments(@"\ipa{a} \change \ipa{a} / \ipa{a}_ (? inconsistent z)")]
     [Arguments(@"\ipa{a} \change \ipa{a} / \ipa{a}_ (has z ``quotes'')")]
-    public async Task TryParseRule_RuleWithParenthesisNote_NoExtractedCharsFromNote(string input)
+    public async Task TryParseRule_RuleWithParenthesisNote_ExtractsNoteAndNotInCharList(string input)
     {
         Debug.Assert(input.Contains('z'), "use char 'z' to indicate value that shouldn't be analyzed as ipa char.");
         var latexParserMock = MockableILatexParser.Mock();
         latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
         {
             if (str.Contains('z'))
-                sb.Append('z');
+                sb.Append(str);
             else if (str.Contains('_'))
                 sb.Append("a_");
             else
@@ -221,6 +227,7 @@ public class PhonologicalRuleParserTests
         await Assert.That(resultRule.InputCharacters).DoesNotContain(ipaChar => ipaChar.Character.Contains('z'));
         await Assert.That(resultRule.OutputCharacters).DoesNotContain(ipaChar => ipaChar.Character.Contains('z'));
         await Assert.That(resultRule.ContextCharacters).DoesNotContain(ipaChar => ipaChar.Character.Contains('z'));
+        await Assert.That(resultRule.Note).Contains('z');
     }
 
     [Test]
@@ -229,14 +236,14 @@ public class PhonologicalRuleParserTests
     [Arguments(@"\ipa{a} \change\ \ipa{a} / else", 's')]
     [Arguments(@"Loaned \ipa{a} \change\ \ipa{a}", 'd')]
     [Arguments(@"\ipa{a} \textrightarrow\ \ipa{a} / in the thing", 'n')]
-    public async Task TryParseRule_RuleWithPlainNote_NoExtractedCharsFromNote(string input, char indicator)
+    public async Task TryParseRule_RuleWithPlainNote_ExtractsNoteAndNotInCharList(string input, char indicator)
     {
         Debug.Assert(input.Contains(indicator), "use 'indicator' to indicate what shouldn't be an ipa char");
         var latexParserMock = MockableILatexParser.Mock();
         latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
         {
             if (str.Contains(indicator))
-                sb.Append(indicator);
+                sb.Append(str);
             else if (str.Contains('_'))
                 sb.Append("a_");
             else
@@ -250,5 +257,6 @@ public class PhonologicalRuleParserTests
         await Assert.That(resultRule.InputCharacters).DoesNotContain(ipaChar => ipaChar.Character.Contains(indicator));
         await Assert.That(resultRule.OutputCharacters).DoesNotContain(ipaChar => ipaChar.Character.Contains(indicator));
         await Assert.That(resultRule.ContextCharacters).DoesNotContain(ipaChar => ipaChar.Character.Contains(indicator));
+        await Assert.That(resultRule.Note).Contains(indicator);
     }
 }
