@@ -8,14 +8,20 @@ namespace SCCompendium.Infrastructure.Parser;
 
 public class PhonologicalRuleParser : IPhonologicalRuleParser
 {
+    /// <summary>Source string for <see cref="_ipaDoubleChars"/></summary>
     /// <remarks>Formated as '[char1][char2][buffer]', for visual clarity. Not all pairs are here.</remarks>
     private const string IpaDoubleCharSource = "pɸ bβ pf bv ts dz tʃ ʈʂ ɖʐ tɕ dʑ cç ɟʝ kx ɡɣ qχ ɢʁ ʡʜ ʡʢ ʔh tɬ dɮ ";
+    /// <summary>Separator inserted if multiple notes are found in the same rule.</summary>
     private const string NoteSeparator = " | ";
 
+    /// <summary>set of pairs of chars which in ipa may be considered 1 sound (e.g. affricates).</summary>
     private static readonly HashSet<(char, char)> _ipaDoubleChars =
         IpaDoubleCharSource.Chunk(3).Select(chars => (chars[0], chars[1])).ToHashSet();
+    /// <summary>set of vowels</summary>
     private static readonly HashSet<char> _vowels = new("iyɨʉɯuɪʏʊeøɘɵɤoəɛœɜɞʌɔæɐaɶɑɒ");
 
+    /// <summary>Regex used to identify source rules, and decompose them into parts.</summary>
+    /// <remarks>Also detects the starting "---" segment in some rules, and the ending "\\".</remarks>
     private static readonly Regex _ruleDecomposer =
         new(@"^(--- )?(.+?)(?:\\change|\\textrightarrow)(.+?)(?:/(.+?))?(?:!(?![^{\n]*?})(.+?))?(?:\\\\)?$",
             RegexOptions.Compiled);
@@ -81,6 +87,10 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         }
     }
 
+    /// <summary>
+    /// Scans the already parsed <paramref name="segment"/> for ipa sounds and
+    /// adds them to <paramref name="foundChars"/>.
+    /// </summary>
     private void ExtractCharacters(ReadOnlySpan<char> segment, List<IpaCharacter> foundChars)
     {
         for (int i = 0; i < segment.Length; /* increment manually as loop moves i */)
@@ -212,6 +222,10 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         }
     }
 
+    /// <summary>
+    /// Parse <paramref name="segment"/> and add it to <paramref name="sb"/>.
+    /// Will separate from existing notes using <see cref="NoteSeparator"/> if necessary.
+    /// </summary>
     private void AddNote(ReadOnlySpan<char> segment, StringBuilder sb)
     {
         if (sb.Length != 0)
