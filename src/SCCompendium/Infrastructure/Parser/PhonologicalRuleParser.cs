@@ -8,12 +8,20 @@ namespace SCCompendium.Infrastructure.Parser;
 
 public class PhonologicalRuleParser : IPhonologicalRuleParser
 {
+    /// <summary>Source string for <see cref="_ipaDoubleChars"/></summary>
     /// <remarks>Formated as '[char1][char2][buffer]', for visual clarity. Not all pairs are here.</remarks>
     private const string IpaDoubleCharSource = "pɸ bβ pf bv ts dz tʃ ʈʂ ɖʐ tɕ dʑ cç ɟʝ kx ɡɣ qχ ɢʁ ʡʜ ʡʢ ʔh tɬ dɮ ";
+    /// <summary>Separator inserted if multiple notes are found in the same rule.</summary>
+    private const string NoteSeparator = " | ";
+
+    /// <summary>set of pairs of chars which in ipa may be considered 1 sound (e.g. affricates).</summary>
     private static readonly HashSet<(char, char)> _ipaDoubleChars =
         IpaDoubleCharSource.Chunk(3).Select(chars => (chars[0], chars[1])).ToHashSet();
+    /// <summary>set of vowels</summary>
     private static readonly HashSet<char> _vowels = new("iyɨʉɯuɪʏʊeøɘɵɤoəɛœɜɞʌɔæɐaɶɑɒ");
 
+    /// <summary>Regex used to identify source rules, and decompose them into parts.</summary>
+    /// <remarks>Also detects the starting "---" segment in some rules, and the ending "\\".</remarks>
     private static readonly Regex _ruleDecomposer =
         new(@"^(--- )?(.+?)(?:\\change|\\textrightarrow)(.+?)(?:/(.+?))?(?:!(?![^{\n]*?})(.+?))?(?:\\\\)?$",
             RegexOptions.Compiled);
@@ -48,22 +56,28 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
             inputChars = [],
             outputChars = [],
             contextChars = [];
+        StringBuilder noteSb = new StringBuilder();
 
         Debug.Assert(input.Success && !input.ValueSpan.IsWhiteSpace());
-        ParseRuleSegment(StripNote(input.ValueSpan, FieldType.Input), inputChars);
+        ParseRuleSegment(StripNote(input.ValueSpan, FieldType.Input, noteSb), inputChars);
+
         Debug.Assert(output.Success && !output.ValueSpan.IsWhiteSpace());
-        ParseRuleSegment(StripNote(output.ValueSpan, FieldType.Output), outputChars);
+        ParseRuleSegment(StripNote(output.ValueSpan, FieldType.Output, noteSb), outputChars);
+
         if (context.Success && !context.ValueSpan.IsWhiteSpace())
         {
-            ParseRuleSegment(StripNote(context.ValueSpan, FieldType.Context), contextChars);
+            ParseRuleSegment(StripNote(context.ValueSpan, FieldType.Context, noteSb), contextChars);
         }
+
         if (exception.Success && !exception.ValueSpan.IsWhiteSpace())
         {
-            ParseRuleSegment(StripNote(exception.ValueSpan, FieldType.Context), contextChars);
+            ParseRuleSegment(StripNote(exception.ValueSpan, FieldType.Context, noteSb), contextChars);
         }
 
         string ruleString = _latexParser.ParseLatexSegment(line);
-        rule = new PhonologicalRule(ruleString, inputChars.ToArray(), outputChars.ToArray(), contextChars.ToArray());
+        string notes = noteSb.ToString();
+        rule = new PhonologicalRule(ruleString, inputChars.ToArray(), outputChars.ToArray(), contextChars.ToArray(),
+            notes);
         return true;
 
         void ParseRuleSegment(ReadOnlySpan<char> segment, List<IpaCharacter> foundCharacters)
@@ -73,6 +87,10 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         }
     }
 
+    /// <summary>
+    /// Scans the already parsed <paramref name="segment"/> for ipa sounds and
+    /// adds them to <paramref name="foundChars"/>.
+    /// </summary>
     private void ExtractCharacters(ReadOnlySpan<char> segment, List<IpaCharacter> foundChars)
     {
         for (int i = 0; i < segment.Length; /* increment manually as loop moves i */)
@@ -205,6 +223,20 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
     }
 
     /// <summary>
+    /// Parse <paramref name="segment"/> and add it to <paramref name="sb"/>.
+    /// Will separate from existing notes using <see cref="NoteSeparator"/> if necessary.
+    /// </summary>
+    private void AddNote(ReadOnlySpan<char> segment, StringBuilder sb)
+    {
+        if (sb.Length != 0)
+        {
+            sb.Append(NoteSeparator);
+        }
+
+        _latexParser.ParseLatexSegment(segment, sb);
+    }
+
+    /// <summary>
     /// Indicates the part of a phonological rule a segment is from.
     /// </summary>
     /// <remarks>
@@ -219,8 +251,9 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
     /// <summary>
     /// Takes in <i>unparsed</i> ipa in <paramref name="segment"/>,
     /// and returns segment stripped of notes (non-phonological data).
+    /// The stripped notes are parsed and added to <paramref name="noteSb"/>.
     /// </summary>
-    private ReadOnlySpan<char> StripNote(ReadOnlySpan<char> segment, FieldType fieldType)
+    private ReadOnlySpan<char> StripNote(ReadOnlySpan<char> segment, FieldType fieldType, StringBuilder noteSb)
     {
         const int significantNoteLength = 5;
         const int edgeBuffer = 4;
@@ -245,6 +278,8 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
                     {
                         i++;
                     }
+
+                    AddNote(segment[..i], noteSb);
                     segment = segment[i..];
                 }
                 break;
@@ -255,6 +290,7 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
             int place = segment.IndexOf('_');
             if (place == -1)
             {
+                AddNote(segment, noteSb);
                 return new();
             }
         }
@@ -266,8 +302,9 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         if ((quoteStart < parenthesisStart || parenthesisEnd < quoteStart)
             && quoteStart > 0 && segment.Length - quoteStart > significantNoteLength)
         {
+            AddNote(segment[quoteStart..], noteSb);
             segment = segment[..quoteStart];
-            return StripNote(segment, fieldType);
+            return StripNote(segment, fieldType, noteSb);
         }
 
         if (parenthesisStart != -1 && parenthesisEnd != -1 && parenthesisEnd > parenthesisStart
@@ -277,14 +314,15 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         {
             if (parenthesisStart < edgeBuffer)
             {
+                AddNote(segment[..(parenthesisStart + 1)], noteSb);
                 segment = segment[(parenthesisEnd + 1)..];
             }
             else if (parenthesisEnd > segment.Length - edgeBuffer)
             {
+                AddNote(segment[parenthesisStart..], noteSb);
                 segment = segment[..parenthesisStart];
             }
         }
-
 
         return segment;
     }
