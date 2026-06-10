@@ -31,9 +31,9 @@ public class PhonologicalRuleParserTests
     public async Task TryParseRule_RuleWithDuplicates_ListsNoDuplicateChars(string replacement)
     {
         const string inputRule = @"\ipa{a a} \change\ \ipa{a a} / \ipa{a}_\ipa{a} ! \ipa{aa}_";
-        var latexParserMock= ILatexParser.Mock();
-        latexParserMock.ParseLatexSegment(RefStructArg<ReadOnlySpan<char>>.Any, Any()).Callback(sb => sb.Append(replacement + replacement));
-        PhonologicalRuleParser parser = new(latexParserMock);
+        var latexParserMock= MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) => sb.Append(replacement + replacement));
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
 
         bool success = parser.TryParseRule(inputRule, out PhonologicalRule resultRule);
 
