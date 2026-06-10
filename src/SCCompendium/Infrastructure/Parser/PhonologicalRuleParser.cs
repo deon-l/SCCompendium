@@ -10,6 +10,8 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
 {
     /// <remarks>Formated as '[char1][char2][buffer]', for visual clarity. Not all pairs are here.</remarks>
     private const string IpaDoubleCharSource = "pɸ bβ pf bv ts dz tʃ ʈʂ ɖʐ tɕ dʑ cç ɟʝ kx ɡɣ qχ ɢʁ ʡʜ ʡʢ ʔh tɬ dɮ ";
+    private const string NoteSeparator = " | ";
+
     private static readonly HashSet<(char, char)> _ipaDoubleChars =
         IpaDoubleCharSource.Chunk(3).Select(chars => (chars[0], chars[1])).ToHashSet();
     private static readonly HashSet<char> _vowels = new("iyɨʉɯuɪʏʊeøɘɵɤoəɛœɜɞʌɔæɐaɶɑɒ");
@@ -214,7 +216,7 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
     {
         if (sb.Length != 0)
         {
-            sb.Append(" | ");
+            sb.Append(NoteSeparator);
         }
 
         _latexParser.ParseLatexSegment(segment, sb);
