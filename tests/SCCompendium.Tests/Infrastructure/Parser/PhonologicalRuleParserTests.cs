@@ -1,0 +1,343 @@
+using SCCompendium.Application.Parser;
+using SCCompendium.Domain;
+using SCCompendium.Infrastructure.Parser;
+
+namespace SCCompendium.Tests.Infrastructure.Parser;
+
+public class PhonologicalRuleParserTests
+{
+    public static bool ContainsAny(IpaCharacter ipa, string str)
+    {
+        return str.Any(c => Contains(ipa, c));
+    }
+    public static bool Contains(IpaCharacter ipa, char c)
+    {
+        return ipa.Character.Contains(c) || ipa.Diacritics.Any(str => str.Contains(c));
+    }
+
+    [Test]
+    [Arguments("")]
+    [Arguments("                           ")]
+    [Arguments("--- Stress changes:")]
+    [Arguments("\\tab{\\it some tab thing}")]
+    public async Task TryParseRule_InvalidRule_ReturnsFalseDefault(string invalidRule)
+    {
+        var latexParserMock = ILatexParser.Mock();
+
+        PhonologicalRuleParser parser = new(latexParserMock);
+
+        var result = parser.TryParseRule(invalidRule, out PhonologicalRule rule);
+
+        await Assert.That(result).IsFalse();
+        await Assert.That(rule).IsEqualTo(default(PhonologicalRule));
+        latexParserMock.ParseLatexSegment(RefStructArg<ReadOnlySpan<char>>.Any, Any()).WasCalled(Times.Never);
+    }
+
+    [Test]
+    [Arguments("a")]
+    [Arguments("a̟")]
+    [Arguments("a[+long]")]
+    public async Task TryParseRule_RuleWithDuplicates_ListsNoDuplicateChars(string replacement)
+    {
+        const string inputRule = @"\ipa{a a} \change\ \ipa{a a} / \ipa{a}_\ipa{a} ! \ipa{aa}_";
+        var latexParserMock= MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) => sb.Append(replacement + replacement));
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+
+        bool success = parser.TryParseRule(inputRule, out PhonologicalRule resultRule);
+
+        await Assert.That(success).IsTrue();
+        await Assert.That(resultRule.InputCharacters.Length).IsEqualTo(1);
+        await Assert.That(resultRule.OutputCharacters.Length).IsEqualTo(1);
+        await Assert.That(resultRule.ContextCharacters.Length).IsEqualTo(1);
+        await Assert.That(resultRule.Note).IsEmpty();
+    }
+
+    [Test]
+    [Arguments("ː", "˞")]
+    [Arguments("ː", "[+high]")]
+    [Arguments("[+back]", "[+high]")]
+    public async Task TryParseRule_RuleWithDuplicateAlternatingDiacritics_ListNoDuplicates(string dia1, string dia2)
+    {
+        const string inputRule = @"\ipa{a a}\ \change\ \ipa{bb} / \ipa{cc}_\ipa{c}";
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            if (str.Contains("a a"))
+                sb.Append($"a{dia1}{dia2} a{dia2}{dia1}");
+            else if (str.Contains("bb"))
+                sb.Append($"a{dia1}{dia2}a{dia2}{dia1}");
+            else if (str.Contains('_'))
+                sb.Append($"a{dia1}{dia2}a{dia2}{dia1}_a{dia2}{dia1}");
+            else
+                sb.Append($"a{dia1}{dia2}a{dia1}{dia2}a{dia1}{dia2}");
+        });
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+
+        bool success = parser.TryParseRule(inputRule, out PhonologicalRule resultRule);
+
+        await Assert.That(success).IsTrue();
+        await Assert.That(resultRule.InputCharacters.Length).IsEqualTo(1);
+        await Assert.That(resultRule.OutputCharacters.Length).IsEqualTo(1);
+        await Assert.That(resultRule.ContextCharacters.Length).IsEqualTo(1);
+        await Assert.That(resultRule.Note).IsEmpty();
+    }
+
+    [Test]
+    public async Task TryParseRule_MultiProperties_DifferentiatesProperties()
+    {
+        const string inputRule = @"\ipa{x}[+high +back] \change\ \ipa{y}[- back +falling tone] / _\ipa{z}[+dental/+velar]";
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            if (str.Contains('z'))
+                sb.Append("_z[+dental/+velar]");
+            else if (str.Contains('y'))
+                sb.Append("y[- back + falling tone]");
+            else
+                sb.Append("x[+high +back]");
+        });
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+        IpaCharacter expectedInChar = new("x", ["[+back]", "[+high]"]);
+        IpaCharacter expectedOutChar = new("y", ["[+falling tone]", "[-back]"]);
+        IpaCharacter expectedContextChar = new("z", ["[+dental]", "[+velar]"]);
+
+
+        bool success = parser.TryParseRule(inputRule, out PhonologicalRule resultRule);
+
+        await Assert.That(success).IsTrue();
+        await Assert.That(resultRule.InputCharacters.Length).IsEqualTo(1);
+        await Assert.That(resultRule.OutputCharacters.Length).IsEqualTo(1);
+        await Assert.That(resultRule.ContextCharacters.Length).IsEqualTo(1);
+        await Assert.That(resultRule.InputCharacters[0]).IsEqualTo(expectedInChar);
+        await Assert.That(resultRule.OutputCharacters[0]).IsEqualTo(expectedOutChar);
+        await Assert.That(resultRule.ContextCharacters[0]).IsEqualTo(expectedContextChar);
+        await Assert.That(resultRule.Note).IsEmpty();
+    }
+
+    [Test]
+    public async Task TryParseRule_RuleUsingTilde_DoesntParseTilde()
+    {
+        const string inputRule = @"\ipa{x} \change \ipa{y}[+high]\textasciitilde\ipa{z}ʰ\textasciitilde\ipa{a}";
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            if (str.Contains('y'))
+                sb.Append("y[+high]~zʰ~a");
+            else
+                sb.Append("x");
+        });
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+
+        bool success = parser.TryParseRule(inputRule, out PhonologicalRule resultRule);
+
+        await Assert.That(success).IsTrue();
+        await Assert.That(resultRule.OutputCharacters).DoesNotContain(ipaChar =>
+            ipaChar.Character.Contains('~') || ipaChar.Diacritics.Any(str => str.Contains('~')));
+        await Assert.That(resultRule.InputCharacters.Length).IsEqualTo(1);
+        await Assert.That(resultRule.OutputCharacters.Length).IsEqualTo(3);
+        await Assert.That(resultRule.ContextCharacters.Length).IsEqualTo(0);
+        await Assert.That(resultRule.Note).IsEmpty();
+    }
+
+    [Test]
+    public async Task TryParseRule_RuleUsingParenthesis_DoesntParseParenthesis()
+    {
+        const string inputRule = @"(C)V \textrightarrow\ \ipa{y(:)} / _(\ipa{l})\ipa{j}";
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            if (str.Contains('V'))
+                sb.Append("(C)V");
+            else if (str.Contains('y'))
+                sb.Append("y(ː)");
+            else
+                sb.Append("_(l)j");
+        });
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+
+        bool success = parser.TryParseRule(inputRule, out PhonologicalRule resultRule);
+
+        await Assert.That(success).IsTrue();
+        await Assert.That(resultRule.InputCharacters).DoesNotContain(ipa => Contains(ipa, '(') || Contains(ipa, ')'));
+        await Assert.That(resultRule.OutputCharacters).DoesNotContain(ipa => Contains(ipa, '(') || Contains(ipa, ')'));
+        await Assert.That(resultRule.ContextCharacters).DoesNotContain(ipa => Contains(ipa, '(') || Contains(ipa, ')'));
+        await Assert.That(resultRule.Note).IsEmpty();
+    }
+
+    [Test]
+    public async Task TryParseRule_RuleUsingBraces_DoesntParseParenthesis()
+    {
+        const string inputRule = @"\{\ipa{p,t}\} \change \ipa{b} / _\{\ipa{u,y}\}";
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            if (str.Contains('t'))
+                sb.Append("{p,t}");
+            else if (str.Contains('u'))
+                sb.Append("_{u,y}");
+            else
+                sb.Append("b");
+        });
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+
+        bool success = parser.TryParseRule(inputRule, out PhonologicalRule resultRule);
+
+        await Assert.That(success).IsTrue();
+        await Assert.That(resultRule.InputCharacters).DoesNotContain(ipa => ContainsAny(ipa, "{},"));
+        await Assert.That(resultRule.OutputCharacters).DoesNotContain(ipa => ContainsAny(ipa, "{},"));
+        await Assert.That(resultRule.ContextCharacters).DoesNotContain(ipa => ContainsAny(ipa, "{},"));
+        await Assert.That(resultRule.Note).IsEmpty();
+    }
+
+    [Test]
+    [Arguments(@"\ipa{a} \change\ \ipa{a} ``quoted note here \ipa{z}''")]
+    [Arguments(@"\ipa{a} \change\ \ipa{a} ``quoted note here \ipa{z}""")]
+    [Arguments(@"\ipa{a} \change\ \ipa{a} / \ipa{a}_ ``when near \ipa{z}""", true)]
+    [Arguments(@"\ipa{a} \change\ \ipa{a} / \ipa{a}_ ! ``near \ipa{z}""", true)]
+    public async Task TryParseRule_RuleWithQuoteNote_ExtractsNoteAndNotInCharList(string input, bool checkContext = false)
+    {
+        Debug.Assert(input.Contains('z'), "use char 'z' to indicate value that shouldn't be analyzed as ipa char.");
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            if (str.Contains('z'))
+                sb.Append(str);
+            else if (str.Contains('_'))
+                sb.Append("a_");
+            else
+                sb.Append('a');
+        });
+
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+
+        var success = parser.TryParseRule(input, out PhonologicalRule resultRule);
+
+        await Assert.That(success).IsTrue();
+        await Assert.That(resultRule.InputCharacters.Length).IsEqualTo(1);
+        await Assert.That(resultRule.OutputCharacters.Length).IsEqualTo(1);
+        if (checkContext)
+        {
+            await Assert.That(resultRule.InputCharacters.Length).IsEqualTo(1);
+        }
+        await Assert.That(resultRule.InputCharacters).DoesNotContain(ipaChar => ipaChar.Character == "z");
+        await Assert.That(resultRule.OutputCharacters).DoesNotContain(ipaChar => ipaChar.Character == "z");
+        await Assert.That(resultRule.ContextCharacters).DoesNotContain(ipaChar => ipaChar.Character == "z");
+        await Assert.That(resultRule.Note).Contains('z');
+    }
+
+    public partial class DataSource
+    {
+        private const string IpaDoubleCharSource = "pɸ bβ pf bv ts dz tʃ ʈʂ ɖʐ tɕ dʑ cç ɟʝ kx ɡɣ qχ ɢʁ ʡʜ ʡʢ ʔh tɬ dɮ ";
+        public IEnumerable<string> Affricates()
+        {
+            for (int i = 0; i < IpaDoubleCharSource.Length; i += 3)
+            {
+                yield return IpaDoubleCharSource.Substring(i, 2);
+            }
+        }
+    }
+
+    [Test]
+    [MethodDataSource<DataSource>(nameof(DataSource.Affricates))]
+    public async Task TryParseRule_RuleWithAffricates_ExtractsOnlyAffricates(string affricate)
+    {
+        const string inputRule = @"\ipa{z} \change \ipa{z}";
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((_, sb) => sb.Append(affricate));
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+        IpaCharacter expectedIpaCharacter = new(affricate, []);
+
+        var success = parser.TryParseRule(inputRule, out PhonologicalRule resultRule);
+
+        await Assert.That(success).IsTrue();
+        await Assert.That(resultRule.InputCharacters.Length).IsEqualTo(1);
+        await Assert.That(resultRule.InputCharacters).Contains(expectedIpaCharacter);
+        await Assert.That(resultRule.OutputCharacters.Length).IsEqualTo(1);
+        await Assert.That(resultRule.OutputCharacters).Contains(expectedIpaCharacter);
+        await Assert.That(resultRule.ContextCharacters).IsEmpty();
+        await Assert.That(resultRule.Note).IsEmpty();
+    }
+
+    [Test]
+    [Arguments(@"\ipa{a} \change \ipa{a} (zebra)")]
+    [Arguments(@"\ipa{a} \change \ipa{a} / \ipa{a}_ (zebra)")]
+    [Arguments(@"\ipa{a} \change \ipa{a} / \ipa{a}_ (z sentence here with)")]
+    [Arguments(@"\ipa{a} \change \ipa{a} / \ipa{a}_ (? inconsistent z)")]
+    [Arguments(@"\ipa{a} \change \ipa{a} / \ipa{a}_ (has z ``quotes'')")]
+    public async Task TryParseRule_RuleWithParenthesisNote_ExtractsNoteAndNotInCharList(string input)
+    {
+        Debug.Assert(input.Contains('z'), "use char 'z' to indicate value that shouldn't be analyzed as ipa char.");
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            if (str.Contains('z'))
+                sb.Append(str);
+            else if (str.Contains('_'))
+                sb.Append("a_");
+            else
+                sb.Append('a');
+        });
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+
+        var success = parser.TryParseRule(input, out PhonologicalRule resultRule);
+
+        await Assert.That(success).IsTrue();
+        await Assert.That(resultRule.InputCharacters).DoesNotContain(ipaChar => ipaChar.Character.Contains('z'));
+        await Assert.That(resultRule.OutputCharacters).DoesNotContain(ipaChar => ipaChar.Character.Contains('z'));
+        await Assert.That(resultRule.ContextCharacters).DoesNotContain(ipaChar => ipaChar.Character.Contains('z'));
+        await Assert.That(resultRule.Note).Contains('z');
+    }
+
+    [Test]
+    [Arguments(@"\ipa{a} \textrightarrow\ \ipa{a} / in some unstressed syllable", 'n')]
+    [Arguments(@"\ipa{a} \textrightarrow\ \ipa{a} / in some unstressed syllable", 's')] // Just to check all words don't appear here
+    [Arguments(@"\ipa{a} \change\ \ipa{a} / else", 's')]
+    [Arguments(@"Loaned \ipa{a} \change\ \ipa{a}", 'd')]
+    [Arguments(@"\ipa{a} \textrightarrow\ \ipa{a} / in the thing", 'n')]
+    public async Task TryParseRule_RuleWithPlainNote_ExtractsNoteAndNotInCharList(string input, char indicator)
+    {
+        Debug.Assert(input.Contains(indicator), "use 'indicator' to indicate what shouldn't be an ipa char");
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            if (str.Contains(indicator))
+                sb.Append(str);
+            else if (str.Contains('_'))
+                sb.Append("a_");
+            else
+                sb.Append('a');
+        });
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+
+        var success = parser.TryParseRule(input, out PhonologicalRule resultRule);
+
+        await Assert.That(success).IsTrue();
+        await Assert.That(resultRule.InputCharacters).DoesNotContain(ipaChar => ipaChar.Character.Contains(indicator));
+        await Assert.That(resultRule.OutputCharacters).DoesNotContain(ipaChar => ipaChar.Character.Contains(indicator));
+        await Assert.That(resultRule.ContextCharacters).DoesNotContain(ipaChar => ipaChar.Character.Contains(indicator));
+        await Assert.That(resultRule.Note).Contains(indicator);
+    }
+
+    [Test]
+    public async Task TryParseRule_RuleWithMultipleNotes_ExtractsAndSeparatesNotes()
+    {
+        const string input = @"phazed \ipa{a} \change\ \ipa{a} ``quote notez""";
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            sb.Append(str.Contains('z') ? 'z' : 'a');
+        });
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+        const char expectedSeparatorChar = '|';
+
+        var success = parser.TryParseRule(input, out PhonologicalRule resultRule);
+
+        await Assert.That(success).IsTrue();
+        await Assert.That(resultRule.InputCharacters).DoesNotContain(ipaChar => ipaChar.Character.Contains('z'));
+        await Assert.That(resultRule.OutputCharacters).DoesNotContain(ipaChar => ipaChar.Character.Contains('z'));
+        await Assert.That(resultRule.ContextCharacters).IsEmpty();
+        await Assert.That(resultRule.Note.Count(c => c == 'z')).IsEqualTo(2);
+        await Assert.That(resultRule.Note).Contains(expectedSeparatorChar);
+    }
+}
