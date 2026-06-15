@@ -6,6 +6,15 @@ namespace SCCompendium.Tests.Infrastructure.Parser;
 
 public class PhonologicalRuleParserTests
 {
+    public static bool ContainsAny(IpaCharacter ipa, string str)
+    {
+        return str.Any(c => Contains(ipa, c));
+    }
+    public static bool Contains(IpaCharacter ipa, char c)
+    {
+        return ipa.Character.Contains(c) || ipa.Diacritics.Any(str => str.Contains(c));
+    }
+
     [Test]
     [Arguments("")]
     [Arguments("                           ")]
@@ -128,6 +137,56 @@ public class PhonologicalRuleParserTests
         await Assert.That(resultRule.InputCharacters.Length).IsEqualTo(1);
         await Assert.That(resultRule.OutputCharacters.Length).IsEqualTo(3);
         await Assert.That(resultRule.ContextCharacters.Length).IsEqualTo(0);
+        await Assert.That(resultRule.Note).IsEmpty();
+    }
+
+    [Test]
+    public async Task TryParseRule_RuleUsingParenthesis_DoesntParseParenthesis()
+    {
+        const string inputRule = @"(C)V \textrightarrow\ \ipa{y(:)} / _(\ipa{l})\ipa{j}";
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            if (str.Contains('V'))
+                sb.Append("(C)V");
+            else if (str.Contains('y'))
+                sb.Append("y(ː)");
+            else
+                sb.Append("_(l)j");
+        });
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+
+        bool success = parser.TryParseRule(inputRule, out PhonologicalRule resultRule);
+
+        await Assert.That(success).IsTrue();
+        await Assert.That(resultRule.InputCharacters).DoesNotContain(ipa => Contains(ipa, '(') || Contains(ipa, ')'));
+        await Assert.That(resultRule.OutputCharacters).DoesNotContain(ipa => Contains(ipa, '(') || Contains(ipa, ')'));
+        await Assert.That(resultRule.ContextCharacters).DoesNotContain(ipa => Contains(ipa, '(') || Contains(ipa, ')'));
+        await Assert.That(resultRule.Note).IsEmpty();
+    }
+
+    [Test]
+    public async Task TryParseRule_RuleUsingBraces_DoesntParseParenthesis()
+    {
+        const string inputRule = @"\{\ipa{p,t}\} \change \ipa{b} / _\{\ipa{u,y}\}";
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            if (str.Contains('t'))
+                sb.Append("{p,t}");
+            else if (str.Contains('u'))
+                sb.Append("_{u,y}");
+            else
+                sb.Append("b");
+        });
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+
+        bool success = parser.TryParseRule(inputRule, out PhonologicalRule resultRule);
+
+        await Assert.That(success).IsTrue();
+        await Assert.That(resultRule.InputCharacters).DoesNotContain(ipa => ContainsAny(ipa, "{},"));
+        await Assert.That(resultRule.OutputCharacters).DoesNotContain(ipa => ContainsAny(ipa, "{},"));
+        await Assert.That(resultRule.ContextCharacters).DoesNotContain(ipa => ContainsAny(ipa, "{},"));
         await Assert.That(resultRule.Note).IsEmpty();
     }
 
