@@ -277,6 +277,7 @@ public class PhonologicalRuleParserTests
         await Assert.That(success).IsTrue();
         await Assert.That(resultRule.InputCharacters).DoesNotContain(ipaChar => ipaChar.Character.Contains('z'));
         await Assert.That(resultRule.OutputCharacters).DoesNotContain(ipaChar => ipaChar.Character.Contains('z'));
+        await Assert.That(resultRule.ContextCharacters).IsEmpty();
         await Assert.That(resultRule.Note.Count(c => c == 'z')).IsEqualTo(2);
         await Assert.That(resultRule.Note).Contains(expectedSeparatorChar);
     }
