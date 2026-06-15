@@ -5,4 +5,12 @@ public record struct PhonologicalRule(
     IpaCharacter[] InputCharacters,
     IpaCharacter[] OutputCharacters,
     IpaCharacter[] ContextCharacters,
-    string Note = "");
+    string Note = "")
+{
+    /// <summary>Returns the string representation of all values in <see cref="PhonologicalRule"/>.</summary>
+    public override string ToString()
+    {
+        return
+            $"\"{Rule}\" {{Note: \"{Note}\", input: [{String.Join(',', InputCharacters)}], output: [{String.Join(',', OutputCharacters)}], context: [{String.Join(',', ContextCharacters)}]}}";
+    }
+}
