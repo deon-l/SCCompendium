@@ -71,4 +71,15 @@ public class IpaCharacterTest
 
         await Assert.That(result).IsFalse();
     }
+
+    [Test]
+    public async Task ToString_ExampleObject_ExpectedResult()
+    {
+        IpaCharacter character = new("a", [":", "[+high]"]);
+        const string expected = "a:[+high]";
+
+        string actual = character.ToString();
+
+        await Assert.That(actual).IsEqualTo(expected);
+    }
 }
