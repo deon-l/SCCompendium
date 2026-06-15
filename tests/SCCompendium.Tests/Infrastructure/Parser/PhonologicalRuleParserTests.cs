@@ -259,4 +259,25 @@ public class PhonologicalRuleParserTests
         await Assert.That(resultRule.ContextCharacters).DoesNotContain(ipaChar => ipaChar.Character.Contains(indicator));
         await Assert.That(resultRule.Note).Contains(indicator);
     }
+
+    [Test]
+    public async Task TryParseRule_RuleWithMultipleNotes_ExtractsAndSeparatesNotes()
+    {
+        const string input = @"phazed \ipa{a} \change\ \ipa{a} ``quote notez""";
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            sb.Append(str.Contains('z') ? 'z' : 'a');
+        });
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+        const char expectedSeparatorChar = '|';
+
+        var success = parser.TryParseRule(input, out PhonologicalRule resultRule);
+
+        await Assert.That(success).IsTrue();
+        await Assert.That(resultRule.InputCharacters).DoesNotContain(ipaChar => ipaChar.Character.Contains('z'));
+        await Assert.That(resultRule.OutputCharacters).DoesNotContain(ipaChar => ipaChar.Character.Contains('z'));
+        await Assert.That(resultRule.Note.Count(c => c == 'z')).IsEqualTo(2);
+        await Assert.That(resultRule.Note).Contains(expectedSeparatorChar);
+    }
 }
