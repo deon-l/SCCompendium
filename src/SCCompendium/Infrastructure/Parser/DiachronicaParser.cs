@@ -30,7 +30,7 @@ public class DiachronicaParser : IDiachronicaParser
             }
 
             result = _sectionHeader.Match(reader.CurrentLine);
-            if (result.Success)
+            if (result.Success && !result.Value.StartsWith(@"\section"))
             {
                 break;
             }
