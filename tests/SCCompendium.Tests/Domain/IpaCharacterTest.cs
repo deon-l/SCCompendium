@@ -6,12 +6,12 @@ public class IpaCharacterTest
 {
     public partial class DataSource
     {
-        public IEnumerable<(string, string[])> EqualIpaCharSource()
+        public IEnumerable<Func<(string, string[])>> EqualIpaCharSource()
         {
-            yield return ("a", Array.Empty<string>());
-            yield return ("abc", Array.Empty<string>());
-            yield return ("a", [":"]);
-            yield return ("a", [":", "[+high]"]);
+            yield return () => ("a", Array.Empty<string>());
+            yield return () => ("abc", Array.Empty<string>());
+            yield return () => ("a", [":"]);
+            yield return () => ("a", [":", "[+high]"]);
         }
     }
     [Test]
@@ -70,5 +70,16 @@ public class IpaCharacterTest
         bool result = character1.Equals(character2);
 
         await Assert.That(result).IsFalse();
+    }
+
+    [Test]
+    public async Task ToString_ExampleObject_ExpectedResult()
+    {
+        IpaCharacter character = new("a", [":", "[+high]"]);
+        const string expected = "a:[+high]";
+
+        string actual = character.ToString();
+
+        await Assert.That(actual).IsEqualTo(expected);
     }
 }

@@ -67,4 +67,13 @@ public readonly struct IpaCharacter : IEquatable<IpaCharacter>
 
     public static bool operator ==(IpaCharacter left, IpaCharacter right) => left.Equals(right);
     public static bool operator !=(IpaCharacter left, IpaCharacter right) => !(left == right);
+
+    /// <summary>
+    /// Returns the <see cref="string"/> representation of this instance,
+    /// combining <see cref="Character"/> and <see cref="Diacritics"/>.
+    /// </summary>
+    public override string ToString()
+    {
+        return Character + String.Join("", Diacritics);
+    }
 }
