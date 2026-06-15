@@ -6,12 +6,12 @@ public class IpaCharacterTest
 {
     public partial class DataSource
     {
-        public IEnumerable<(string, string[])> EqualIpaCharSource()
+        public IEnumerable<Func<(string, string[])>> EqualIpaCharSource()
         {
-            yield return ("a", Array.Empty<string>());
-            yield return ("abc", Array.Empty<string>());
-            yield return ("a", [":"]);
-            yield return ("a", [":", "[+high]"]);
+            yield return () => ("a", Array.Empty<string>());
+            yield return () => ("abc", Array.Empty<string>());
+            yield return () => ("a", [":"]);
+            yield return () => ("a", [":", "[+high]"]);
         }
     }
     [Test]
