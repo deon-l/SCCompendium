@@ -47,7 +47,7 @@ public class DiachronicaParser : IDiachronicaParser
         return (title, credit);
     }
 
-    public List<PhonologicalRuleGroup> ParseDiachronica(TextReader file)
+    public List<PhonologicalRuleGroup> Parse(TextReader file)
     {
         ArgumentNullException.ThrowIfNull(file);
         SavingTextReader reader = new(file);

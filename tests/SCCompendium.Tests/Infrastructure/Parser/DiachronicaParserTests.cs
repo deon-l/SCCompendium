@@ -7,12 +7,12 @@ public partial class DiachronicaParserTests
 {
     [Test]
     [Skip("Unreasonable to use at this point, when other dependant classes are incomplete.")]
-    public async Task ParseFile_EntireDiachronica_NonEmptyListings()
+    public async Task Parse_EntireDiachronica_NonEmptyListings()
     {
         DiachronicaParser parser = new(new LatexParser(), new PhonologicalRuleParser(new LatexParser()));
         StringReader reader = new(_sampleDiachronica);
 
-        var result = parser.ParseDiachronica(reader);
+        var result = parser.Parse(reader);
 
         await Assert.That(result).IsNotEmpty();
     }
