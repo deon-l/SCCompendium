@@ -18,7 +18,10 @@ public class DiachronicaParser : IDiachronicaParser
         _phonoRuleParser = phonoRuleParser;
     }
 
-
+    /// <summary>
+    /// Advances <paramref name="reader"/> to next section header, and returns unparsed title/credit of header.
+    /// Returns <see langword="null"/> on end of text.
+    /// </summary>
     private (string title, string credit)? GetNextSubsection(SavingTextReader reader)
     {
         Match result;
@@ -47,6 +50,10 @@ public class DiachronicaParser : IDiachronicaParser
         return (title, credit);
     }
 
+    /// <summary>
+    /// Advances <paramref name="reader"/> to next nonempty line, and returns it unparsed if it is a section note.
+    /// Otherwise, returns <see langword="null"/>.
+    /// </summary>
     private string? TryGetNote(SavingTextReader reader)
     {
         while (true)
@@ -245,17 +252,24 @@ public class DiachronicaParser : IDiachronicaParser
         }
     }
 
+    /// <summary>
+    /// Wrapper around <see cref="TextReader"/> to save output of <see cref="TextReader.ReadLine"/>
+    /// </summary>
     private class SavingTextReader(TextReader reader)
     {
         public TextReader TextReader { get; } = reader;
         public string? CurrentLine { get; private set; }
 
+        /// <remarks>Also saves line.</remarks>
         public string? ReadNextLine()
         {
             Advance();
             return CurrentLine;
         }
 
+        /// <summary>
+        /// Gets next line, and saves output in <see cref="CurrentLine"/>.
+        /// </summary>
         public void Advance()
         {
             CurrentLine = TextReader.ReadLine();
