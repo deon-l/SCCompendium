@@ -54,7 +54,6 @@ public class DiachronicaParser : IDiachronicaParser
 
         List<Exception> sectionExceptions = new();
         List<PhonologicalRuleGroup> ruleGroups = new();
-        StringBuilder builder = new();
 
         reader.Advance();
         for (var subsectionHeader = GetNextSubsection(reader);
@@ -71,8 +70,7 @@ public class DiachronicaParser : IDiachronicaParser
             string creditTranslated;
             try
             {
-                _latexParser.ParseLatexSegment(subsectionHeader.Value.title, builder);
-                titleTranslated = builder.ToString();
+                titleTranslated = _latexParser.ParseLatexSegment(subsectionHeader.Value.title);
             }
             catch (Exception e)
             {
@@ -80,11 +78,9 @@ public class DiachronicaParser : IDiachronicaParser
                     $"Error parsing title of section: {subsectionHeader.Value.title}", nameof(file), e));
                 titleTranslated = subsectionHeader.Value.title;
             }
-            builder.Clear();
             try
             {
-                _latexParser.ParseLatexSegment(subsectionHeader.Value.credit, builder);
-                creditTranslated = builder.ToString();
+                creditTranslated = _latexParser.ParseLatexSegment(subsectionHeader.Value.credit);
             }
             catch (Exception e)
             {
