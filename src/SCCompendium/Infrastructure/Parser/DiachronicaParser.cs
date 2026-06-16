@@ -232,7 +232,7 @@ public class DiachronicaParser : IDiachronicaParser
                 continue;
             }
 
-            if (rule.Rule.StartsWith('—') || isPrenoteGreedy)
+            if (line.StartsWith("---") || isPrenoteGreedy)
             {
                 if (!isPrenoteParsed)
                 {
