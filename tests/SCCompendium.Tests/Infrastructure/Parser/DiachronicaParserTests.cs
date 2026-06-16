@@ -154,6 +154,38 @@ V\ipa{b} \textrightarrow\ V / \ipa{y}_ \\
     }
 
     [Test]
+    public async Task Parse_SectionWithNotaBene_TakesAsNote()
+    {
+        const string input =
+"""
+\section{s1}
+\subsection{s2}
+NB: note 1 (Don't think its used this way.)
+\ipa{z} \change\ \ipa{z}
+\subsection{s3}
+\tab {\it NB: expected format}
+\ipa{z} \change\ \ipa{z}
+\subsection{s4}
+\tab \textit{NB: this is used once}
+\ipa{z} \change\ \ipa{z}
+""";
+        var latexParser = MockableILatexParser.Mock();
+        latexParser.ParseLatexSegment(Any(), Any()).Callback((str, sb) => sb.Append(str));
+        var ruleParser = IPhonologicalRuleParser.Mock();
+        ruleParser.TryParseRule(str => str.Contains('z')).Returns(true).SetsOutRule(_defaultRule);
+        DiachronicaParser parser = new(latexParser.Object, ruleParser.Object);
+
+        var result = parser.Parse(new StringReader(input));
+
+        await Assert.That(result).Count().IsEqualTo(3);
+        foreach (PhonologicalRuleGroup group in result)
+        {
+            await Assert.That(group.Rules).Count().IsEqualTo(1);
+        }
+        throw new NotImplementedException("PhonologicalRuleGroup does not have field for note yet");
+    }
+
+    [Test]
     [Skip("Unreasonable to use at this point, when other dependant classes are incomplete.")]
     public async Task Parse_EntireDiachronica_NonEmptyListings()
     {
