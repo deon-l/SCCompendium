@@ -89,8 +89,8 @@ V\ipa{b} \textrightarrow\ V / \ipa{y}_ \\
         var latexParser = MockableILatexParser.Mock();
         latexParser.ParseLatexSegment(Any(), Any()).Callback((str, sb) => sb.Append(">"+str));
         var ruleParser = IPhonologicalRuleParser.Mock();
-        var arg1 = Is<string>(s => s.Contains('x'));
-        var arg2 = Is<string>(s => s.Contains('y'));
+        var arg1 = Is<string>(s => s?.Contains('x') ?? false);
+        var arg2 = Is<string>(s => s?.Contains('y') ?? false);
         ruleParser.TryParseRule(arg1).Returns(true).SetsOutRule(_defaultRule);
         ruleParser.TryParseRule(arg2).Returns(true).SetsOutRule(_defaultRule);
         DiachronicaParser parser = new(latexParser.Object, ruleParser.Object);
@@ -129,7 +129,7 @@ V\ipa{b} \textrightarrow\ V / \ipa{y}_ \\
         var latexParser = MockableILatexParser.Mock();
         latexParser.ParseLatexSegment(Any(), Any()).Callback((str, sb) => sb.Append(">"+str));
         var ruleParser = IPhonologicalRuleParser.Mock();
-        var arg1 = Is<string>(s => s.Contains("ipa{a}"));
+        var arg1 = Is<string>(s => s?.Contains("ipa{a}") ?? false);
         ruleParser.TryParseRule(arg1).Returns(true).SetsOutRule(_defaultRule);
         DiachronicaParser parser = new(latexParser.Object, ruleParser.Object);
 
