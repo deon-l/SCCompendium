@@ -60,7 +60,7 @@ public class DiachronicaParser : IDiachronicaParser
              subsectionHeader is not null;
              subsectionHeader = GetNextSubsection(reader))
         {
-            (List<PhonologicalRule> rules, List<Exception> sectionParsingErrors) = ParseSubsection(reader);
+            (List<PhonologicalRule> rules, List<Exception> sectionParsingErrors) = ParseSubsectionRules(reader);
             if (sectionParsingErrors.Count == 0 && rules.Count == 0)
             {
                 continue;
@@ -110,7 +110,11 @@ public class DiachronicaParser : IDiachronicaParser
         return ruleGroups;
     }
 
-    private (List<PhonologicalRule>, List<Exception> exceptions) ParseSubsection(SavingTextReader file)
+    /// <summary>Parses and lists lines containing rules until encounters next section header.</summary>
+    /// <remarks>
+    /// Starts at current line at <paramref name="file"/>, so assumes it isn't current section header.
+    /// </remarks>
+    private (List<PhonologicalRule>, List<Exception> exceptions) ParseSubsectionRules(SavingTextReader file)
     {
         List<Exception> exceptions = new();
         List<PhonologicalRule> rules = new();
@@ -119,7 +123,8 @@ public class DiachronicaParser : IDiachronicaParser
         bool isPrenoteGreedy = false;
         while (true)
         {
-            string? line = file.ReadNextLine();
+            string? line = file.CurrentLine;
+            file.Advance();
             if (line is null)
             {
                 break;
