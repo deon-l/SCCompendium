@@ -182,19 +182,20 @@ public class DiachronicaParser : IDiachronicaParser
         while (true)
         {
             string? line = file.CurrentLine;
-            file.Advance();
             if (line is null)
             {
                 break;
             }
-            if (String.IsNullOrEmpty(line))
+            if (line.IsWhiteSpace())
             {
+                file.Advance();
                 continue;
             }
             if (IsSectionEnder(line))
             {
                 break;
             }
+            file.Advance();
 
             PhonologicalRule rule;
             bool successfulParse;
