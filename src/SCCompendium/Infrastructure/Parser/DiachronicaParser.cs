@@ -225,7 +225,7 @@ public class DiachronicaParser : IDiachronicaParser
                     isPrenoteParsed = false;
                     isPrenoteGreedy = !file.CurrentLine.StartsWith("---");
                 }
-                else
+                else if (!line.StartsWith("---"))
                 {
                     possiblePrenote = "";
                 }
