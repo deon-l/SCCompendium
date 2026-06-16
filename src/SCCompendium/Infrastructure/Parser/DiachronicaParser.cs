@@ -218,9 +218,17 @@ public class DiachronicaParser : IDiachronicaParser
 
             if (!successfulParse)
             {
-                possiblePrenote = line;
-                isPrenoteParsed = false;
-                isPrenoteGreedy = possiblePrenote.StartsWith("---");
+                // note: file.CurrentLine here refers to the next line to process.
+                if (file.CurrentLine is not null && IsPossibleNote(line))
+                {
+                    possiblePrenote = line;
+                    isPrenoteParsed = false;
+                    isPrenoteGreedy = !file.CurrentLine.StartsWith("---");
+                }
+                else
+                {
+                    possiblePrenote = "";
+                }
                 continue;
             }
 
@@ -241,10 +249,32 @@ public class DiachronicaParser : IDiachronicaParser
 
                 rule = rule with { Note = possiblePrenote };
             }
+            else
+            {
+                possiblePrenote = "";
+            }
             rules.Add(rule);
         }
 
         return (rules, exceptions);
+
+        bool IsPossibleNote(string line)
+        {
+            ReadOnlySpan<char> span = line.AsSpan().TrimEnd();
+            if (span.EndsWith(@"\\"))
+            {
+                span = span[..^2].TrimEnd();
+            }
+            if (!span.EndsWith(':'))
+            {
+                return false;
+            }
+            if (line.StartsWith("---") && possiblePrenote.Length != 0 && !isPrenoteGreedy)
+            {
+                return false;
+            }
+            return true;
+        }
 
         bool IsSectionEnder(string line)
         {
