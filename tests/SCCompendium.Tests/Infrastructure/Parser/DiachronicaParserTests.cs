@@ -112,17 +112,17 @@ V\ipa{b} \textrightarrow\ V / \ipa{y}_ \\
 """
 \section{s1}
 \ipa{a} \change\ \ipa{a}
-\subsection{s2}
+\subsection{s2}cr2
 \ipa{a} \change\ \ipa{a}
-\subsubsection{s3}
+\subsubsection{s3}cr3
 \ipa{a} \change\ \ipa{a}
 \section{s4}
 \ipa{a} \change\ \ipa{a}
-\subsection{s5}
+\subsection{s5}cr5
 \ipa{a} \change\ \ipa{a}
-\paragraph{s6}
+\paragraph{s6}cr6
 \ipa{a} \change\ \ipa{a}
-\subparagraph{s7}
+\subparagraph{s7}cr7
 \ipa{a} \change\ \ipa{a}
 
 """;
@@ -145,6 +145,11 @@ V\ipa{b} \textrightarrow\ V / \ipa{y}_ \\
         await Assert.That(result[2].Title).IsEqualTo(">s5");
         await Assert.That(result[3].Title).IsEqualTo(">s6");
         await Assert.That(result[4].Title).IsEqualTo(">s7");
+        await Assert.That(result[0].Credit).StartsWith(">cr2");
+        await Assert.That(result[1].Credit).StartsWith(">cr3");
+        await Assert.That(result[2].Credit).StartsWith(">cr5");
+        await Assert.That(result[3].Credit).StartsWith(">cr6");
+        await Assert.That(result[4].Credit).StartsWith(">cr7");
         await Assert.That(arg1.Values).Count().IsEqualTo(5);
     }
 
