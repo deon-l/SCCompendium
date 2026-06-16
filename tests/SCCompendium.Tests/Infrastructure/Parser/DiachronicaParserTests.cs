@@ -111,11 +111,13 @@ V\ipa{b} \textrightarrow\ V / \ipa{y}_ \\
         const string input =
 """
 \section{s1}
+\ipa{a} \change\ \ipa{a}
 \subsection{s2}
 \ipa{a} \change\ \ipa{a}
 \subsubsection{s3}
 \ipa{a} \change\ \ipa{a}
 \section{s4}
+\ipa{a} \change\ \ipa{a}
 \subsection{s5}
 \ipa{a} \change\ \ipa{a}
 \paragraph{s6}
