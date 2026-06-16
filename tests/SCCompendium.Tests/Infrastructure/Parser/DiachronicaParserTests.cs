@@ -186,6 +186,121 @@ NB: note 1 (Don't think its used this way.)
     }
 
     [Test]
+    public async Task Parse_HasNonNote_NotUsedAsNote()
+    {
+        const string input =
+            """
+            \section{s1}
+            \subsection{s2}
+            \ipa{z} \change\ \ipa{z}\\
+            Some miscellaneous thing that isn't a note involving \ipa{a} and stuff.\\
+            \ipa{z} \change\ \ipa{z}\\
+            \ipa{z} \change\ \ipa{z}
+            """;
+        var latexParser = MockableILatexParser.Mock();
+        latexParser.ParseLatexSegment(Any(), Any()).Callback((str, sb) => sb.Append(str));
+        var ruleParser = IPhonologicalRuleParser.Mock();
+        ruleParser.TryParseRule(str => str.Contains('z')).Returns(true).SetsOutRule(_defaultRule);
+        DiachronicaParser parser = new(latexParser.Object, ruleParser.Object);
+
+        var result = parser.Parse(new StringReader(input));
+
+        await Assert.That(result).Count().IsEqualTo(1);
+        await Assert.That(result[0].Rules).Count().IsEqualTo(3);
+        await Assert.That(result[0].Rules).DoesNotContain(rule => !String.IsNullOrWhiteSpace(rule.Note));
+    }
+
+    [Test]
+    public async Task Parse_HasNoteWithExplicitApplication_DoesNotOverApply()
+    {
+        const string input =
+            """
+            \section{s1}
+            \subsection{s2}
+            \ipa{z} \change\ \ipa{z}\\
+            Initials:\\
+            ---\ipa{z} \change\ \ipa{z}\\
+            ---\ipa{z} \change\ \ipa{z}\\
+            \ipa{z} \change\ \ipa{z}
+            """;
+        var latexParser = MockableILatexParser.Mock();
+        latexParser.ParseLatexSegment(Any(), Any()).Callback((str, sb) => sb.Append(str));
+        var ruleParser = IPhonologicalRuleParser.Mock();
+        // mock arg matching seem to work in reverse order.
+        ruleParser.TryParseRule(str => str.Contains('z')).Returns(true).SetsOutRule(_defaultRule);
+        ruleParser.TryParseRule(str => str.StartsWith("---")).Returns(true).SetsOutRule(_defaultRule);
+        DiachronicaParser parser = new(latexParser.Object, ruleParser.Object);
+
+        var result = parser.Parse(new StringReader(input));
+
+        await Assert.That(result).Count().IsEqualTo(1);
+        await Assert.That(result[0].Rules).Count().IsEqualTo(4);
+        await Assert.That(result[0].Rules[0].Note).IsEmpty();
+        await Assert.That(result[0].Rules[1].Note).IsNotEmpty();
+        await Assert.That(result[0].Rules[2].Note).IsNotEmpty();
+        await Assert.That(result[0].Rules[3].Note).IsEmpty();
+    }
+
+    [Test]
+    public async Task Parse_HasNoteWithTrickyExplicitApplication_DoesNotOverApplyOrUseWrongNote()
+    {
+        const string input =
+            """
+            \section{s1}
+            \subsection{s2}
+            \ipa{z} \change\ \ipa{z}\\
+            Initials:\\
+            ---not note but does end in w/ a colon (:
+            ---\ipa{z} \change\ \ipa{z} ``ends in a colon (:\\
+            ---\ipa{z} \change\ \ipa{z}\\
+            \ipa{z} \change\ \ipa{z}
+            """;
+        var latexParser = MockableILatexParser.Mock();
+        latexParser.ParseLatexSegment(Any(), Any()).Callback((str, sb) => sb.Append(str));
+        var ruleParser = IPhonologicalRuleParser.Mock();
+        // mock arg matching seem to work in reverse order.
+        ruleParser.TryParseRule(str => str.Contains('z')).Returns(true).SetsOutRule(_defaultRule);
+        ruleParser.TryParseRule(str => str.StartsWith("---\\")).Returns(true).SetsOutRule(_defaultRule);
+        DiachronicaParser parser = new(latexParser.Object, ruleParser.Object);
+
+        var result = parser.Parse(new StringReader(input));
+
+        await Assert.That(result).Count().IsEqualTo(1);
+        await Assert.That(result[0].Rules).Count().IsEqualTo(4);
+        await Assert.That(result[0].Rules[0].Note).IsEmpty();
+        await Assert.That(result[0].Rules[1].Note).StartsWith("Initials:");
+        await Assert.That(result[0].Rules[2].Note).StartsWith("Initials:");
+        await Assert.That(result[0].Rules[3].Note).IsEmpty();
+    }
+
+    [Test]
+    public async Task Parse_HasGreedyNote_TakesAll()
+    {
+        const string input =
+            """
+            \section{s1}
+            \subsection{s2}
+            Initials:\\
+            \ipa{z} \change\ \ipa{z}\\
+            \ipa{z} \change\ \ipa{z}\\
+            \ipa{z} \change\ \ipa{z}
+            """;
+        var latexParser = MockableILatexParser.Mock();
+        latexParser.ParseLatexSegment(Any(), Any()).Callback((str, sb) => sb.Append(str));
+        var ruleParser = IPhonologicalRuleParser.Mock();
+        ruleParser.TryParseRule(str => str.Contains('z')).Returns(true).SetsOutRule(_defaultRule);
+        DiachronicaParser parser = new(latexParser.Object, ruleParser.Object);
+
+        var result = parser.Parse(new StringReader(input));
+
+        await Assert.That(result).Count().IsEqualTo(1);
+        await Assert.That(result[0].Rules).Count().IsEqualTo(3);
+        await Assert.That(result[0].Rules[0].Note).StartsWith("Initials:");
+        await Assert.That(result[0].Rules[1].Note).StartsWith("Initials:");
+        await Assert.That(result[0].Rules[2].Note).StartsWith("Initials:");
+    }
+
+    [Test]
     [Skip("Unreasonable to use at this point, when other dependant classes are incomplete.")]
     public async Task Parse_EntireDiachronica_NonEmptyListings()
     {
