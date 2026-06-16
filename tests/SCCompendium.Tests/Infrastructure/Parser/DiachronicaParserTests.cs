@@ -180,9 +180,10 @@ NB: note 1 (Don't think its used this way.)
         await Assert.That(result).Count().IsEqualTo(3);
         foreach (PhonologicalRuleGroup group in result)
         {
+            Console.WriteLine($"Checking [{group}]");
             await Assert.That(group.Rules).Count().IsEqualTo(1);
+            await Assert.That(group.Note).Contains("NB:");
         }
-        throw new NotImplementedException("PhonologicalRuleGroup does not have field for note yet");
     }
 
     [Test]
