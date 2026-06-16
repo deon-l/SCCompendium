@@ -4,5 +4,5 @@ namespace SCCompendium.Application.Parser;
 
 public interface IDiachronicaParser
 {
-    public List<PhonologicalRuleGroup> ParseDiachronica(TextReader reader);
+    public List<PhonologicalRuleGroup> Parse(TextReader reader);
 }

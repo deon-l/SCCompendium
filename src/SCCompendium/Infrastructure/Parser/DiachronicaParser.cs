@@ -18,7 +18,10 @@ public class DiachronicaParser : IDiachronicaParser
         _phonoRuleParser = phonoRuleParser;
     }
 
-
+    /// <summary>
+    /// Advances <paramref name="reader"/> to next section header, and returns unparsed title/credit of header.
+    /// Returns <see langword="null"/> on end of text.
+    /// </summary>
     private (string title, string credit)? GetNextSubsection(SavingTextReader reader)
     {
         Match result;
@@ -30,7 +33,7 @@ public class DiachronicaParser : IDiachronicaParser
             }
 
             result = _sectionHeader.Match(reader.CurrentLine);
-            if (result.Success)
+            if (result.Success && !result.Value.StartsWith(@"\section"))
             {
                 break;
             }
@@ -47,21 +50,77 @@ public class DiachronicaParser : IDiachronicaParser
         return (title, credit);
     }
 
-    public List<PhonologicalRuleGroup> ParseDiachronica(TextReader file)
+    /// <summary>
+    /// Advances <paramref name="reader"/> to next nonempty line, and returns it unparsed if it is a section note.
+    /// Otherwise, returns <see langword="null"/>.
+    /// </summary>
+    private string? TryGetNote(SavingTextReader reader)
+    {
+        while (true)
+        {
+            if (reader.CurrentLine is null)
+            {
+                return null;
+            }
+            if (reader.CurrentLine.IsWhiteSpace())
+            {
+                reader.Advance();
+                continue;
+            }
+            break;
+        }
+        ReadOnlySpan<char> line = reader.CurrentLine;
+        line = line.TrimStart();
+        while (line.Length > 0)
+        {
+            if (line.StartsWith(@"\tab"))
+            {
+                line = line[@"\tab".Length..].TrimStart();
+                continue;
+            }
+            if (line[0] == '{')
+            {
+                line = line[1..].TrimStart();
+                continue;
+            }
+            if (line.StartsWith(@"\it"))
+            {
+                line = line[@"\it".Length..].TrimStart();
+                continue;
+            }
+            if (line.StartsWith(@"\textit{"))
+            {
+                line = line[@"\textit{".Length..].TrimStart();
+                continue;
+            }
+            break;
+        }
+
+        var match = line.StartsWith("NB");
+        string? result = match ? reader.CurrentLine : null;
+        if (match)
+        {
+            reader.Advance();
+        }
+        return result;
+    }
+
+    public List<PhonologicalRuleGroup> Parse(TextReader file)
     {
         ArgumentNullException.ThrowIfNull(file);
         SavingTextReader reader = new(file);
 
         List<Exception> sectionExceptions = new();
         List<PhonologicalRuleGroup> ruleGroups = new();
-        StringBuilder builder = new();
 
         reader.Advance();
         for (var subsectionHeader = GetNextSubsection(reader);
              subsectionHeader is not null;
              subsectionHeader = GetNextSubsection(reader))
         {
-            (List<PhonologicalRule> rules, List<Exception> sectionParsingErrors) = ParseSubsection(reader);
+            reader.Advance();
+            string? sectionNote = TryGetNote(reader);
+            (List<PhonologicalRule> rules, List<Exception> sectionParsingErrors) = ParseSubsectionRules(reader);
             if (sectionParsingErrors.Count == 0 && rules.Count == 0)
             {
                 continue;
@@ -69,10 +128,10 @@ public class DiachronicaParser : IDiachronicaParser
 
             string titleTranslated;
             string creditTranslated;
+            string sectionNoteTranslated = String.Empty;
             try
             {
-                _latexParser.ParseLatexSegment(subsectionHeader.Value.title, builder);
-                titleTranslated = builder.ToString();
+                titleTranslated = _latexParser.ParseLatexSegment(subsectionHeader.Value.title);
             }
             catch (Exception e)
             {
@@ -80,17 +139,19 @@ public class DiachronicaParser : IDiachronicaParser
                     $"Error parsing title of section: {subsectionHeader.Value.title}", nameof(file), e));
                 titleTranslated = subsectionHeader.Value.title;
             }
-            builder.Clear();
             try
             {
-                _latexParser.ParseLatexSegment(subsectionHeader.Value.credit, builder);
-                creditTranslated = builder.ToString();
+                creditTranslated = _latexParser.ParseLatexSegment(subsectionHeader.Value.credit);
             }
             catch (Exception e)
             {
                 sectionParsingErrors.Insert(0, new ArgumentException(
                     $"Error parsing title of section: {subsectionHeader.Value.credit}", nameof(file), e));
                 creditTranslated = subsectionHeader.Value.credit;
+            }
+            if (sectionNote is not null)
+            {
+                sectionNoteTranslated = _latexParser.ParseLatexSegment(sectionNote);
             }
 
             if (sectionParsingErrors.Count > 0)
@@ -100,7 +161,7 @@ public class DiachronicaParser : IDiachronicaParser
                 continue;
             }
 
-            ruleGroups.Add(new(titleTranslated, creditTranslated, rules));
+            ruleGroups.Add(new(titleTranslated, creditTranslated, rules, sectionNoteTranslated));
         }
 
         if (sectionExceptions.Count > 0)
@@ -114,7 +175,11 @@ public class DiachronicaParser : IDiachronicaParser
         return ruleGroups;
     }
 
-    private (List<PhonologicalRule>, List<Exception> exceptions) ParseSubsection(SavingTextReader file)
+    /// <summary>Parses and lists lines containing rules until encounters next section header.</summary>
+    /// <remarks>
+    /// Starts at current line at <paramref name="file"/>, so assumes it isn't current section header.
+    /// </remarks>
+    private (List<PhonologicalRule>, List<Exception> exceptions) ParseSubsectionRules(SavingTextReader file)
     {
         List<Exception> exceptions = new();
         List<PhonologicalRule> rules = new();
@@ -123,19 +188,21 @@ public class DiachronicaParser : IDiachronicaParser
         bool isPrenoteGreedy = false;
         while (true)
         {
-            string? line = file.ReadNextLine();
+            string? line = file.CurrentLine;
             if (line is null)
             {
                 break;
             }
-            if (String.IsNullOrEmpty(line))
+            if (line.IsWhiteSpace())
             {
+                file.Advance();
                 continue;
             }
             if (IsSectionEnder(line))
             {
                 break;
             }
+            file.Advance();
 
             PhonologicalRule rule;
             bool successfulParse;
@@ -151,13 +218,21 @@ public class DiachronicaParser : IDiachronicaParser
 
             if (!successfulParse)
             {
-                possiblePrenote = line;
-                isPrenoteParsed = false;
-                isPrenoteGreedy = possiblePrenote.StartsWith("---");
+                // note: file.CurrentLine here refers to the next line to process.
+                if (file.CurrentLine is not null && IsPossibleNote(line))
+                {
+                    possiblePrenote = line;
+                    isPrenoteParsed = false;
+                    isPrenoteGreedy = !file.CurrentLine.StartsWith("---");
+                }
+                else if (!line.StartsWith("---"))
+                {
+                    possiblePrenote = "";
+                }
                 continue;
             }
 
-            if (rule.Rule.StartsWith('—') || isPrenoteGreedy)
+            if (line.StartsWith("---") || isPrenoteGreedy)
             {
                 if (!isPrenoteParsed)
                 {
@@ -174,10 +249,32 @@ public class DiachronicaParser : IDiachronicaParser
 
                 rule = rule with { Note = possiblePrenote };
             }
+            else
+            {
+                possiblePrenote = "";
+            }
             rules.Add(rule);
         }
 
         return (rules, exceptions);
+
+        bool IsPossibleNote(string line)
+        {
+            ReadOnlySpan<char> span = line.AsSpan().TrimEnd();
+            if (span.EndsWith(@"\\"))
+            {
+                span = span[..^2].TrimEnd();
+            }
+            if (!span.EndsWith(':'))
+            {
+                return false;
+            }
+            if (line.StartsWith("---") && possiblePrenote.Length != 0 && !isPrenoteGreedy)
+            {
+                return false;
+            }
+            return true;
+        }
 
         bool IsSectionEnder(string line)
         {
@@ -185,17 +282,24 @@ public class DiachronicaParser : IDiachronicaParser
         }
     }
 
+    /// <summary>
+    /// Wrapper around <see cref="TextReader"/> to save output of <see cref="TextReader.ReadLine"/>
+    /// </summary>
     private class SavingTextReader(TextReader reader)
     {
         public TextReader TextReader { get; } = reader;
         public string? CurrentLine { get; private set; }
 
+        /// <remarks>Also saves line.</remarks>
         public string? ReadNextLine()
         {
             Advance();
             return CurrentLine;
         }
 
+        /// <summary>
+        /// Gets next line, and saves output in <see cref="CurrentLine"/>.
+        /// </summary>
         public void Advance()
         {
             CurrentLine = TextReader.ReadLine();
