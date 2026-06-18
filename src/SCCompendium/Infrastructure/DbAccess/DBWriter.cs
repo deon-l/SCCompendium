@@ -1,13 +1,18 @@
 using System.Data;
 using System.Data.Common;
 using System.Text;
-
+using SCCompendium.Application.DbAccess;
 using SCCompendium.Domain;
 
 namespace SCCompendium.Infrastructure.DbAccess;
 
-public class DbWriter
+public class DbWriter : IDbWriter
 {
+    public void InitiateDatabase(IDbConnection connection)
+    {
+        throw new NotImplementedException();
+    }
+
     public int WriteSections(Dictionary<string, (string credit, List<PhonologicalRule> rules)> source,
         DbConnection connection, string tableName)
     {
@@ -42,5 +47,10 @@ public class DbWriter
         sb[^1] = ';';
         command.CommandText = sb.ToString();
         return command.ExecuteNonQuery();
+    }
+
+    public void Write(IDbConnection connection, List<PhonologicalRuleGroup> rules)
+    {
+        throw new NotImplementedException();
     }
 }
