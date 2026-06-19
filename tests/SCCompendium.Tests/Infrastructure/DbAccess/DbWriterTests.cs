@@ -28,16 +28,15 @@ public class DbWriterTests
     [Test]
     public async Task WriteSections_SampleSource_CorrectWriteAndCount()
     {
-        const string sampleTableName = "abcdef";
         string longCredit = new ('d', 100);
         string longTitle = new string('e', 100);
         DbWriter writer = new();
-        Dictionary<string, (string, List<PhonologicalRule>)> source = new()
+        List<PhonologicalRuleGroup> source = new()
         {
-            {"", ("", null!)},
-            {"aaa", ("bbb", null!)},
-            {"ccc", (longCredit, [])},
-            {longTitle, ("fff", [default, default])}
+            new("", "", [], ""),
+            new("aaa", "bbb", []),
+            new("ccc", longCredit, []),
+            new(longTitle, "fff", [default, default])
         };
         MockDbConnection connection = new();
         CommandCapturer capturer = new();
@@ -46,14 +45,15 @@ public class DbWriterTests
             .When(capturer.Capture)
             .ReturnsScalar(source.Count);
 
-       int modifiedCount = writer.WriteGroups(source, connection, sampleTableName);
+       int modifiedCount = writer.WriteGroups(connection, source);
 
        await Assert.That(capturer).IsNotNull();
        await Assert.That(modifiedCount).IsEqualTo(source.Count);
+
        string[] capturedCommandParts = capturer.CommandText.Split(' ', StringSplitOptions.TrimEntries);
        await Assert.That(capturedCommandParts[0]).IsEqualTo("INSERT", StringComparison.CurrentCultureIgnoreCase);
        await Assert.That(capturedCommandParts[1]).IsEqualTo("INTO", StringComparison.CurrentCultureIgnoreCase);
-       await Assert.That(capturedCommandParts[2]).IsEqualTo(sampleTableName);
+       await Assert.That(capturedCommandParts[2]).IsEqualTo(DbWriter.RuleGroupTableName);
        await Assert.That(capturer.CommandText).Contains("VALUE", StringComparison.CurrentCultureIgnoreCase);
        await Assert.That(capturer.Parameters)
            .Contains(p => "aaa".Equals((string)p.Value!, StringComparison.CurrentCultureIgnoreCase))
