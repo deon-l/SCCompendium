@@ -18,20 +18,19 @@ public class DbWriter : IDbWriter
         throw new NotImplementedException();
     }
 
-    public int WriteSections(Dictionary<string, (string credit, List<PhonologicalRule> rules)> source,
-        DbConnection connection, string tableName)
+    public int WriteGroups(DbConnection connection, List<PhonologicalRuleGroup> groups)
     {
         const string titleParamName = "SectionTitle";
         const string creditParamName = "SectionCredit";
 
         using DbCommand command = connection.CreateCommand();
-        StringBuilder sb = new($"INSERT INTO {tableName} (title, credit) VALUES ");
+        StringBuilder sb = new($"INSERT INTO {RuleGroupTableName} (title, credit) VALUES ");
 
         int i = 0;
-        foreach (var pair in source)
+        foreach (PhonologicalRuleGroup group in groups)
         {
-            string title = pair.Key;
-            string credit = pair.Value.credit;
+            string title = group.Title;
+            string credit = group.Credit;
 
             DbParameter
                 titleParam = command.CreateParameter(),

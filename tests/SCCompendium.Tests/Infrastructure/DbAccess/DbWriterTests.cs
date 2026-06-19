@@ -46,7 +46,7 @@ public class DbWriterTests
             .When(capturer.Capture)
             .ReturnsScalar(source.Count);
 
-       int modifiedCount = writer.WriteSections(source, connection, sampleTableName);
+       int modifiedCount = writer.WriteGroups(source, connection, sampleTableName);
 
        await Assert.That(capturer).IsNotNull();
        await Assert.That(modifiedCount).IsEqualTo(source.Count);
