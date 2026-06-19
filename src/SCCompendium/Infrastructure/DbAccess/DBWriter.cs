@@ -1,27 +1,36 @@
 using System.Data;
 using System.Data.Common;
 using System.Text;
-
+using SCCompendium.Application.DbAccess;
 using SCCompendium.Domain;
 
 namespace SCCompendium.Infrastructure.DbAccess;
 
-public class DbWriter
+public class DbWriter : IDbWriter
 {
-    public int WriteSections(Dictionary<string, (string credit, List<PhonologicalRule> rules)> source,
-        DbConnection connection, string tableName)
+    public const string RuleGroupTableName = "RuleGroups";
+    public const string PhonologicalRuleTableName = "PhonologicalRules";
+    public const string IpaCharacterTableName = "IpaCharacters";
+    public const string RuleIpaReferenceTableName = "RuleIpaReferences";
+
+    public void InitiateDatabase(IDbConnection connection)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int WriteGroups(DbConnection connection, List<PhonologicalRuleGroup> groups)
     {
         const string titleParamName = "SectionTitle";
         const string creditParamName = "SectionCredit";
 
         using DbCommand command = connection.CreateCommand();
-        StringBuilder sb = new($"INSERT INTO {tableName} (title, credit) VALUES ");
+        StringBuilder sb = new($"INSERT INTO {RuleGroupTableName} (title, credit) VALUES ");
 
         int i = 0;
-        foreach (var pair in source)
+        foreach (PhonologicalRuleGroup group in groups)
         {
-            string title = pair.Key;
-            string credit = pair.Value.credit;
+            string title = group.Title;
+            string credit = group.Credit;
 
             DbParameter
                 titleParam = command.CreateParameter(),
@@ -42,5 +51,10 @@ public class DbWriter
         sb[^1] = ';';
         command.CommandText = sb.ToString();
         return command.ExecuteNonQuery();
+    }
+
+    public void Write(IDbConnection connection, List<PhonologicalRuleGroup> rules)
+    {
+        throw new NotImplementedException();
     }
 }
