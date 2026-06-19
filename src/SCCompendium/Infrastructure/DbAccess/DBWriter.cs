@@ -8,6 +8,11 @@ namespace SCCompendium.Infrastructure.DbAccess;
 
 public class DbWriter : IDbWriter
 {
+    public const string RuleGroupTableName = "RuleGroups";
+    public const string PhonologicalRuleTableName = "PhonologicalRules";
+    public const string IpaCharacterTableName = "IpaCharacters";
+    public const string RuleIpaReferenceTableName = "RuleIpaReferences";
+
     public void InitiateDatabase(IDbConnection connection)
     {
         throw new NotImplementedException();
