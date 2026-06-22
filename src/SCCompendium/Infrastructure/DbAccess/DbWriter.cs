@@ -8,7 +8,7 @@ namespace SCCompendium.Infrastructure.DbAccess;
 
 public class DbWriter : IDbWriter
 {
-
+    private readonly DbNames _dbNames = new();
     public void InitiateDatabase(IDbConnection connection)
     {
         throw new NotImplementedException();
@@ -20,7 +20,7 @@ public class DbWriter : IDbWriter
         const string creditParamName = "SectionCredit";
 
         using DbCommand command = connection.CreateCommand();
-        StringBuilder sb = new($"INSERT INTO {RuleGroupTableName} (title, credit) VALUES ");
+        StringBuilder sb = new($"INSERT INTO {_dbNames.RuleGroupTable} ({_dbNames.RuleGroupTableName}, {_dbNames.RuleGroupTableCredit}) VALUES ");
 
         int i = 0;
         foreach (PhonologicalRuleGroup group in groups)
