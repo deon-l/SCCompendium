@@ -53,7 +53,7 @@ public class DbWriterTests
        string[] capturedCommandParts = capturer.CommandText.Split(' ', StringSplitOptions.TrimEntries);
        await Assert.That(capturedCommandParts[0]).IsEqualTo("INSERT", StringComparison.CurrentCultureIgnoreCase);
        await Assert.That(capturedCommandParts[1]).IsEqualTo("INTO", StringComparison.CurrentCultureIgnoreCase);
-       await Assert.That(capturedCommandParts[2]).IsEqualTo(DbWriter.RuleGroupTableName);
+       await Assert.That(capturedCommandParts[2]).IsEqualTo(new DbNames().RuleGroupTable);
        await Assert.That(capturer.CommandText).Contains("VALUE", StringComparison.CurrentCultureIgnoreCase);
        await Assert.That(capturer.Parameters)
            .Contains(p => "aaa".Equals((string)p.Value!, StringComparison.CurrentCultureIgnoreCase))
