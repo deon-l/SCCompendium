@@ -14,12 +14,12 @@ public class DbWriter : IDbWriter
         throw new NotImplementedException();
     }
 
-    public int WriteGroups(DbConnection connection, List<PhonologicalRuleGroup> groups)
+    public int WriteGroups(IDbConnection connection, List<PhonologicalRuleGroup> groups)
     {
         const string titleParamName = "SectionTitle";
         const string creditParamName = "SectionCredit";
 
-        using DbCommand command = connection.CreateCommand();
+        using IDbCommand command = connection.CreateCommand();
         StringBuilder sb = new($"INSERT INTO {_names.RuleGroupTable} ({_names.RuleGroupColName}, {_names.RuleGroupColCredit}) VALUES ");
 
         int i = 0;
@@ -28,7 +28,7 @@ public class DbWriter : IDbWriter
             string title = group.Title;
             string credit = group.Credit;
 
-            DbParameter
+            IDbDataParameter
                 titleParam = command.CreateParameter(),
                 creditParam = command.CreateParameter();
 
