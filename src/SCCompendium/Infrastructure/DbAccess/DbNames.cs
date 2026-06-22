@@ -7,10 +7,10 @@ namespace SCCompendium.Infrastructure.DbAccess;
 public class DbNames
 {
     public string RuleGroupTable => "RuleGroups";
-    public string RuleGroupTableKey => "Key";
-    public string RuleGroupTableName => "Name";
-    public string RuleGroupTableCredit => "Credit";
-    public string RuleGroupTableNote => "Note";
+    public string RuleGroupColKey => "Key";
+    public string RuleGroupColName => "Name";
+    public string RuleGroupColCredit => "Credit";
+    public string RuleGroupColNote => "Note";
 
     public string PhonologicalRuleTable => "PhonologicalRules";
 
