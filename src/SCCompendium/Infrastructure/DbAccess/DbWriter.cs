@@ -11,7 +11,55 @@ public class DbWriter : IDbWriter
     private readonly DbNames _names = new();
     public void InitiateDatabase(IDbConnection connection)
     {
-        throw new NotImplementedException();
+        using (IDbCommand command = connection.CreateCommand())
+        {
+            command.CommandText = @$"CREATE TABLE {_names.RuleGroupTable} (
+  {_names.RuleGroupColKey} int PRIMARY KEY,
+  {_names.RuleGroupColName} varchar(63) NOT NULL,
+  {_names.RuleGroupColCredit} varchar(255) NOT NULL,
+  {_names.RuleGroupColNote} varchar(255),
+  UNIQUE ({_names.RuleGroupColName})
+)";
+            command.ExecuteNonQuery();
+        }
+
+        using (IDbCommand command = connection.CreateCommand())
+        {
+            command.CommandText = @$"CREATE TABLE {_names.PhonologicalRuleTable} (
+  RuleId int PRIMARY KEY,
+  Rule varchar(255) NOT NULL,
+  Notes varchar(255),
+  Unique (Rule),
+  GroupId int FOREIGN KEY REFERENCES RuleGroups(Id)
+)";
+            command.ExecuteNonQuery();
+        }
+
+        using (IDbCommand command = connection.CreateCommand())
+        {
+            command.CommandText = @$"CREATE TABLE {_names.IpaCharacterTable} (
+  CharId int PRIMARY KEY,
+  Symbol varchar(2) NOT NULL,
+  Diacritics varchar(255)
+)
+";
+            command.ExecuteNonQuery();
+        }
+
+        using (IDbCommand command = connection.CreateCommand())
+        {
+            command.CommandText = @$"CREATE TABLE {_names.RuleIpaReferenceTable} (
+  RuleId int,
+  CharId int,
+  Type set(input, output, context) NOT NULL,
+  CONSTRAINT FKey_Rules
+  FOREIGN KEY (RuleId) REFERENCES PhonologicalRules(RuleId),
+  CONSTRAINT FKey_IpaChar
+  FOREIGN KEY (CharId) REFERENCES IpaCharacters(CharId),
+  CONSTRAINT Uniq UNIQUE (RuleId, CharId)
+)";
+            command.ExecuteNonQuery();
+        }
     }
 
     public int WriteGroups(IDbConnection connection, List<PhonologicalRuleGroup> groups)
