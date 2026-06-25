@@ -13,8 +13,17 @@ public class DbNames
     public string RuleGroupColNote => "Note";
 
     public string PhonologicalRuleTable => "PhonologicalRules";
+    public string PhonologicalRuleColKey => "Key";
+    public string PhonologicalRuleColRule => "Rule";
+    public string PhonologicalRuleColRuleNote => "Note";
 
     public string IpaCharacterTable => "IpaCharacters";
+    public string IpaCharacterColKey => "Key";
+    public string IpaCharacterColSymbol => "Symbol";
+    public string IpaCharacterColDiacritics => "Diacritics";
 
     public string RuleIpaReferenceTable => "RuleIpaReferences";
+    public string RuleIpaReferenceColRuleKey => "RuleKey";
+    public string RuleIpaReferenceColCharKey => "CharKey";
+    public string RuleIpaReferenceColType => "Type";
 }
