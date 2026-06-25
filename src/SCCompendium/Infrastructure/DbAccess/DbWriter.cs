@@ -31,7 +31,7 @@ public class DbWriter : IDbWriter
   {_names.PhonologicalRuleColRuleNote} varchar(255),
   {_names.PhonologicalRuleColGroupKey} int,
   RESTRAINT FKey_Groups 
-  FOREIGN KEY REFERENCES {_names.RuleGroupTable}({_names.RuleGroupColKey}),
+  FOREIGN KEY ({_names.PhonologicalRuleColGroupKey}) REFERENCES {_names.RuleGroupTable}({_names.RuleGroupColKey}),
 )";
             command.ExecuteNonQuery();
         }
@@ -54,9 +54,9 @@ public class DbWriter : IDbWriter
   {_names.RuleIpaReferenceColCharKey} int,
   {_names.RuleIpaReferenceColType} set(input, output, context) NOT NULL,
   CONSTRAINT FKey_Rules
-  FOREIGN KEY (RuleId) REFERENCES {_names.PhonologicalRuleTable}({_names.PhonologicalRuleColKey}),
+  FOREIGN KEY ({_names.RuleIpaReferenceColRuleKey}) REFERENCES {_names.PhonologicalRuleTable}({_names.PhonologicalRuleColKey}),
   CONSTRAINT FKey_IpaChar
-  FOREIGN KEY (CharId) REFERENCES {_names.IpaCharacterTable}({_names.IpaCharacterColKey}),
+  FOREIGN KEY ({_names.RuleIpaReferenceColCharKey}) REFERENCES {_names.IpaCharacterTable}({_names.IpaCharacterColKey}),
   CONSTRAINT Uniq UNIQUE ({_names.RuleIpaReferenceColRuleKey}, {_names.RuleIpaReferenceColCharKey})
 )";
             command.ExecuteNonQuery();
