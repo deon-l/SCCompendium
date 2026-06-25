@@ -29,7 +29,9 @@ public class DbWriter : IDbWriter
   {_names.PhonologicalRuleColKey} int PRIMARY KEY,
   {_names.PhonologicalRuleColRule} varchar(255) NOT NULL,
   {_names.PhonologicalRuleColRuleNote} varchar(255),
-  {_names.PhonologicalRuleColGroupKey} int FOREIGN KEY REFERENCES {_names.RuleGroupTable}({_names.RuleGroupColKey})
+  {_names.PhonologicalRuleColGroupKey} int,
+  RESTRAINT FKey_Groups 
+  FOREIGN KEY REFERENCES {_names.RuleGroupTable}({_names.RuleGroupColKey}),
 )";
             command.ExecuteNonQuery();
         }
