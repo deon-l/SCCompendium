@@ -26,11 +26,10 @@ public class DbWriter : IDbWriter
         using (IDbCommand command = connection.CreateCommand())
         {
             command.CommandText = @$"CREATE TABLE {_names.PhonologicalRuleTable} (
-  RuleId int PRIMARY KEY,
-  Rule varchar(255) NOT NULL,
-  Notes varchar(255),
-  Unique (Rule),
-  GroupId int FOREIGN KEY REFERENCES RuleGroups(Id)
+  {_names.PhonologicalRuleColKey} int PRIMARY KEY,
+  {_names.PhonologicalRuleColRule} varchar(255) NOT NULL,
+  {_names.PhonologicalRuleColRuleNote} varchar(255),
+  {_names.PhonologicalRuleColGroupKey} int FOREIGN KEY REFERENCES {_names.RuleGroupTable}({_names.RuleGroupColKey})
 )";
             command.ExecuteNonQuery();
         }
@@ -38,9 +37,9 @@ public class DbWriter : IDbWriter
         using (IDbCommand command = connection.CreateCommand())
         {
             command.CommandText = @$"CREATE TABLE {_names.IpaCharacterTable} (
-  CharId int PRIMARY KEY,
-  Symbol varchar(2) NOT NULL,
-  Diacritics varchar(255)
+  {_names.IpaCharacterColKey} int PRIMARY KEY,
+  {_names.IpaCharacterColSymbol} varchar(2) NOT NULL,
+  {_names.IpaCharacterColDiacritics} varchar(255)
 )
 ";
             command.ExecuteNonQuery();
@@ -49,14 +48,14 @@ public class DbWriter : IDbWriter
         using (IDbCommand command = connection.CreateCommand())
         {
             command.CommandText = @$"CREATE TABLE {_names.RuleIpaReferenceTable} (
-  RuleId int,
-  CharId int,
-  Type set(input, output, context) NOT NULL,
+  {_names.RuleIpaReferenceColRuleKey} int,
+  {_names.RuleIpaReferenceColCharKey} int,
+  {_names.RuleIpaReferenceColType} set(input, output, context) NOT NULL,
   CONSTRAINT FKey_Rules
-  FOREIGN KEY (RuleId) REFERENCES PhonologicalRules(RuleId),
+  FOREIGN KEY (RuleId) REFERENCES {_names.PhonologicalRuleTable}({_names.PhonologicalRuleColKey}),
   CONSTRAINT FKey_IpaChar
-  FOREIGN KEY (CharId) REFERENCES IpaCharacters(CharId),
-  CONSTRAINT Uniq UNIQUE (RuleId, CharId)
+  FOREIGN KEY (CharId) REFERENCES {_names.IpaCharacterTable}({_names.IpaCharacterColKey}),
+  CONSTRAINT Uniq UNIQUE ({_names.RuleIpaReferenceColRuleKey}, {_names.RuleIpaReferenceColCharKey})
 )";
             command.ExecuteNonQuery();
         }
