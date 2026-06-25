@@ -16,6 +16,7 @@ public class DbNames
     public string PhonologicalRuleColKey => "Key";
     public string PhonologicalRuleColRule => "Rule";
     public string PhonologicalRuleColRuleNote => "Note";
+    public string PhonologicalRuleColGroupKey => "GroupKey";
 
     public string IpaCharacterTable => "IpaCharacters";
     public string IpaCharacterColKey => "Key";
