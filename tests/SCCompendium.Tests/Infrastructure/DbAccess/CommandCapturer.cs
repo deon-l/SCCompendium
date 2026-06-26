@@ -7,7 +7,7 @@ internal class CommandCapturer
     private readonly List<MockCommand> _captured = new();
     public MockCommand this[int i] => _captured[i];
     public int Count => _captured.Count;
-    public Func<MockCommand, bool> All => CaptureAll;
+    public Func<MockCommand, bool> Any => CaptureAll;
 
     private bool CaptureAll(MockCommand command)
     {

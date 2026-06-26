@@ -8,23 +8,6 @@ namespace SCCompendium.Tests.Infrastructure.DbAccess;
 
 public class DbWriterTests
 {
-    public class CommandCapturer
-    {
-        public string? CommandText { get; private set; }
-        public IEnumerable<DbParameter>? Parameters { get; private set; }
-        public bool HasCapturedMultipleCommands { get; private set; }
-        public bool Capture(MockCommand command)
-        {
-            if (CommandText is not null)
-            {
-                HasCapturedMultipleCommands = true;
-            }
-            CommandText = command.CommandText;
-            Parameters = command.Parameters;
-            return true;
-        }
-    }
-
     [Test]
     public async Task WriteSections_SampleSource_CorrectWriteAndCount()
     {
@@ -42,7 +25,7 @@ public class DbWriterTests
         CommandCapturer capturer = new();
         connection.Mocks
             .HasValidSqlServerCommandText()
-            .When(capturer.Capture)
+            .When(capturer.Any)
             .ReturnsScalar(source.Count);
 
        int modifiedCount = writer.WriteGroups(connection, source);
@@ -50,12 +33,12 @@ public class DbWriterTests
        await Assert.That(capturer).IsNotNull();
        await Assert.That(modifiedCount).IsEqualTo(source.Count);
 
-       string[] capturedCommandParts = capturer.CommandText.Split(' ', StringSplitOptions.TrimEntries);
+       string[] capturedCommandParts = capturer[0].CommandText.Split(' ', StringSplitOptions.TrimEntries);
        await Assert.That(capturedCommandParts[0]).IsEqualTo("INSERT", StringComparison.CurrentCultureIgnoreCase);
        await Assert.That(capturedCommandParts[1]).IsEqualTo("INTO", StringComparison.CurrentCultureIgnoreCase);
        await Assert.That(capturedCommandParts[2]).IsEqualTo(new DbNames().RuleGroupTable);
-       await Assert.That(capturer.CommandText).Contains("VALUE", StringComparison.CurrentCultureIgnoreCase);
-       await Assert.That(capturer.Parameters)
+       await Assert.That(capturer[0].CommandText).Contains("VALUE", StringComparison.CurrentCultureIgnoreCase);
+       await Assert.That(capturer[0].Parameters)
            .Contains(p => "aaa".Equals((string)p.Value!, StringComparison.CurrentCultureIgnoreCase))
            .And.Contains(p => "bbb".Equals((string)p.Value!, StringComparison.CurrentCultureIgnoreCase))
            .And.Contains(p => "ccc".Equals((string)p.Value!, StringComparison.CurrentCultureIgnoreCase))
