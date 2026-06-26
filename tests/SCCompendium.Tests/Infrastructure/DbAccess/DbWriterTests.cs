@@ -9,6 +9,24 @@ namespace SCCompendium.Tests.Infrastructure.DbAccess;
 public class DbWriterTests
 {
     [Test]
+    public async Task InitiateDatabase_SampleCall_CorrectWrite()
+    {
+        MockDbConnection connection = new();
+        CommandCapturer capturer = new();
+        connection.Mocks
+            .When(capturer.Any)
+            .ReturnsScalar(-1);
+        DbWriter writer = new();
+
+        writer.InitiateDatabase(connection);
+
+        await Assert.That(capturer.Count).IsEqualTo(4);
+        await Assert.That(capturer.ToArray()).DoesNotContain(cmd => !(
+            cmd.CommandText.TrimStart().StartsWith("CREATE TABLE", StringComparison.CurrentCultureIgnoreCase)
+            && cmd.CommandText.TrimEnd().EndsWith(')')));
+    }
+
+    [Test]
     public async Task WriteSections_SampleSource_CorrectWriteAndCount()
     {
         string longCredit = new ('d', 100);

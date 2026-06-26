@@ -7,6 +7,8 @@ internal class CommandCapturer
     private readonly List<MockCommand> _captured = new();
     public MockCommand this[int i] => _captured[i];
     public int Count => _captured.Count;
+
+    public MockCommand[] ToArray() => _captured.ToArray();
     /// <summary>
     /// Captures all commands, and allows all SQL commands.
     /// </summary>
