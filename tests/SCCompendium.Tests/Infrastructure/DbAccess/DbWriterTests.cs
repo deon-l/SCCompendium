@@ -21,6 +21,9 @@ public class DbWriterTests
         writer.InitiateDatabase(connection);
 
         await Assert.That(capturer.Count).IsEqualTo(4);
+        await Assert.That(capturer.ToArray()).DoesNotContain(cmd => !(
+            cmd.CommandText.TrimStart().StartsWith("CREATE TABLE", StringComparison.CurrentCultureIgnoreCase)
+            && cmd.CommandText.TrimEnd().EndsWith(')')));
     }
 
     [Test]
