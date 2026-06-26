@@ -7,6 +7,9 @@ internal class CommandCapturer
     private readonly List<MockCommand> _captured = new();
     public MockCommand this[int i] => _captured[i];
     public int Count => _captured.Count;
+    /// <summary>
+    /// Captures all commands, and allows all SQL commands.
+    /// </summary>
     public Func<MockCommand, bool> Any => CaptureAll;
 
     private bool CaptureAll(MockCommand command)
@@ -15,6 +18,9 @@ internal class CommandCapturer
         return true;
     }
 
+    /// <summary>
+    /// Allows only SQL commands that satisfy <paramref name="predicate"/>, and captures only if they do.
+    /// </summary>
     public Func<MockCommand, bool> If(Func<MockCommand, bool> predicate)
     {
         return (command) =>
