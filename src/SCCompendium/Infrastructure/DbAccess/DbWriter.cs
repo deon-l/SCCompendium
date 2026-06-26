@@ -1,5 +1,4 @@
 using System.Data;
-using System.Data.Common;
 using System.Text;
 using SCCompendium.Application.DbAccess;
 using SCCompendium.Domain;
@@ -96,6 +95,70 @@ public class DbWriter : IDbWriter
         sb[^1] = ';';
         command.CommandText = sb.ToString();
         return command.ExecuteNonQuery();
+    }
+
+    public void WriteRuleHeaders(IDbConnection connection, int groupKey, List<PhonologicalRule> rules)
+    {
+        using (IDbCommand command = connection.CreateCommand())
+        {
+            command.CommandText = $@"INSERT INTO {_names.PhonologicalRuleTable}
+VALUES (@rule, @note, @groupKey);";
+            IDbDataParameter
+                ruleParam = command.CreateParameter(),
+                noteParam = command.CreateParameter(),
+                groupParam = command.CreateParameter();
+
+            ruleParam.DbType = DbType.AnsiString;
+            ruleParam.ParameterName = "@rule";
+
+            noteParam.DbType = DbType.AnsiString;
+            noteParam.ParameterName = "@note";
+
+            groupParam.DbType = DbType.Int32;
+            groupParam.ParameterName = "@groupKey";
+            groupParam.Value = groupKey;
+
+            command.Parameters.Add(ruleParam);
+            command.Parameters.Add(noteParam);
+            command.Parameters.Add(groupParam);
+
+            foreach (PhonologicalRule rule in rules)
+            {
+                ruleParam.Value = rule.Rule;
+                noteParam.Value = rule.Note;
+
+                command.ExecuteNonQuery();
+            }
+        }
+    }
+
+    public void WriteRules(IDbConnection connection, string groupName, List<PhonologicalRule> rules)
+    {
+        if (rules.Count == 0)
+        {
+            return;
+        }
+
+        int groupKey;
+        using (IDbCommand command = connection.CreateCommand())
+        {
+            command.CommandText = @$"SELECT {_names.RuleGroupColKey} FROM {_names.RuleGroupTable}
+WHERE {_names.RuleGroupColName} = @name";
+            IDbDataParameter param = command.CreateParameter();
+            param.DbType = DbType.AnsiString;
+            param.Value = groupName;
+            param.ParameterName = "@name";
+            command.Parameters.Add(param);
+
+            object? result = command.ExecuteScalar();
+            if (result is not int)
+            {
+                return 0;
+            }
+            groupKey = (int)result;
+        }
+
+        WriteRuleHeaders(connection, groupKey, rules);
     }
 
     public void Write(IDbConnection connection, List<PhonologicalRuleGroup> rules)
