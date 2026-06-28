@@ -7,6 +7,7 @@ namespace SCCompendium.Infrastructure.DbAccess;
 
 public class DbWriter : IDbWriter
 {
+    private const char DiacriticDelimiter = ';';
     private readonly DbNames _names = new();
     public void InitiateDatabase(IDbConnection connection)
     {
@@ -129,6 +130,57 @@ VALUES (@rule, @note, @groupKey);";
 
                 command.ExecuteNonQuery();
             }
+        }
+    }
+
+    private string NormalizeDiacritics(string[] diacritics)
+        => String.Join(DiacriticDelimiter, diacritics);
+
+    public void WriteIpaChars(IDbConnection connection, List<PhonologicalRuleGroup> groups)
+    {
+        var characters = groups.Aggregate(new HashSet<IpaCharacter>(), static (aggregate, group) =>
+            group.Rules.Aggregate(aggregate, static (subaggregate, rule) =>
+            {
+                subaggregate.UnionWith(rule.InputCharacters);
+                subaggregate.UnionWith(rule.OutputCharacters);
+                subaggregate.UnionWith(rule.ContextCharacters);
+                return subaggregate;
+            }));
+
+        if (characters.Count == 0)
+        {
+            return;
+        }
+
+        using IDbCommand command = connection.CreateCommand();
+        command.CommandText = $@"INSERT INTO {_names.IpaCharacterTable} 
+    ({_names.IpaCharacterColSymbol}, {_names.IpaCharacterColDiacritics})
+    VALUES (@symbol, @diacritics)";
+
+        IDbDataParameter
+            symbolParam = command.CreateParameter(),
+            diacriticParam = command.CreateParameter();
+
+        symbolParam.DbType = DbType.AnsiString;
+        symbolParam.ParameterName = "@symbol";
+
+        diacriticParam.DbType = DbType.AnsiString;
+        diacriticParam.ParameterName = "@diacritics";
+
+        command.Parameters.Add(symbolParam);
+        command.Parameters.Add(diacriticParam);
+
+        foreach (var character in characters)
+        {
+            Debug.Assert(character.Diacritics.All(str => !str.Contains(DiacriticDelimiter)));
+            string diacritics = NormalizeDiacritics(character.Diacritics);
+            Debug.Assert(character.Character.Length <= 2);
+            Debug.Assert(diacritics.Length <= 255);
+
+            symbolParam.Value = character.Character;
+            diacriticParam.Value = diacritics;
+
+            command.ExecuteNonQuery();
         }
     }
 
