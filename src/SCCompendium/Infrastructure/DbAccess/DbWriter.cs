@@ -184,6 +184,97 @@ VALUES (@rule, @note, @groupKey);";
         }
     }
 
+    public void WriteRuleIpaReferences(IDbConnection connection, int groupKey, List<PhonologicalRule> rules)
+    {
+        using IDbCommand getRuleKeyCommand = connection.CreateCommand();
+        getRuleKeyCommand.CommandText = $@"SELECT {_names.PhonologicalRuleColKey} FROM {_names.PhonologicalRuleTable}
+WHERE {_names.PhonologicalRuleColRule} = @rule AND {_names.PhonologicalRuleColGroupKey} = @groupKey";
+
+        IDbDataParameter
+            ruleParam = getRuleKeyCommand.CreateParameter(),
+            groupKeyParam = getRuleKeyCommand.CreateParameter();
+
+        ruleParam.DbType = DbType.AnsiString;
+        ruleParam.ParameterName = "@rule";
+        groupKeyParam.DbType = DbType.Int32;
+        groupKeyParam.ParameterName = "@groupKey";
+        groupKeyParam.Value = groupKey;
+
+        getRuleKeyCommand.Parameters.Add(ruleParam);
+        getRuleKeyCommand.Parameters.Add(groupKeyParam);
+
+        using IDbCommand getCharKeyCommand = connection.CreateCommand();
+        getCharKeyCommand.CommandText = $@"SELECT {_names.IpaCharacterColKey} FROM {_names.IpaCharacterTable}
+WHERE {_names.IpaCharacterColSymbol} = @symbol AND {_names.IpaCharacterColDiacritics} = @diacritics";
+
+        IDbDataParameter
+            symbolParam = getCharKeyCommand.CreateParameter(),
+            diacriticParam = getCharKeyCommand.CreateParameter();
+
+        symbolParam.DbType = DbType.AnsiString;
+        symbolParam.ParameterName = "@symbol";
+        diacriticParam.DbType = DbType.AnsiString;
+        diacriticParam.ParameterName = "@diacritics";
+        getCharKeyCommand.Parameters.Add(symbolParam);
+        getCharKeyCommand.Parameters.Add(diacriticParam);
+
+        using IDbCommand insertRefCommand = connection.CreateCommand();
+        insertRefCommand.CommandText = $@"INSERT INTO {_names.RuleIpaReferenceTable}
+VALUES (@ruleKey, @charKey, @type)";
+
+        IDbDataParameter
+            ruleKeyParam = insertRefCommand.CreateParameter(),
+            charKeyParam = insertRefCommand.CreateParameter(),
+            typeParam = insertRefCommand.CreateParameter();
+        ruleKeyParam.DbType = DbType.Int32;
+        ruleKeyParam.ParameterName = "@ruleKey";
+        charKeyParam.DbType = DbType.Int32;
+        charKeyParam.ParameterName = "@charKey";
+        typeParam.DbType = DbType.AnsiString;
+        typeParam.ParameterName = "@type";
+
+        foreach (PhonologicalRule rule in rules)
+        {
+            ruleParam.Value = rule.Rule;
+            int ruleKey = (int)getRuleKeyCommand.ExecuteScalar()!;
+            ruleKeyParam.Value = ruleKey;
+
+            typeParam.Value = "input";
+            foreach (IpaCharacter character in rule.InputCharacters)
+            {
+                symbolParam.Value = character.Character;
+                diacriticParam.Value = NormalizeDiacritics(character.Diacritics);
+
+                int charKey = (int)getCharKeyCommand.ExecuteScalar()!;
+                charKeyParam.Value = charKey;
+
+                insertRefCommand.ExecuteNonQuery();
+            }
+            typeParam.Value = "output";
+            foreach (IpaCharacter character in rule.OutputCharacters)
+            {
+                symbolParam.Value = character.Character;
+                diacriticParam.Value = NormalizeDiacritics(character.Diacritics);
+
+                int charKey = (int)getCharKeyCommand.ExecuteScalar()!;
+                charKeyParam.Value = charKey;
+
+                insertRefCommand.ExecuteNonQuery();
+            }
+            typeParam.Value = "context";
+            foreach (IpaCharacter character in rule.ContextCharacters)
+            {
+                symbolParam.Value = character.Character;
+                diacriticParam.Value = NormalizeDiacritics(character.Diacritics);
+
+                int charKey = (int)getCharKeyCommand.ExecuteScalar()!;
+                charKeyParam.Value = charKey;
+
+                insertRefCommand.ExecuteNonQuery();
+            }
+        }
+    }
+
     public void WriteRules(IDbConnection connection, string groupName, List<PhonologicalRule> rules)
     {
         if (rules.Count == 0)
