@@ -31,7 +31,7 @@ public class DbWriter : IDbWriter
   {_names.PhonologicalRuleColRuleNote} varchar(255),
   {_names.PhonologicalRuleColGroupKey} int,
   RESTRAINT FKey_Groups 
-  FOREIGN KEY ({_names.PhonologicalRuleColGroupKey}) REFERENCES {_names.RuleGroupTable}({_names.RuleGroupColKey}),
+      FOREIGN KEY ({_names.PhonologicalRuleColGroupKey}) REFERENCES {_names.RuleGroupTable}({_names.RuleGroupColKey}),
 )";
             command.ExecuteNonQuery();
         }
@@ -52,12 +52,13 @@ public class DbWriter : IDbWriter
             command.CommandText = @$"CREATE TABLE {_names.RuleIpaReferenceTable} (
   {_names.RuleIpaReferenceColRuleKey} int,
   {_names.RuleIpaReferenceColCharKey} int,
-  {_names.RuleIpaReferenceColType} set(input, output, context) NOT NULL,
+  {_names.RuleIpaReferenceColType} enum('input', 'output', 'context') NOT NULL,
   CONSTRAINT FKey_Rules
-  FOREIGN KEY ({_names.RuleIpaReferenceColRuleKey}) REFERENCES {_names.PhonologicalRuleTable}({_names.PhonologicalRuleColKey}),
+      FOREIGN KEY ({_names.RuleIpaReferenceColRuleKey}) REFERENCES {_names.PhonologicalRuleTable}({_names.PhonologicalRuleColKey}),
   CONSTRAINT FKey_IpaChar
-  FOREIGN KEY ({_names.RuleIpaReferenceColCharKey}) REFERENCES {_names.IpaCharacterTable}({_names.IpaCharacterColKey}),
-  CONSTRAINT Uniq UNIQUE ({_names.RuleIpaReferenceColRuleKey}, {_names.RuleIpaReferenceColCharKey})
+      FOREIGN KEY ({_names.RuleIpaReferenceColCharKey}) REFERENCES {_names.IpaCharacterTable}({_names.IpaCharacterColKey}),
+  CONSTRAINT Uniq 
+      UNIQUE ({_names.RuleIpaReferenceColRuleKey}, {_names.RuleIpaReferenceColCharKey}, {_names.RuleIpaReferenceColType})
 )";
             command.ExecuteNonQuery();
         }
