@@ -63,6 +63,9 @@ public class DbWriter : IDbWriter
         }
     }
 
+    /// <summary>
+    /// Populates the <see cref="DbNames.RuleGroupTable"/>.
+    /// </summary>
     public int WriteGroups(IDbConnection connection, List<PhonologicalRuleGroup> groups)
     {
         const string titleParamName = "SectionTitle";
@@ -98,6 +101,9 @@ public class DbWriter : IDbWriter
         return command.ExecuteNonQuery();
     }
 
+    /// <summary>
+    /// Populates the <see cref="DbNames.PhonologicalRuleTable"/>.
+    /// </summary>
     public void WriteRuleHeaders(IDbConnection connection, int groupKey, List<PhonologicalRule> rules)
     {
         using (IDbCommand command = connection.CreateCommand())
@@ -136,6 +142,9 @@ VALUES (@rule, @note, @groupKey);";
     private string NormalizeDiacritics(string[] diacritics)
         => String.Join(DiacriticDelimiter, diacritics);
 
+    /// <summary>
+    /// Populates the <see cref="DbNames.IpaCharacterTable"/>
+    /// </summary>
     public void WriteIpaChars(IDbConnection connection, List<PhonologicalRuleGroup> groups)
     {
         var characters = groups.Aggregate(new HashSet<IpaCharacter>(), static (aggregate, group) =>
@@ -184,6 +193,10 @@ VALUES (@rule, @note, @groupKey);";
         }
     }
 
+    /// <summary>
+    /// Populates the <see cref="DbNames.RuleIpaReferenceTable"/>.
+    /// </summary>
+    /// <remarks>Assumes <see cref="WriteIpaChars"/> and <see cref="WriteRuleHeaders"/> were called prior.</remarks>
     public void WriteRuleIpaReferences(IDbConnection connection, int groupKey, List<PhonologicalRule> rules)
     {
         using IDbCommand getRuleKeyCommand = connection.CreateCommand();
@@ -275,6 +288,10 @@ VALUES (@ruleKey, @charKey, @type)";
         }
     }
 
+    /// <summary>
+    /// Populates the <see cref="DbNames.PhonologicalRuleTable"/> and <see cref="DbNames.RuleIpaReferenceTable"/>.
+    /// </summary>
+    /// <remarks>Assumes <see cref="WriteGroups"/> and <see cref="WriteIpaChars"/> was called prior.</remarks>
     public void WriteRules(IDbConnection connection, string groupName, List<PhonologicalRule> rules)
     {
         if (rules.Count == 0)
@@ -296,16 +313,22 @@ WHERE {_names.RuleGroupColName} = @name";
             object? result = command.ExecuteScalar();
             if (result is not int)
             {
-                return 0;
+                return;
             }
             groupKey = (int)result;
         }
 
         WriteRuleHeaders(connection, groupKey, rules);
+        WriteRuleIpaReferences(connection, groupKey, rules);
     }
 
-    public void Write(IDbConnection connection, List<PhonologicalRuleGroup> rules)
+    public void Write(IDbConnection connection, List<PhonologicalRuleGroup> groups)
     {
-        throw new NotImplementedException();
+        WriteGroups(connection, groups);
+        WriteIpaChars(connection, groups);
+        foreach (var group in groups)
+        {
+            WriteRules(connection, group.Title, group.Rules);
+        }
     }
 }
