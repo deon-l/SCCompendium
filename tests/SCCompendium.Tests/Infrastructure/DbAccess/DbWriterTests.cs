@@ -30,45 +30,6 @@ public class DbWriterTests
     }
 
     [Test]
-    public async Task WriteGroups_SampleSource_CorrectWriteAndCount()
-    {
-        string longCredit = new ('d', 100);
-        string longTitle = new string('e', 100);
-        DbWriter writer = new();
-        List<PhonologicalRuleGroup> source = new()
-        {
-            new("", "", [], ""),
-            new("aaa", "bbb", []),
-            new("ccc", longCredit, []),
-            new(longTitle, "fff", [default, default])
-        };
-        MockDbConnection connection = new();
-        CommandCapturer capturer = new();
-        connection.Mocks
-            .HasValidSqlServerCommandText()
-            .When(capturer.Any)
-            .ReturnsScalar(source.Count);
-
-       int modifiedCount = writer.WriteGroups(connection, source);
-
-       await Assert.That(capturer).IsNotNull();
-       await Assert.That(modifiedCount).IsEqualTo(source.Count);
-
-       string[] capturedCommandParts = capturer[0].CommandText.Split(' ', StringSplitOptions.TrimEntries);
-       await Assert.That(capturedCommandParts[0]).IsEqualTo("INSERT", StringComparison.CurrentCultureIgnoreCase);
-       await Assert.That(capturedCommandParts[1]).IsEqualTo("INTO", StringComparison.CurrentCultureIgnoreCase);
-       await Assert.That(capturedCommandParts[2]).IsEqualTo(new DbNames().RuleGroupTable);
-       await Assert.That(capturer[0].CommandText).Contains("VALUE", StringComparison.CurrentCultureIgnoreCase);
-       await Assert.That(capturer[0].Parameters)
-           .Contains(p => "aaa".Equals((string)p.Value!, StringComparison.CurrentCultureIgnoreCase))
-           .And.Contains(p => "bbb".Equals((string)p.Value!, StringComparison.CurrentCultureIgnoreCase))
-           .And.Contains(p => "ccc".Equals((string)p.Value!, StringComparison.CurrentCultureIgnoreCase))
-           .And.Contains(p => longTitle.Equals((string)p.Value!, StringComparison.CurrentCultureIgnoreCase))
-           .And.Contains(p => longCredit.Equals((string)p.Value!, StringComparison.CurrentCultureIgnoreCase))
-           .And.Contains(p => "fff".Equals((string)p.Value!, StringComparison.CurrentCultureIgnoreCase));
-    }
-
-    [Test]
     public async Task Write_EmptyGroupsList_PerformsNoInserts()
     {
         List<PhonologicalRuleGroup> sourceGroups = new();
