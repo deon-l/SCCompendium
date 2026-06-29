@@ -68,10 +68,15 @@ public class DbWriter : IDbWriter
     /// <summary>
     /// Populates the <see cref="DbNames.RuleGroupTable"/>.
     /// </summary>
-    public int WriteGroups(IDbConnection connection, List<PhonologicalRuleGroup> groups)
+    public void WriteGroups(IDbConnection connection, List<PhonologicalRuleGroup> groups)
     {
         const string titleParamName = "SectionTitle";
         const string creditParamName = "SectionCredit";
+
+        if (groups.Count == 0)
+        {
+            return;
+        }
 
         using IDbCommand command = connection.CreateCommand();
         StringBuilder sb = new($"INSERT INTO {_names.RuleGroupTable} ({_names.RuleGroupColName}, {_names.RuleGroupColCredit}) VALUES ");
@@ -100,7 +105,7 @@ public class DbWriter : IDbWriter
 
         sb[^1] = ';';
         command.CommandText = sb.ToString();
-        return command.ExecuteNonQuery();
+        command.ExecuteNonQuery();
     }
 
     /// <summary>
