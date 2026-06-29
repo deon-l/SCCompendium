@@ -41,9 +41,10 @@ public class DbWriter : IDbWriter
             command.CommandText = @$"CREATE TABLE {_names.IpaCharacterTable} (
   {_names.IpaCharacterColKey} int PRIMARY KEY,
   {_names.IpaCharacterColSymbol} varchar(2) NOT NULL,
-  {_names.IpaCharacterColDiacritics} varchar(255)
-)
-";
+  {_names.IpaCharacterColDiacritics} varchar(255),
+  CONSTRAINT Uniq
+      UNIQUE ({_names.IpaCharacterColSymbol}, {_names.IpaCharacterColDiacritics})
+)";
             command.ExecuteNonQuery();
         }
 
