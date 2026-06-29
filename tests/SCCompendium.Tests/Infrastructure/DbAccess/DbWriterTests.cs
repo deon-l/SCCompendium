@@ -32,7 +32,7 @@ public class DbWriterTests
     }
 
     [Test]
-    public async Task WriteSections_SampleSource_CorrectWriteAndCount()
+    public async Task WriteGroups_SampleSource_CorrectWriteAndCount()
     {
         string longCredit = new ('d', 100);
         string longTitle = new string('e', 100);
