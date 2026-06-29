@@ -81,7 +81,7 @@ public class DbWriter : IDbWriter
 
         using DbCommand command = connection.CreateCommand();
         command.CommandText =
-            $@"INSERT INTO {_names.PhonologicalRuleTable} ({_names.RuleGroupColName}, {_names.RuleGroupColCredit}, {_names.RuleGroupColNote}) 
+            $@"INSERT INTO {_names.RuleGroupTable} ({_names.RuleGroupColName}, {_names.RuleGroupColCredit}, {_names.RuleGroupColNote}) 
 VALUES (@name, @credit, @note);";
 
         DbParameter

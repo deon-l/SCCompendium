@@ -107,6 +107,9 @@ public class DbWriterTests
 
         foreach (MockCommand cmd in capturer.ToArray())
         {
+            Console.WriteLine("---");
+            Console.WriteLine(cmd.CommandText);
+            Console.WriteLine("params: " + String.Join('|', cmd.Parameters.Select(p => p.ParameterName + (p.Value is null ? ": null" : p.Value.ToString()))));
             await Assert.That(cmd.Parameters).Count().IsEqualTo(cmd.CommandText.Count(c => c =='@'));
             await Assert.That(cmd.Parameters).All().Satisfy(that =>
                 that.Satisfies(param => cmd.CommandText.Contains(param!.ParameterName)));
