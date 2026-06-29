@@ -24,6 +24,11 @@ public class DbWriterTests
         await Assert.That(capturer.ToArray()).DoesNotContain(cmd => !(
             cmd.CommandText.TrimStart().StartsWith("CREATE TABLE", StringComparison.CurrentCultureIgnoreCase)
             && cmd.CommandText.TrimEnd().EndsWith(')')));
+        DbNames n = new();
+        await Assert.That(capturer.ToArray()).Contains(cmd => cmd.CommandText.Contains(n.IpaCharacterTable));
+        await Assert.That(capturer.ToArray()).Contains(cmd => cmd.CommandText.Contains(n.PhonologicalRuleTable));
+        await Assert.That(capturer.ToArray()).Contains(cmd => cmd.CommandText.Contains(n.RuleIpaReferenceTable));
+        await Assert.That(capturer.ToArray()).Contains(cmd => cmd.CommandText.Contains(n.RuleGroupTable));
     }
 
     [Test]
