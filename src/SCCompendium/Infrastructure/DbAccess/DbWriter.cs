@@ -252,6 +252,9 @@ VALUES (@ruleKey, @charKey, @type)";
         charKeyParam.ParameterName = "@charKey";
         typeParam.DbType = DbType.AnsiString;
         typeParam.ParameterName = "@type";
+        insertRefCommand.Parameters.Add(ruleKeyParam);
+        insertRefCommand.Parameters.Add(charKeyParam);
+        insertRefCommand.Parameters.Add(typeParam);
 
         foreach (PhonologicalRule rule in rules)
         {
