@@ -79,33 +79,32 @@ public class DbWriter : IDbWriter
         }
 
         using IDbCommand command = connection.CreateCommand();
-        StringBuilder sb = new($"INSERT INTO {_names.RuleGroupTable} ({_names.RuleGroupColName}, {_names.RuleGroupColCredit}) VALUES ");
+        command.CommandText =
+            $@"INSERT INTO {_names.PhonologicalRuleTable} ({_names.RuleGroupColName}, {_names.RuleGroupColCredit}, {_names.RuleGroupColNote}) 
+VALUES (@name, @credit, @note);";
 
-        int i = 0;
+        IDbDataParameter
+            titleParam = command.CreateParameter(),
+            creditParam = command.CreateParameter(),
+            noteParam = command.CreateParameter();
+
+        titleParam.DbType = creditParam.DbType = noteParam.DbType = DbType.AnsiString;
+        titleParam.ParameterName = "@name";
+        creditParam.ParameterName = "@credit";
+        noteParam.ParameterName = "@note";
+
+        command.Parameters.Add(titleParam);
+        command.Parameters.Add(creditParam);
+        command.Parameters.Add(noteParam);
+
         foreach (PhonologicalRuleGroup group in groups)
         {
-            string title = group.Title;
-            string credit = group.Credit;
+            titleParam.Value = group.Title;
+            creditParam.Value = group.Credit;
+            noteParam.Value = group.Note;
 
-            IDbDataParameter
-                titleParam = command.CreateParameter(),
-                creditParam = command.CreateParameter();
-
-            titleParam.DbType = creditParam.DbType = DbType.AnsiString;
-            titleParam.Value = title;
-            creditParam.Value = credit;
-            titleParam.ParameterName = $"@{titleParamName}{i}";
-            creditParam.ParameterName = $"@{creditParamName}{i}";
-
-            sb.Append($" ({titleParam.ParameterName}, {creditParam.ParameterName}),");
-            command.Parameters.Add(titleParam);
-            command.Parameters.Add(creditParam);
-            i++;
+            command.ExecuteNonQuery();
         }
-
-        sb[^1] = ';';
-        command.CommandText = sb.ToString();
-        command.ExecuteNonQuery();
     }
 
     /// <summary>
