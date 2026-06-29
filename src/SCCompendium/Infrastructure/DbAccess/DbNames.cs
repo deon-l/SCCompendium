@@ -7,24 +7,24 @@ namespace SCCompendium.Infrastructure.DbAccess;
 public class DbNames
 {
     public string RuleGroupTable => "RuleGroups";
-    public string RuleGroupColKey => "Key";
+    public string RuleGroupColKey => "Id";
     public string RuleGroupColName => "Name";
     public string RuleGroupColCredit => "Credit";
     public string RuleGroupColNote => "Note";
 
     public string PhonologicalRuleTable => "PhonologicalRules";
-    public string PhonologicalRuleColKey => "Key";
-    public string PhonologicalRuleColRule => "Rule";
+    public string PhonologicalRuleColKey => "Id";
+    public string PhonologicalRuleColRule => "RuleStr";
     public string PhonologicalRuleColRuleNote => "Note";
-    public string PhonologicalRuleColGroupKey => "GroupKey";
+    public string PhonologicalRuleColGroupKey => "GroupId";
 
     public string IpaCharacterTable => "IpaCharacters";
-    public string IpaCharacterColKey => "Key";
+    public string IpaCharacterColKey => "Id";
     public string IpaCharacterColSymbol => "Symbol";
     public string IpaCharacterColDiacritics => "Diacritics";
 
     public string RuleIpaReferenceTable => "RuleIpaReferences";
-    public string RuleIpaReferenceColRuleKey => "RuleKey";
-    public string RuleIpaReferenceColCharKey => "CharKey";
+    public string RuleIpaReferenceColRuleKey => "RuleId";
+    public string RuleIpaReferenceColCharKey => "CharId";
     public string RuleIpaReferenceColType => "Type";
 }
