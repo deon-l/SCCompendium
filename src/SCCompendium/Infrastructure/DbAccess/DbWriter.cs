@@ -14,7 +14,7 @@ public class DbWriter : IDbWriter
         using (IDbCommand command = connection.CreateCommand())
         {
             command.CommandText = @$"CREATE TABLE {_names.RuleGroupTable} (
-  {_names.RuleGroupColKey} int PRIMARY KEY,
+  {_names.RuleGroupColKey} int AUTO_INCREMENT PRIMARY KEY,
   {_names.RuleGroupColName} varchar(63) NOT NULL,
   {_names.RuleGroupColCredit} varchar(255) NOT NULL,
   {_names.RuleGroupColNote} varchar(255),
@@ -26,7 +26,7 @@ public class DbWriter : IDbWriter
         using (IDbCommand command = connection.CreateCommand())
         {
             command.CommandText = @$"CREATE TABLE {_names.PhonologicalRuleTable} (
-  {_names.PhonologicalRuleColKey} int PRIMARY KEY,
+  {_names.PhonologicalRuleColKey} int AUTO_INCREMENT PRIMARY KEY,
   {_names.PhonologicalRuleColRule} varchar(255) NOT NULL,
   {_names.PhonologicalRuleColRuleNote} varchar(255),
   {_names.PhonologicalRuleColGroupKey} int,
@@ -39,7 +39,7 @@ public class DbWriter : IDbWriter
         using (IDbCommand command = connection.CreateCommand())
         {
             command.CommandText = @$"CREATE TABLE {_names.IpaCharacterTable} (
-  {_names.IpaCharacterColKey} int PRIMARY KEY,
+  {_names.IpaCharacterColKey} int AUTO_INCREMENT PRIMARY KEY,
   {_names.IpaCharacterColSymbol} varchar(2) NOT NULL,
   {_names.IpaCharacterColDiacritics} varchar(255),
   CONSTRAINT Uniq
