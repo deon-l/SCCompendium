@@ -69,4 +69,46 @@ public class DbWriterTests
            .And.Contains(p => longCredit.Equals((string)p.Value!, StringComparison.CurrentCultureIgnoreCase))
            .And.Contains(p => "fff".Equals((string)p.Value!, StringComparison.CurrentCultureIgnoreCase));
     }
+
+    [Test]
+    public async Task Write_EmptyGroupsList_PerformsNoInserts()
+    {
+        List<PhonologicalRuleGroup> sourceGroups = new();
+        MockDbConnection connection = new();
+        CommandCapturer capturer = new();
+        connection.Mocks
+            .HasValidSqlServerCommandText()
+            .When(capturer.Any)
+            .ReturnsScalar(0);
+        DbWriter writer = new();
+
+        writer.Write(connection, sourceGroups);
+
+        await Assert.That(capturer.ToArray()).DoesNotContain(cmd
+            => cmd.CommandText.Split()[0].Equals("INSERT", StringComparison.CurrentCultureIgnoreCase));
+    }
+
+    [Test]
+    public async Task Write_GroupsWithNoRules_PerformsNoInserts()
+    {
+        List<PhonologicalRuleGroup> sourceGroups = new();
+        MockDbConnection connection = new();
+        CommandCapturer capturer = new();
+        connection.Mocks
+            .HasValidSqlServerCommandText()
+            .When(capturer.Any)
+            .ReturnsScalar(0);
+        DbWriter writer = new();
+
+        writer.Write(connection, sourceGroups);
+
+        await Assert.That(capturer.ToArray()).DoesNotContain(cmd =>
+        {
+            var symbols = cmd.CommandText.Split();
+            return symbols[0].Equals("INSERT", StringComparison.CurrentCultureIgnoreCase);
+            // // NOTE: Provided if required behaviour changes to insert no rules (but groups are fine)
+            // return symbols[0].Equals("INSERT", StringComparison.CurrentCultureIgnoreCase)
+            //        && !symbols[2].Contains({new DbNames().RuleGroupTable});
+        });
+    }
 }
