@@ -68,39 +68,43 @@ public class DbWriter : IDbWriter
     /// <summary>
     /// Populates the <see cref="DbNames.RuleGroupTable"/>.
     /// </summary>
-    public int WriteGroups(IDbConnection connection, List<PhonologicalRuleGroup> groups)
+    public void WriteGroups(IDbConnection connection, List<PhonologicalRuleGroup> groups)
     {
         const string titleParamName = "SectionTitle";
         const string creditParamName = "SectionCredit";
 
-        using IDbCommand command = connection.CreateCommand();
-        StringBuilder sb = new($"INSERT INTO {_names.RuleGroupTable} ({_names.RuleGroupColName}, {_names.RuleGroupColCredit}) VALUES ");
-
-        int i = 0;
-        foreach (PhonologicalRuleGroup group in groups)
+        if (groups.Count == 0)
         {
-            string title = group.Title;
-            string credit = group.Credit;
-
-            IDbDataParameter
-                titleParam = command.CreateParameter(),
-                creditParam = command.CreateParameter();
-
-            titleParam.DbType = creditParam.DbType = DbType.AnsiString;
-            titleParam.Value = title;
-            creditParam.Value = credit;
-            titleParam.ParameterName = $"@{titleParamName}{i}";
-            creditParam.ParameterName = $"@{creditParamName}{i}";
-
-            sb.Append($" ({titleParam.ParameterName}, {creditParam.ParameterName}),");
-            command.Parameters.Add(titleParam);
-            command.Parameters.Add(creditParam);
-            i++;
+            return;
         }
 
-        sb[^1] = ';';
-        command.CommandText = sb.ToString();
-        return command.ExecuteNonQuery();
+        using IDbCommand command = connection.CreateCommand();
+        command.CommandText =
+            $@"INSERT INTO {_names.PhonologicalRuleTable} ({_names.RuleGroupColName}, {_names.RuleGroupColCredit}, {_names.RuleGroupColNote}) 
+VALUES (@name, @credit, @note);";
+
+        IDbDataParameter
+            titleParam = command.CreateParameter(),
+            creditParam = command.CreateParameter(),
+            noteParam = command.CreateParameter();
+
+        titleParam.DbType = creditParam.DbType = noteParam.DbType = DbType.AnsiString;
+        titleParam.ParameterName = "@name";
+        creditParam.ParameterName = "@credit";
+        noteParam.ParameterName = "@note";
+
+        command.Parameters.Add(titleParam);
+        command.Parameters.Add(creditParam);
+        command.Parameters.Add(noteParam);
+
+        foreach (PhonologicalRuleGroup group in groups)
+        {
+            titleParam.Value = group.Title;
+            creditParam.Value = group.Credit;
+            noteParam.Value = group.Note;
+
+            command.ExecuteNonQuery();
+        }
     }
 
     /// <summary>
