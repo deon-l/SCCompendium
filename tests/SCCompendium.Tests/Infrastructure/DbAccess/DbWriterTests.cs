@@ -94,7 +94,7 @@ public class DbWriterTests
         DbNames n = new();
         connection.Mocks
             .When(capturer.If(cmd => cmd.CommandTextStartsWith(["select", n.IpaCharacterColKey, "from", n.IpaCharacterTable])))
-            .ReturnsScalar(cmd => cmd.Parameters.Any(p => p.Value!.Equals("b")) ? bIpaKey : aIpaKey);
+            .ReturnsScalar(cmd => cmd.Parameters.Any(p => "b" == p.Value as string) ? bIpaKey : aIpaKey);
         connection.Mocks
             .When(capturer.If(cmd => cmd.CommandTextStartsWith(["select"])))
             .ReturnsScalar(genericKey);
