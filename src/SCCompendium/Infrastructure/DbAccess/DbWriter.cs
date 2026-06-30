@@ -1,5 +1,5 @@
 using System.Data;
-using System.Text;
+using System.Data.Common;
 using SCCompendium.Application.DbAccess;
 using SCCompendium.Domain;
 
@@ -9,9 +9,10 @@ public class DbWriter : IDbWriter
 {
     private const char DiacriticDelimiter = ';';
     private readonly DbNames _names = new();
-    public void InitiateDatabase(IDbConnection connection)
+    public void InitiateDatabase(IDbConnectionRepository connectionRepo)
     {
-        using (IDbCommand command = connection.CreateCommand())
+        var connection = connectionRepo.GetConnection<DbConnection>();
+        using (DbCommand command = connection.CreateCommand())
         {
             command.CommandText = @$"CREATE TABLE {_names.RuleGroupTable} (
   {_names.RuleGroupColKey} int AUTO_INCREMENT PRIMARY KEY,
@@ -23,7 +24,7 @@ public class DbWriter : IDbWriter
             command.ExecuteNonQuery();
         }
 
-        using (IDbCommand command = connection.CreateCommand())
+        using (DbCommand command = connection.CreateCommand())
         {
             command.CommandText = @$"CREATE TABLE {_names.PhonologicalRuleTable} (
   {_names.PhonologicalRuleColKey} int AUTO_INCREMENT PRIMARY KEY,
@@ -36,7 +37,7 @@ public class DbWriter : IDbWriter
             command.ExecuteNonQuery();
         }
 
-        using (IDbCommand command = connection.CreateCommand())
+        using (DbCommand command = connection.CreateCommand())
         {
             command.CommandText = @$"CREATE TABLE {_names.IpaCharacterTable} (
   {_names.IpaCharacterColKey} int AUTO_INCREMENT PRIMARY KEY,
@@ -48,7 +49,7 @@ public class DbWriter : IDbWriter
             command.ExecuteNonQuery();
         }
 
-        using (IDbCommand command = connection.CreateCommand())
+        using (DbCommand command = connection.CreateCommand())
         {
             command.CommandText = @$"CREATE TABLE {_names.RuleIpaReferenceTable} (
   {_names.RuleIpaReferenceColRuleKey} int,
@@ -68,7 +69,7 @@ public class DbWriter : IDbWriter
     /// <summary>
     /// Populates the <see cref="DbNames.RuleGroupTable"/>.
     /// </summary>
-    public void WriteGroups(IDbConnection connection, List<PhonologicalRuleGroup> groups)
+    public void WriteGroups(DbConnection connection, List<PhonologicalRuleGroup> groups)
     {
         const string titleParamName = "SectionTitle";
         const string creditParamName = "SectionCredit";
@@ -78,12 +79,12 @@ public class DbWriter : IDbWriter
             return;
         }
 
-        using IDbCommand command = connection.CreateCommand();
+        using DbCommand command = connection.CreateCommand();
         command.CommandText =
             $@"INSERT INTO {_names.PhonologicalRuleTable} ({_names.RuleGroupColName}, {_names.RuleGroupColCredit}, {_names.RuleGroupColNote}) 
 VALUES (@name, @credit, @note);";
 
-        IDbDataParameter
+        DbParameter
             titleParam = command.CreateParameter(),
             creditParam = command.CreateParameter(),
             noteParam = command.CreateParameter();
@@ -110,13 +111,13 @@ VALUES (@name, @credit, @note);";
     /// <summary>
     /// Populates the <see cref="DbNames.PhonologicalRuleTable"/>.
     /// </summary>
-    public void WriteRuleHeaders(IDbConnection connection, int groupKey, List<PhonologicalRule> rules)
+    public void WriteRuleHeaders(DbConnection connection, int groupKey, List<PhonologicalRule> rules)
     {
-        using (IDbCommand command = connection.CreateCommand())
+        using (DbCommand command = connection.CreateCommand())
         {
             command.CommandText = $@"INSERT INTO {_names.PhonologicalRuleTable}
 VALUES (@rule, @note, @groupKey);";
-            IDbDataParameter
+            DbParameter
                 ruleParam = command.CreateParameter(),
                 noteParam = command.CreateParameter(),
                 groupParam = command.CreateParameter();
@@ -151,7 +152,7 @@ VALUES (@rule, @note, @groupKey);";
     /// <summary>
     /// Populates the <see cref="DbNames.IpaCharacterTable"/>
     /// </summary>
-    public void WriteIpaChars(IDbConnection connection, List<PhonologicalRuleGroup> groups)
+    public void WriteIpaChars(DbConnection connection, List<PhonologicalRuleGroup> groups)
     {
         var characters = groups.Aggregate(new HashSet<IpaCharacter>(), static (aggregate, group) =>
             group.Rules.Aggregate(aggregate, static (subaggregate, rule) =>
@@ -167,12 +168,12 @@ VALUES (@rule, @note, @groupKey);";
             return;
         }
 
-        using IDbCommand command = connection.CreateCommand();
+        using DbCommand command = connection.CreateCommand();
         command.CommandText = $@"INSERT INTO {_names.IpaCharacterTable} 
     ({_names.IpaCharacterColSymbol}, {_names.IpaCharacterColDiacritics})
     VALUES (@symbol, @diacritics)";
 
-        IDbDataParameter
+        DbParameter
             symbolParam = command.CreateParameter(),
             diacriticParam = command.CreateParameter();
 
@@ -203,13 +204,13 @@ VALUES (@rule, @note, @groupKey);";
     /// Populates the <see cref="DbNames.RuleIpaReferenceTable"/>.
     /// </summary>
     /// <remarks>Assumes <see cref="WriteIpaChars"/> and <see cref="WriteRuleHeaders"/> were called prior.</remarks>
-    public void WriteRuleIpaReferences(IDbConnection connection, int groupKey, List<PhonologicalRule> rules)
+    public void WriteRuleIpaReferences(DbConnection connection, int groupKey, List<PhonologicalRule> rules)
     {
-        using IDbCommand getRuleKeyCommand = connection.CreateCommand();
+        using DbCommand getRuleKeyCommand = connection.CreateCommand();
         getRuleKeyCommand.CommandText = $@"SELECT {_names.PhonologicalRuleColKey} FROM {_names.PhonologicalRuleTable}
 WHERE {_names.PhonologicalRuleColRule} = @rule AND {_names.PhonologicalRuleColGroupKey} = @groupKey";
 
-        IDbDataParameter
+        DbParameter
             ruleParam = getRuleKeyCommand.CreateParameter(),
             groupKeyParam = getRuleKeyCommand.CreateParameter();
 
@@ -222,11 +223,11 @@ WHERE {_names.PhonologicalRuleColRule} = @rule AND {_names.PhonologicalRuleColGr
         getRuleKeyCommand.Parameters.Add(ruleParam);
         getRuleKeyCommand.Parameters.Add(groupKeyParam);
 
-        using IDbCommand getCharKeyCommand = connection.CreateCommand();
+        using DbCommand getCharKeyCommand = connection.CreateCommand();
         getCharKeyCommand.CommandText = $@"SELECT {_names.IpaCharacterColKey} FROM {_names.IpaCharacterTable}
 WHERE {_names.IpaCharacterColSymbol} = @symbol AND {_names.IpaCharacterColDiacritics} = @diacritics";
 
-        IDbDataParameter
+        DbParameter
             symbolParam = getCharKeyCommand.CreateParameter(),
             diacriticParam = getCharKeyCommand.CreateParameter();
 
@@ -237,11 +238,11 @@ WHERE {_names.IpaCharacterColSymbol} = @symbol AND {_names.IpaCharacterColDiacri
         getCharKeyCommand.Parameters.Add(symbolParam);
         getCharKeyCommand.Parameters.Add(diacriticParam);
 
-        using IDbCommand insertRefCommand = connection.CreateCommand();
+        using DbCommand insertRefCommand = connection.CreateCommand();
         insertRefCommand.CommandText = $@"INSERT INTO {_names.RuleIpaReferenceTable}
 VALUES (@ruleKey, @charKey, @type)";
 
-        IDbDataParameter
+        DbParameter
             ruleKeyParam = insertRefCommand.CreateParameter(),
             charKeyParam = insertRefCommand.CreateParameter(),
             typeParam = insertRefCommand.CreateParameter();
@@ -298,7 +299,7 @@ VALUES (@ruleKey, @charKey, @type)";
     /// Populates the <see cref="DbNames.PhonologicalRuleTable"/> and <see cref="DbNames.RuleIpaReferenceTable"/>.
     /// </summary>
     /// <remarks>Assumes <see cref="WriteGroups"/> and <see cref="WriteIpaChars"/> was called prior.</remarks>
-    public void WriteRules(IDbConnection connection, string groupName, List<PhonologicalRule> rules)
+    public void WriteRules(DbConnection connection, string groupName, List<PhonologicalRule> rules)
     {
         if (rules.Count == 0)
         {
@@ -306,11 +307,11 @@ VALUES (@ruleKey, @charKey, @type)";
         }
 
         int groupKey;
-        using (IDbCommand command = connection.CreateCommand())
+        using (DbCommand command = connection.CreateCommand())
         {
             command.CommandText = @$"SELECT {_names.RuleGroupColKey} FROM {_names.RuleGroupTable}
 WHERE {_names.RuleGroupColName} = @name";
-            IDbDataParameter param = command.CreateParameter();
+            DbParameter param = command.CreateParameter();
             param.DbType = DbType.AnsiString;
             param.Value = groupName;
             param.ParameterName = "@name";
@@ -328,8 +329,9 @@ WHERE {_names.RuleGroupColName} = @name";
         WriteRuleIpaReferences(connection, groupKey, rules);
     }
 
-    public void Write(IDbConnection connection, List<PhonologicalRuleGroup> groups)
+    public void Write(IDbConnectionRepository connectionRepo, List<PhonologicalRuleGroup> groups)
     {
+        var connection = connectionRepo.GetConnection<DbConnection>();
         WriteGroups(connection, groups);
         WriteIpaChars(connection, groups);
         foreach (var group in groups)
