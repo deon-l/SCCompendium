@@ -81,7 +81,7 @@ public class DbWriter : IDbWriter
 
         using DbCommand command = connection.CreateCommand();
         command.CommandText =
-            $@"INSERT INTO {_names.PhonologicalRuleTable} ({_names.RuleGroupColName}, {_names.RuleGroupColCredit}, {_names.RuleGroupColNote}) 
+            $@"INSERT INTO {_names.RuleGroupTable} ({_names.RuleGroupColName}, {_names.RuleGroupColCredit}, {_names.RuleGroupColNote}) 
 VALUES (@name, @credit, @note);";
 
         DbParameter
@@ -252,6 +252,9 @@ VALUES (@ruleKey, @charKey, @type)";
         charKeyParam.ParameterName = "@charKey";
         typeParam.DbType = DbType.AnsiString;
         typeParam.ParameterName = "@type";
+        insertRefCommand.Parameters.Add(ruleKeyParam);
+        insertRefCommand.Parameters.Add(charKeyParam);
+        insertRefCommand.Parameters.Add(typeParam);
 
         foreach (PhonologicalRule rule in rules)
         {
