@@ -1,4 +1,6 @@
+using System.Data.Common;
 using Apps72.Dev.Data.DbMocker;
+using SCCompendium.Application.DbAccess;
 using SCCompendium.Domain;
 using SCCompendium.Infrastructure.DbAccess;
 
@@ -15,8 +17,10 @@ public class DbWriterTests
             .When(capturer.Any)
             .ReturnsScalar(-1);
         DbWriter writer = new();
+        var repo = IDbConnectionRepository.Mock(MockBehavior.Strict);
+        repo.GetConnection<DbConnection>().Returns(connection);
 
-        writer.InitiateDatabase(connection);
+        writer.InitiateDatabase(repo);
 
         await Assert.That(capturer.Count).IsEqualTo(4);
         await Assert.That(capturer.ToArray()).DoesNotContain(cmd => !(
@@ -40,8 +44,10 @@ public class DbWriterTests
             .When(capturer.Any)
             .ReturnsScalar(0);
         DbWriter writer = new();
+        var repo = IDbConnectionRepository.Mock(MockBehavior.Strict);
+        repo.GetConnection<DbConnection>().Returns(connection);
 
-        writer.Write(connection, sourceGroups);
+        writer.Write(repo, sourceGroups);
 
         await Assert.That(capturer.ToArray()).DoesNotContain(cmd
             => cmd.CommandText.Split()[0].Equals("INSERT", StringComparison.CurrentCultureIgnoreCase));
@@ -58,8 +64,10 @@ public class DbWriterTests
             .When(capturer.Any)
             .ReturnsScalar(0);
         DbWriter writer = new();
+        var repo = IDbConnectionRepository.Mock(MockBehavior.Strict);
+        repo.GetConnection<DbConnection>().Returns(connection);
 
-        writer.Write(connection, sourceGroups);
+        writer.Write(repo, sourceGroups);
 
         await Assert.That(capturer.ToArray()).DoesNotContain(cmd =>
         {
@@ -102,8 +110,10 @@ public class DbWriterTests
             .When(capturer.Any)
             .ReturnsScalar(-1);
         DbWriter writer = new();
+        var repo = IDbConnectionRepository.Mock(MockBehavior.Strict);
+        repo.GetConnection<DbConnection>().Returns(connection);
 
-        writer.Write(connection, sourceGroups);
+        writer.Write(repo, sourceGroups);
 
         foreach (MockCommand cmd in capturer.ToArray())
         {
