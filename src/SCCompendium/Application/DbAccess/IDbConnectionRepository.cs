@@ -1,4 +1,5 @@
 using System.Data;
+using SCCompendium.Domain.Exceptions;
 
 namespace SCCompendium.Application.DbAccess;
 
@@ -16,5 +17,6 @@ public interface IDbConnectionRepository : IDisposable
     /// <summary>
     /// Get an <see cref="IDbConnection"/> instance, or a specified subclass of it.
     /// </summary>
+    /// <exception cref="TypeNotSupportedException">Cannot cast connection</exception>
     public T GetConnection<T>() where T : IDbConnection;
 }
