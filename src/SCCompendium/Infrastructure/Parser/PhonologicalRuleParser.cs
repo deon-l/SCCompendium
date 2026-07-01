@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using SCCompendium.Application.Parser;
-using SCCompendium.Domain;
+using SCCompendium.Domain.ValueObjects.Parsed;
 
 namespace SCCompendium.Infrastructure.Parser;
 
