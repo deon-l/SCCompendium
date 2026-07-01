@@ -87,7 +87,7 @@ public class DbWriterTests
         const string groupCredit = "aa-credit";
         const string groupNote = "aa-note";
         const string ruleNote = "rule-note";
-        const string rule = "a > b / b_";
+        const string rule = "a > b: / b:_";
         const int bIpaKey = 3;
         const int aIpaKey = 3;
         const int genericKey = 1;
@@ -95,7 +95,7 @@ public class DbWriterTests
         {
             new(groupTitle, groupCredit, Note: groupNote, Rules:
             [
-                new PhonologicalRule(rule, [new("a", [])], [new("b", [])], [new("b", [])], ruleNote)
+                new PhonologicalRule(rule, [new("a", [])], [new("b", [])], [new("b", [":"])], ruleNote)
             ])
         };
         BetterMockDbConnection connection = new() { HasValidSqlServerCommandText = true };
@@ -133,7 +133,7 @@ public class DbWriterTests
         await Assert.That(capturer.ToArray()).Contains(cmd =>
             cmd.CommandTextStartsWith(["insert", "into"])
             && cmd.SymbolAtContains(2, n.PhonologicalRuleTable)
-            && cmd.Parameters.Any(p => "a > b" == p.Value as string)
+            && cmd.Parameters.Any(p => rule == p.Value as string)
             && cmd.Parameters.Any(p => ruleNote == p.Value as string));
         await Assert.That(capturer.ToArray()).Contains(cmd =>
             cmd.CommandTextStartsWith(["insert", "into"])
@@ -142,7 +142,8 @@ public class DbWriterTests
         await Assert.That(capturer.ToArray()).Contains(cmd =>
             cmd.CommandTextStartsWith(["insert", "into"])
             && cmd.SymbolAtContains(2, n.IpaCharacterTable)
-            && cmd.Parameters.Any(p => "b" == p.Value as string));
+            && cmd.Parameters.Any(p => "b" == p.Value as string)
+            && cmd.Parameters.Any(p => p.Value as string == ":"));
         await Assert.That(capturer.ToArray()).Contains(cmd =>
             cmd.CommandTextStartsWith(["insert", "into"])
             && cmd.SymbolAtContains(2, n.RuleIpaReferenceTable)
