@@ -1,6 +1,6 @@
 using Apps72.Dev.Data.DbMocker;
 
-namespace SCCompendium.Tests.Infrastructure.DbAccess;
+namespace SCCompendium.Tests.Infrastructure.DbAccess.Helper;
 
 /// <summary>
 /// Provides extension methods to <see cref="MockCommand"/>, to aid with testing.

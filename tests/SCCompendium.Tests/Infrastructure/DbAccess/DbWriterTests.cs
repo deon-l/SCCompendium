@@ -3,6 +3,7 @@ using Apps72.Dev.Data.DbMocker;
 using SCCompendium.Application.DbAccess;
 using SCCompendium.Domain;
 using SCCompendium.Infrastructure.DbAccess;
+using SCCompendium.Tests.Infrastructure.DbAccess.Helper;
 
 namespace SCCompendium.Tests.Infrastructure.DbAccess;
 
@@ -97,7 +98,7 @@ public class DbWriterTests
                 new PhonologicalRule(rule, [new("a", [])], [new("b", [])], [new("b", [])], ruleNote)
             ])
         };
-        MockDbConnection connection = new() { HasValidSqlServerCommandText = true };
+        BetterMockDbConnection connection = new() { HasValidSqlServerCommandText = true };
         CommandCapturer capturer = new();
         DbNames n = new();
         connection.Mocks
@@ -115,11 +116,10 @@ public class DbWriterTests
 
         writer.Write(repo, sourceGroups);
 
-        foreach (MockCommand cmd in capturer.ToArray())
+        foreach (CommandTrace cmd in capturer)
         {
-            Console.WriteLine("---");
-            Console.WriteLine(cmd.CommandText);
-            Console.WriteLine("params: " + String.Join('|', cmd.Parameters.Select(p => p.ParameterName + (p.Value is null ? ": null" : p.Value.ToString()))));
+            Console.WriteLine("--- *** ---");
+            Console.WriteLine(cmd);
             await Assert.That(cmd.Parameters).Count().IsEqualTo(cmd.CommandText.Count(c => c =='@'));
             await Assert.That(cmd.Parameters).All().Satisfy(that =>
                 that.Satisfies(param => cmd.CommandText.Contains(param!.ParameterName)));

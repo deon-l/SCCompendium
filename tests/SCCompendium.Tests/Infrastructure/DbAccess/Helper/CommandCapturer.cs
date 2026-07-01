@@ -1,14 +1,9 @@
 using Apps72.Dev.Data.DbMocker;
 
-namespace SCCompendium.Tests.Infrastructure.DbAccess;
+namespace SCCompendium.Tests.Infrastructure.DbAccess.Helper;
 
-internal class CommandCapturer
+internal class CommandCapturer : List<CommandTrace>
 {
-    private readonly List<MockCommand> _captured = new();
-    public MockCommand this[int i] => _captured[i];
-    public int Count => _captured.Count;
-
-    public MockCommand[] ToArray() => _captured.ToArray();
     /// <summary>
     /// Captures all commands, and allows all SQL commands.
     /// </summary>
@@ -16,7 +11,7 @@ internal class CommandCapturer
 
     private bool CaptureAll(MockCommand command)
     {
-        _captured.Add(command);
+        Add(new CommandTrace(command));
         return true;
     }
 
@@ -31,7 +26,7 @@ internal class CommandCapturer
             {
                 return false;
             }
-            _captured.Add(command);
+            Add(new CommandTrace(command));
             return true;
         };
     }
