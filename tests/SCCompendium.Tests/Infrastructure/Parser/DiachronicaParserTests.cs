@@ -1,5 +1,5 @@
 using SCCompendium.Application.Parser;
-using SCCompendium.Domain;
+using SCCompendium.Domain.ValueObjects.Parsed;
 using SCCompendium.Infrastructure.Parser;
 using SCCompendium.Infrastructure.Parser.LatexParser;
 

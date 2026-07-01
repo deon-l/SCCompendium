@@ -1,7 +1,7 @@
 using System.Data.Common;
 using Apps72.Dev.Data.DbMocker;
 using SCCompendium.Application.DbAccess;
-using SCCompendium.Domain;
+using SCCompendium.Domain.ValueObjects.Parsed;
 using SCCompendium.Infrastructure.DbAccess;
 using SCCompendium.Tests.Infrastructure.DbAccess.Helper;
 

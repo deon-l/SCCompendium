@@ -1,7 +1,7 @@
 using System.Data;
 using System.Data.Common;
 using SCCompendium.Application.DbAccess;
-using SCCompendium.Domain;
+using SCCompendium.Domain.ValueObjects.Parsed;
 
 namespace SCCompendium.Infrastructure.DbAccess;
 
@@ -71,9 +71,6 @@ public class DbWriter : IDbWriter
     /// </summary>
     public void WriteGroups(DbConnection connection, List<PhonologicalRuleGroup> groups)
     {
-        const string titleParamName = "SectionTitle";
-        const string creditParamName = "SectionCredit";
-
         if (groups.Count == 0)
         {
             return;
