@@ -1,4 +1,4 @@
-namespace SCCompendium.Domain;
+namespace SCCompendium.Domain.ValueObjects.Parsed;
 
 public record struct PhonologicalRule(
     string Rule,

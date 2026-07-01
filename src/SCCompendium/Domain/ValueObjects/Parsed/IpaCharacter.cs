@@ -1,4 +1,4 @@
-namespace SCCompendium.Domain;
+namespace SCCompendium.Domain.ValueObjects.Parsed;
 
 /// <summary>
 /// Represents a specific Ipa sound and some diacritics it has.
