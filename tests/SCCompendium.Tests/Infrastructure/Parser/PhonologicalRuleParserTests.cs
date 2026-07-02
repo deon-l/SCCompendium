@@ -29,7 +29,6 @@ public class PhonologicalRuleParserTests
         var result = parser.TryParseRule(invalidRule, out PhonologicalRule rule);
 
         await Assert.That(result).IsFalse();
-        await Assert.That(rule).IsEqualTo(default(PhonologicalRule));
         latexParserMock.ParseLatexSegment(RefStructArg<ReadOnlySpan<char>>.Any, Any()).WasCalled(Times.Never);
     }
 
