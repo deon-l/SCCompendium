@@ -101,7 +101,7 @@ public class DbReaderTests
                 .AddRow(2, "c", ":;[+high]"));
         connection.Mocks
             .WhenAny()
-            .ReturnsTable(MockTable.WithColumns(n.PhonologicalRuleColKey, n.PhonologicalRuleColRule, n.PhonologicalRuleColRuleNote, n.RuleGroupColKey)
+            .ReturnsTable(MockTable.WithColumns(n.PhonologicalRuleColKey, n.PhonologicalRuleColRule, n.PhonologicalRuleColRuleNote, n.PhonologicalRuleColGroupKey)
                 .AddRow(0, g[0].Rules[0].Rule, g[0].Rules[0].Note, 0)
                 .AddRow(1, g[0].Rules[1].Rule, g[0].Rules[1].Note, 0)
                 .AddRow(23, g[1].Rules[0].Rule, g[1].Rules[0].Note, 1)
@@ -155,7 +155,7 @@ public class DbReaderTests
                 .AddRow(1, "b", ":"));
         connection.Mocks
             .When(capturer.Any)
-            .ReturnsTable(MockTable.WithColumns(n.PhonologicalRuleColKey, n.PhonologicalRuleColRule, n.PhonologicalRuleColRuleNote, n.RuleGroupColKey)
+            .ReturnsTable(MockTable.WithColumns(n.PhonologicalRuleColKey, n.PhonologicalRuleColRule, n.PhonologicalRuleColRuleNote, n.PhonologicalRuleColGroupKey)
                 // .AddRow(0, g[0].Rules[0].Rule, g[0].Rules[0].Note, 0)
                 .AddRow(1, g[0].Rules[1].Rule, g[0].Rules[1].Note, 0)
                 .AddRow(23, g[1].Rules[0].Rule, g[1].Rules[0].Note, 1)
