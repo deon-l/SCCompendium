@@ -16,7 +16,7 @@ public record struct PhonologicalRule(
 
     public bool Equals(PhonologicalRule other)
         => Rule == other.Rule
-           && Note == other.Rule
+           && Note == other.Note
            && InputCharacters.Length == other.InputCharacters.Length &&
            InputCharacters.All(other.InputCharacters.Contains)
            && OutputCharacters.Length == other.OutputCharacters.Length &&

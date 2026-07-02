@@ -105,14 +105,14 @@ public class DbReader : IDbReader
         using DbCommand cmd = connection.CreateCommand();
         StringBuilder cmdText = new();
         cmdText.Append($@"SELECT *
-FROM {_names.RuleGroupTable}
+FROM {_names.PhonologicalRuleTable}
 JOIN {_names.RuleIpaReferenceTable}
     ON {_names.RuleGroupColKey} = {_names.RuleIpaReferenceColRuleKey}");
 
         int baseLength = cmdText.Length;
         if (!(String.IsNullOrWhiteSpace(filter.Character) && filter.Diacritics.Length == 0))
         {
-            cmdText.Append($@"\nWHERE {_names.RuleIpaReferenceColCharKey} IN ");
+            cmdText.Append($"\nWHERE {_names.RuleIpaReferenceColCharKey} IN ");
             cmdText.Append($"({String.Join(',', characters.Keys.Select(n => $"'{n}'"))}) ");
         }
 

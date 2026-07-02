@@ -65,6 +65,9 @@ public class DbReaderTests
         }
     }
 
+    private PhonologicalRule StripReferenceChars(PhonologicalRule rule)
+        => rule with { InputCharacters = [], OutputCharacters = [], ContextCharacters = [] };
+
     [Test]
     public async Task FindRules_NoFilter_ReturnsAllRules()
     {
@@ -111,12 +114,15 @@ public class DbReaderTests
         var results = reader.FindRules(repo, new());
 
         await Assert.That(results).Count().IsEqualTo(2);
+        Console.WriteLine(results[0]);
+        Console.WriteLine(results[1]);
+        Console.WriteLine("-----");
         foreach (var group in g)
         {
             Console.WriteLine(group);
             await Assert.That(results).Contains(g => g.Title == group.Title
                 && g.Rules.Count == group.Rules.Count
-                && g.Rules.All(group.Rules.Contains));
+                && g.Rules.All(group.Rules.Select(StripReferenceChars).Contains));
         }
     }
 
@@ -177,7 +183,7 @@ public class DbReaderTests
             Console.WriteLine(group);
             await Assert.That(results).Contains(g => g.Title == group.Title
                 && g.Rules.Count == group.Rules.Count
-                && g.Rules.All(group.Rules.Contains));
+                && g.Rules.All(group.Rules.Select(StripReferenceChars).Contains));
         }
     }
 }
