@@ -13,4 +13,19 @@ public record struct PhonologicalRule(
         return
             $"\"{Rule}\" {{Note: \"{Note}\", input: [{String.Join(',', InputCharacters)}], output: [{String.Join(',', OutputCharacters)}], context: [{String.Join(',', ContextCharacters)}]}}";
     }
+
+    public bool Equals(PhonologicalRule other)
+        => Rule == other.Rule
+           && Note == other.Rule
+           && InputCharacters.Length == other.InputCharacters.Length &&
+           InputCharacters.All(other.InputCharacters.Contains)
+           && OutputCharacters.Length == other.OutputCharacters.Length &&
+           OutputCharacters.All(other.OutputCharacters.Contains)
+           && ContextCharacters.Length == other.ContextCharacters.Length &&
+           ContextCharacters.All(other.ContextCharacters.Contains);
+
+    public readonly override int GetHashCode()
+    {
+        return HashCode.Combine(Rule, Note, InputCharacters.Length, OutputCharacters.Length, ContextCharacters.Length);
+    }
 }
