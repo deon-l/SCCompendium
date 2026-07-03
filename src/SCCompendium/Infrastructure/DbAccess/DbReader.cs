@@ -37,6 +37,11 @@ public class DbReader : IDbReader
         return GetGroups(connectionRepo.GetConnection<DbConnection>()).Values.ToList();
     }
 
+    /// <summary>
+    /// Create a <c>WHERE</c> SQL clause for a query on the Ipa Character Table.
+    /// If it were to be empty, return <see cref="String.Empty"/>.
+    /// </summary>
+    /// <remarks>Adds params to <see cref="cmd"/>.</remarks>
     private string CreateCharFilter(CharacterSearch filter, DbCommand cmd)
     {
         string conditions = String.Empty;
@@ -51,14 +56,20 @@ public class DbReader : IDbReader
             cmd.Parameters.Add(character);
         }
 
-        if (filter.Diacritics.Length > 0)
+        for (int i = 0; i < filter.Diacritics.Length; i++)
         {
-            if (conditions.Length > 0)
+            if (!(i == 0 && conditions.Length == 0))
             {
                 conditions += " AND ";
             }
-            conditions += String.Join(" AND ", filter.Diacritics.Select(dia =>
-                $"({_names.IpaCharacterColDiacritics} LIKE '{DiacriticDelimiter}%{dia}%{DiacriticDelimiter}')"));
+
+            string paramName = $"dia{i}";
+            conditions += $" {_names.IpaCharacterColDiacritics} LIKE @{paramName} ";
+            DbParameter param = cmd.CreateParameter();
+            param.ParameterName = paramName;
+            param.Value = $"%{DiacriticDelimiter}{filter.Diacritics[i]}{DiacriticDelimiter}%";
+            param.DbType = DbType.String;
+            cmd.Parameters.Add(param);
         }
 
         if (conditions.Length > 0)
@@ -69,7 +80,10 @@ public class DbReader : IDbReader
         return String.Empty;
     }
 
-    /// <remarks><paramref name="filter"/> only filters on character and diacritics, not on Environment.</remarks>
+    /// <remarks>
+    /// <paramref name="filter"/> only filters on character and diacritics,
+    /// not on <see cref="CharacterSearch.Environment"/>.
+    /// </remarks>
     private Dictionary<int, IpaCharacter> GetCharacters(DbConnection connection, CharacterSearch filter)
     {
         using DbCommand cmd = connection.CreateCommand();
