@@ -33,6 +33,7 @@ public class DbReaderTests
         var result = reader.GetAllGroupDetails(repo);
 
         Console.WriteLine(capturer);
+        await Assert.That(capturer).All().Satisfy(cmd => cmd.Satisfies(cmd => cmd.VerifyParameters()));
         await Assert.That(result).Count().IsEqualTo(3);
         foreach (var expectedGroup in (PhonologicalRuleGroup[])[g1, g2, g3])
         {
@@ -61,6 +62,7 @@ public class DbReaderTests
         var results = reader.GetAllCharacterDetails(repo);
 
         Console.WriteLine(capturer);
+        await Assert.That(capturer).All().Satisfy(cmd => cmd.Satisfies(cmd => cmd.VerifyParameters()));
         await Assert.That(results).Count().IsEqualTo(3);
         foreach (IpaCharacter expectedChar in expectedChars)
         {
@@ -122,6 +124,7 @@ public class DbReaderTests
         Console.WriteLine(results[1]);
         Console.WriteLine("-----");
         Console.WriteLine(capturer);
+        await Assert.That(capturer).All().Satisfy(cmd => cmd.Satisfies(cmd => cmd.VerifyParameters()));
         foreach (var group in g)
         {
             Console.WriteLine(group);
@@ -181,6 +184,8 @@ public class DbReaderTests
         Console.WriteLine("---");
         Console.WriteLine(capturer);
         Debug.Assert(capturer.Count == 1);
+        await Assert.That(miscCapturer).All().Satisfy(cmd => cmd.Satisfies(cmd => cmd.VerifyParameters()));
+        await Assert.That(capturer).All().Satisfy(cmd => cmd.Satisfies(cmd => cmd.VerifyParameters()));
         await Assert.That(capturer[0]).Satisfies(cmd =>
             cmd!.CommandText.Contains("input") && cmd.CommandText.Contains("context") && !cmd.CommandText.Contains("output")
             || (cmd.Parameters.Any(p => p.Value as string == "input")
