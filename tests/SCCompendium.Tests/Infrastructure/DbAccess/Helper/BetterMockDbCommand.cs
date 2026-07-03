@@ -70,6 +70,7 @@ public class BetterMockDbCommand : DbCommand
 
     protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
     {
+        PrepExec();
         return _command.ExecuteReader(behavior);
     }
 }
