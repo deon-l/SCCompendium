@@ -1,3 +1,4 @@
+using System.Text;
 using Apps72.Dev.Data.DbMocker;
 
 namespace SCCompendium.Tests.Infrastructure.DbAccess.Helper;
@@ -30,4 +31,10 @@ internal class CommandCapturer : List<CommandTrace>
             return true;
         };
     }
+
+    /// <summary>
+    /// Get string representation of all commands captured.
+    /// </summary>
+    public override string ToString()
+        => String.Join("\n--- ---\n", this.Select(cmd => cmd.ToString())) + "\n";
 }

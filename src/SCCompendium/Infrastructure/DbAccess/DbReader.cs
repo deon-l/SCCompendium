@@ -37,6 +37,11 @@ public class DbReader : IDbReader
         return GetGroups(connectionRepo.GetConnection<DbConnection>()).Values.ToList();
     }
 
+    /// <summary>
+    /// Create a <c>WHERE</c> SQL clause for a query on the Ipa Character Table.
+    /// If it were to be empty, return <see cref="String.Empty"/>.
+    /// </summary>
+    /// <remarks>Adds params to <see cref="cmd"/>.</remarks>
     private string CreateCharFilter(CharacterSearch filter, DbCommand cmd)
     {
         string conditions = String.Empty;
@@ -51,14 +56,20 @@ public class DbReader : IDbReader
             cmd.Parameters.Add(character);
         }
 
-        if (filter.Diacritics.Length > 0)
+        for (int i = 0; i < filter.Diacritics.Length; i++)
         {
-            if (conditions.Length > 0)
+            if (!(i == 0 && conditions.Length == 0))
             {
                 conditions += " AND ";
             }
-            conditions += String.Join(" AND ", filter.Diacritics.Select(dia =>
-                $"({_names.IpaCharacterColDiacritics} LIKE '{DiacriticDelimiter}%{dia}%{DiacriticDelimiter}')"));
+
+            string paramName = $"dia{i}";
+            conditions += $" {_names.IpaCharacterColDiacritics} LIKE @{paramName} ";
+            DbParameter param = cmd.CreateParameter();
+            param.ParameterName = paramName;
+            param.Value = $"%{DiacriticDelimiter}{filter.Diacritics[i]}{DiacriticDelimiter}%";
+            param.DbType = DbType.String;
+            cmd.Parameters.Add(param);
         }
 
         if (conditions.Length > 0)
@@ -69,7 +80,10 @@ public class DbReader : IDbReader
         return String.Empty;
     }
 
-    /// <remarks><paramref name="filter"/> only filters on character and diacritics, not on Environment.</remarks>
+    /// <remarks>
+    /// <paramref name="filter"/> only filters on character and diacritics,
+    /// not on <see cref="CharacterSearch.Environment"/>.
+    /// </remarks>
     private Dictionary<int, IpaCharacter> GetCharacters(DbConnection connection, CharacterSearch filter)
     {
         using DbCommand cmd = connection.CreateCommand();
@@ -104,30 +118,37 @@ public class DbReader : IDbReader
 
         using DbCommand cmd = connection.CreateCommand();
         StringBuilder cmdText = new();
-        cmdText.Append($@"SELECT *
-FROM {_names.PhonologicalRuleTable}
-JOIN {_names.RuleIpaReferenceTable}
-    ON {_names.RuleGroupColKey} = {_names.RuleIpaReferenceColRuleKey}");
+        cmdText.Append($@"
+SELECT * FROM {_names.PhonologicalRuleTable}");
 
-        int baseLength = cmdText.Length;
-        if (!(String.IsNullOrWhiteSpace(filter.Character) && filter.Diacritics.Length == 0))
+        if (!String.IsNullOrWhiteSpace(filter.Character) || filter.Diacritics.Length > 0 ||
+            filter.Environment != CharacterEnvironment.All)
         {
-            cmdText.Append($"\nWHERE {_names.RuleIpaReferenceColCharKey} IN ");
-            cmdText.Append($"({String.Join(',', characters.Keys.Select(n => $"'{n}'"))}) ");
-        }
+            cmdText.Append($@"
+WHERE EXISTS (
+    SELECT {_names.RuleIpaReferenceColRuleKey} FROM {_names.PhonologicalRuleTable} 
+    WHERE {_names.PhonologicalRuleColKey} = {_names.RuleIpaReferenceColRuleKey}");
+            if (!(String.IsNullOrWhiteSpace(filter.Character) && filter.Diacritics.Length == 0))
+            {
+                cmdText.Append($@"
+        AND {_names.RuleIpaReferenceColCharKey} IN ({String.Join(',', characters.Keys)})");
+            }
+            if (filter.Environment != CharacterEnvironment.All)
+            {
+                List<string> envFilters = new();
+                if (filter.Environment.HasFlag(CharacterEnvironment.Input))
+                    envFilters.Add("'input'");
+                if (filter.Environment.HasFlag(CharacterEnvironment.Output))
+                    envFilters.Add("'output'");
+                if (filter.Environment.HasFlag(CharacterEnvironment.Context))
+                    envFilters.Add("'context'");
 
-        Debug.Assert(filter.Environment != 0);
-        if (filter.Environment != CharacterEnvironment.All)
-        {
-            cmdText.Append(cmdText.Length == baseLength ? "\nWHERE " : " AND ");
-            cmdText.Append($"{_names.RuleIpaReferenceColType} IN (");
-            if (filter.Environment.HasFlag(CharacterEnvironment.Input))
-                cmdText.Append("'input',");
-            if (filter.Environment.HasFlag(CharacterEnvironment.Output))
-                cmdText.Append("'output',");
-            if (filter.Environment.HasFlag(CharacterEnvironment.Context))
-                cmdText.Append("'context',");
-            cmdText[^1] = ')';
+                cmdText.Append($@"
+        AND {_names.RuleIpaReferenceColType} IN ({String.Join(',', envFilters)})");
+            }
+
+            cmdText.Append($@"
+)");
         }
 
         cmd.CommandText = cmdText.ToString();
