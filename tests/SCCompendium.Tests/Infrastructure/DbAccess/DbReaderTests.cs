@@ -33,7 +33,7 @@ public class DbReaderTests
         var result = reader.GetAllGroupDetails(repo);
 
         Console.WriteLine(capturer);
-        await Assert.That(capturer).All().Satisfy(cmd => cmd.Satisfies(cmd => cmd.VerifyParameters()));
+        await Assert.That(capturer).All().Satisfy(cmd => cmd.Satisfies(trace => trace!.VerifyParameters()));
         await Assert.That(result).Count().IsEqualTo(3);
         foreach (var expectedGroup in (PhonologicalRuleGroup[])[g1, g2, g3])
         {
@@ -62,7 +62,7 @@ public class DbReaderTests
         var results = reader.GetAllCharacterDetails(repo);
 
         Console.WriteLine(capturer);
-        await Assert.That(capturer).All().Satisfy(cmd => cmd.Satisfies(cmd => cmd.VerifyParameters()));
+        await Assert.That(capturer).All().Satisfy(cmd => cmd.Satisfies(trace => trace!.VerifyParameters()));
         await Assert.That(results).Count().IsEqualTo(3);
         foreach (IpaCharacter expectedChar in expectedChars)
         {
@@ -124,7 +124,7 @@ public class DbReaderTests
         Console.WriteLine(results[1]);
         Console.WriteLine("-----");
         Console.WriteLine(capturer);
-        await Assert.That(capturer).All().Satisfy(cmd => cmd.Satisfies(cmd => cmd.VerifyParameters()));
+        await Assert.That(capturer).All().Satisfy(cmd => cmd.Satisfies(trace => trace!.VerifyParameters()));
         foreach (var group in g)
         {
             Console.WriteLine(group);
