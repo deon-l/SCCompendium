@@ -1,6 +1,6 @@
 namespace SCCompendium.Tests.Domain.ValueObjects.DbValues;
 
-public record struct CharacterSearch()
+public readonly record struct CharacterSearch()
 {
     /// <summary>The character to search for.</summary>
     public string Character { get; init; } = String.Empty;
