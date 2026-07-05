@@ -52,4 +52,8 @@ public class CommandTrace
         }
         return commandSymbols[i].Contains(symbol, StringComparison.InvariantCultureIgnoreCase);
     }
+
+    public bool VerifyParameters()
+        => Parameters.Length == CommandText.Count('@') &&
+           Parameters.Select(p => p.ParameterName).All(CommandText.Contains);
 }
