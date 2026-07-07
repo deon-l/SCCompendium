@@ -13,4 +13,6 @@ public class App
 
     [Subcommand]
     public AppParse Parse { get; set; } = null!;
+    [Subcommand]
+    public AppSearch Search { get; set; } = null!;
 }
