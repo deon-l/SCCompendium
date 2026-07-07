@@ -6,13 +6,14 @@ namespace SCCompendium.Tests.Presentation;
 
 public class App
 {
+    // static members to be used in subcommands, to emulate dependency injection.
     public static IDbConnectionRepository DbConnectionRepository { get; set; } = null!;
     public static IDiachronicaParser DiachronicaParser { get; set; } = null!;
     public static IDbReader DbReader { get; set; } = null!;
     public static IDbWriter DbWriter { get; set; } = null!;
 
-    [Subcommand]
+    [Subcommand(RenameAs = "Parse")]
     public AppParse Parse { get; set; } = null!;
-    [Subcommand]
+    [Subcommand(RenameAs = "Search")]
     public AppSearch Search { get; set; } = null!;
 }
