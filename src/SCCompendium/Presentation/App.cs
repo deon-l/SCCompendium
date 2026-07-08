@@ -12,8 +12,8 @@ public class App
     public static IDbReader DbReader { get; set; } = null!;
     public static IDbWriter DbWriter { get; set; } = null!;
 
-    [Subcommand(RenameAs = "Parse")]
+    [Subcommand(RenameAs = "parse")]
     public AppParse Parse { get; set; } = null!;
-    [Subcommand(RenameAs = "Search")]
+    [Subcommand(RenameAs = "search")]
     public AppSearch Search { get; set; } = null!;
 }
