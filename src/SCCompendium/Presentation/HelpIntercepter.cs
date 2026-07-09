@@ -5,6 +5,10 @@ using CommandDotNet.Help;
 
 namespace SCCompendium.Presentation;
 
+/// <summary>
+/// If <see cref="EnableIntercept"/> is true, intercept the help message and redirect it to <see cref="IConsole.Error"/>.
+/// </summary>
+/// <remarks>Also changes naming of application to not assume executables end in '.exe'</remarks>
 public class HelpInterceptor : HelpTextProvider
 {
     private readonly IConsole _console;

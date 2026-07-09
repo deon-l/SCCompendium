@@ -6,6 +6,7 @@ using SCCompendium.Domain.ValueObjects.Parsed;
 namespace SCCompendium.Presentation.App;
 
 [Subcommand]
+[Command(Description = "Parse phonological data stored in latex")]
 public class AppParse(IDbConnectionRepository connectionRepo, IDiachronicaParser diaParser, IDbWriter dbWriter)
 {
     [DefaultCommand]

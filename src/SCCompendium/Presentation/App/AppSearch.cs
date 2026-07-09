@@ -7,6 +7,7 @@ using SCCompendium.Tests.Domain.ValueObjects.DbValues;
 namespace SCCompendium.Presentation.App;
 
 [Subcommand]
+[Command(Description = "Search and filter data stored in the database")]
 public class AppSearch(IDbConnectionRepository connectionRepo, IDbReader dbReader)
 {
     [DefaultCommand]
