@@ -1,11 +1,13 @@
 using CommandDotNet;
+using SCCompendium.Application.DbAccess;
+using SCCompendium.Application.Parser;
 using SCCompendium.Domain.ValueObjects.Parsed;
 using SCCompendium.Tests.Domain.ValueObjects.DbValues;
 
 namespace SCCompendium.Presentation.App;
 
 [Subcommand]
-public class AppSearch
+public class AppSearch(IDbConnectionRepository connectionRepo, IDbReader dbReader)
 {
     [DefaultCommand]
     public void Character(
@@ -14,9 +16,9 @@ public class AppSearch
     {
         // TODO: proper method to create search from string
         CharacterSearch search = new() { Character = character };
-        App.DbConnectionRepository.CreateConnection(connectionString);
+        connectionRepo.CreateConnection(connectionString);
 
-        List<PhonologicalRuleGroup> groups = App.DbReader.FindRules(App.DbConnectionRepository, search);
+        List<PhonologicalRuleGroup> groups = dbReader.FindRules(connectionRepo, search);
         // TODO: Add some other Application interface for this.
         foreach (PhonologicalRuleGroup group in groups)
         {
