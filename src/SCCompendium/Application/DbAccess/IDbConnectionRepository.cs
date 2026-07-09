@@ -17,6 +17,10 @@ public interface IDbConnectionRepository : IDisposable
     /// <summary>
     /// Get an <see cref="IDbConnection"/> instance, or a specified subclass of it.
     /// </summary>
+    /// <remarks>
+    /// It is the responsibility of the implementing type to hold onto and eventually dispose of the returned instance,
+    /// possibly via <see cref="IDbConnectionRepository.Dispose"/>
+    /// </remarks>
     /// <exception cref="TypeNotSupportedException">Cannot cast connection</exception>
     public T GetConnection<T>() where T : IDbConnection;
 }
