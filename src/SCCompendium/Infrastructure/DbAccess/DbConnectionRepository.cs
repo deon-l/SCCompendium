@@ -45,6 +45,11 @@ public class DbConnectionRepository : IDbConnectionRepository
 
     public T GetConnection<T>() where T : IDbConnection
     {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(DbConnectionRepository));
+        }
+
         T value = TypeNotSupportedException.CastOrThrowIfCantCast<T>(_connection);
         if (_connection.State == ConnectionState.Closed)
         {
