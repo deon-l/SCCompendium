@@ -6,7 +6,7 @@ using SCCompendium.Domain.Exceptions;
 namespace SCCompendium.Infrastructure.DbAccess;
 
 /// <summary>
-/// Repo to hold <see cref="MySqlConnection"/>.
+/// Repo to hold <see cref="MySqlConnection"/>. Uses one shared instance.
 /// </summary>
 public class DbConnectionRepository : IDbConnectionRepository
 {
@@ -40,6 +40,10 @@ public class DbConnectionRepository : IDbConnectionRepository
 
     public void CreateConnection(string connectionString)
     {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(DbConnectionRepository));
+        }
         _connection.ConnectionString = connectionString;
     }
 
