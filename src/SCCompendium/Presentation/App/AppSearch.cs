@@ -2,7 +2,7 @@ using CommandDotNet;
 using SCCompendium.Domain.ValueObjects.Parsed;
 using SCCompendium.Tests.Domain.ValueObjects.DbValues;
 
-namespace SCCompendium.Tests.Presentation;
+namespace SCCompendium.Presentation.App;
 
 [Subcommand]
 public class AppSearch

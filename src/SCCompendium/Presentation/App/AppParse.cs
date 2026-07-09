@@ -1,7 +1,7 @@
 using CommandDotNet;
 using SCCompendium.Domain.ValueObjects.Parsed;
 
-namespace SCCompendium.Tests.Presentation;
+namespace SCCompendium.Presentation.App;
 
 [Subcommand]
 public class AppParse

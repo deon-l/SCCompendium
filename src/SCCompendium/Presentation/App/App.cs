@@ -2,7 +2,7 @@ using CommandDotNet;
 using SCCompendium.Application.DbAccess;
 using SCCompendium.Application.Parser;
 
-namespace SCCompendium.Tests.Presentation;
+namespace SCCompendium.Presentation.App;
 
 public class App
 {

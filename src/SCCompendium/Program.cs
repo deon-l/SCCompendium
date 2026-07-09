@@ -1,7 +1,7 @@
 
 using CommandDotNet;
 using SCCompendium.Presentation;
-using SCCompendium.Tests.Presentation;
+using SCCompendium.Presentation.App;
 
 // Todo: set up "dependency injection" in setting static members in App
 AppRunner<App> runner = new AppRunner<App>();
