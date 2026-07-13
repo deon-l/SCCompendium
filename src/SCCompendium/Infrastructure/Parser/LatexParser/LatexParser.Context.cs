@@ -104,6 +104,8 @@ public partial class LatexParser
         }
         public void AddTypeset(Typeset typeset) => _typesets.Push((GroupDepth, typeset));
 
+        /// <remarks><i>Doesn't</i> limit itself to commands at same depth.</remarks>
+        /// <exception cref="LatexParsingException"><paramref name="commandName"/> wasn't found.</exception>
         public CommandData GetCommand(string commandName)
         {
             foreach (var (_, typeset) in _typesets)
@@ -118,10 +120,15 @@ public partial class LatexParser
             throw CreateParseError($"command \\'{commandName}' is not defined at this point");
         }
 
+        /// <remarks>Only finds replacements at current depth</remarks>
         public bool TryGetReplacement(char c, out string replacement)
         {
-            foreach (var (_, typeset) in _typesets)
+            foreach (var (depth, typeset) in _typesets)
             {
+                if (depth < GroupDepth)
+                {
+                    break;
+                }
                 if (typeset.Replacements?.TryGetValue(c, out replacement!) is true)
                 {
                     return true;
@@ -132,10 +139,15 @@ public partial class LatexParser
             return false;
         }
 
+        /// <remarks>Only finds ligatures at current depth</remarks>
         public bool TryGetLigature(char c1, char c2, out string ligature)
         {
-            foreach (var (_, typeset) in _typesets)
+            foreach (var (depth, typeset) in _typesets)
             {
+                if (depth < GroupDepth)
+                {
+                    break;
+                }
                 if (typeset.Ligatures?.TryGetValue((c1, c2), out ligature!) is true)
                 {
                     return true;
