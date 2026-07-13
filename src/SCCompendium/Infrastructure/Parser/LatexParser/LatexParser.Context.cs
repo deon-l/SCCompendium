@@ -1,4 +1,5 @@
 using System.Text;
+using SCCompendium.Domain.Exceptions;
 
 namespace SCCompendium.Infrastructure.Parser.LatexParser;
 
@@ -143,6 +144,11 @@ public partial class LatexParser
 
             ligature = String.Empty;
             return false;
+        }
+
+        public LatexParsingException CreateParseError(string message)
+        {
+            return new LatexParsingException(_result.ToString() + _source.ToString(), message, _result.Length);
         }
     }
 }

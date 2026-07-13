@@ -1,5 +1,6 @@
 using System.Text;
 using SCCompendium.Application.Parser;
+using SCCompendium.Domain.Exceptions;
 
 namespace SCCompendium.Infrastructure.Parser.LatexParser;
 
@@ -369,6 +370,14 @@ public partial class LatexParser : ILatexParser
     public void ParseLatexSegment(ReadOnlySpan<char> segment, StringBuilder builder)
     {
         Context context = new(segment, builder);
-        ParseParagraphMode(context, isRoot: true);
+        try
+        {
+            ParseParagraphMode(context, isRoot: true);
+        }
+        catch (LatexParsingException e)
+        {
+            throw new LatexParsingException(e, segment.ToString(), e.ErrorMessage,
+                segment.Length - context.LengthSource);
+        }
     }
 }
