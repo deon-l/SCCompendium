@@ -1,4 +1,5 @@
 using System.Text;
+using SCCompendium.Domain.Exceptions;
 
 namespace SCCompendium.Infrastructure.Parser.LatexParser;
 
@@ -114,7 +115,7 @@ public partial class LatexParser
                 }
             }
 
-            throw new InvalidOperationException($"command \\'{commandName}' is not defined at this point");
+            throw CreateParseError($"command \\'{commandName}' is not defined at this point");
         }
 
         public bool TryGetReplacement(char c, out string replacement)
@@ -143,6 +144,11 @@ public partial class LatexParser
 
             ligature = String.Empty;
             return false;
+        }
+
+        public LatexParsingException CreateParseError(string message)
+        {
+            return new LatexParsingException(_result.ToString() + _source.ToString(), message, _result.Length);
         }
     }
 }
