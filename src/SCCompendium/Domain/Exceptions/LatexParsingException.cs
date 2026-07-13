@@ -22,11 +22,18 @@ public class LatexParsingException : FormatException
     public LatexParsingException(string line, string error = "", int columnNumber = -1) : this(null, line, error, columnNumber)
     { }
 
+    public LatexParsingException(string message) : this(String.Empty, message)
+    { }
+
     public override string Message
     {
         get
         {
             string message = base.Message;
+            if (String.IsNullOrWhiteSpace(Line))
+            {
+                return message;
+            }
             if (String.IsNullOrWhiteSpace(message))
             {
                 return $"Could not part the following Latex: \n'{Line}'";
