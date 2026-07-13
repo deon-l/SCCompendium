@@ -27,7 +27,7 @@ public partial class LatexParser : ILatexParser
     {
         if (context.LengthSource == 0)
         {
-            throw new ArgumentException("Ran out of source for command name", nameof(context));
+            throw context.CreateParseError("Ran out of source for command name");
         }
 
         int commandNameStart = context.LengthResult;
@@ -67,7 +67,7 @@ public partial class LatexParser : ILatexParser
         {
             if (context.LengthSource == 0)
             {
-                throw new ArgumentException("Expected chars for argument, but end of source", nameof(context));
+                throw context.CreateParseError("Expected chars for argument, but end of source");
             }
 
             char c = context.PopSource();
@@ -84,7 +84,7 @@ public partial class LatexParser : ILatexParser
             {
                 if (groupDepth == 0)
                 {
-                    throw new ArgumentException("unexpected '}' closing an unopened group (argument)");
+                    throw context.CreateParseError("unexpected '}' closing an unopened group (argument)");
                 }
                 groupDepth--;
                 if (groupDepth != 0)
@@ -274,7 +274,7 @@ public partial class LatexParser : ILatexParser
 
         if (isRoot && context.LengthSource > 0)
         {
-            throw new ArgumentException("erroneous '}'.", nameof(context));
+            throw context.CreateParseError("erroneous '}'.");
         }
     }
 
@@ -293,7 +293,7 @@ public partial class LatexParser : ILatexParser
         {
             if (context.LengthSource == 0)
             {
-                throw new ArgumentException("Unclosed math segment.");
+                throw context.CreateParseError("Unclosed math segment.");
             }
 
             char c = context.PeekSource();
@@ -349,7 +349,7 @@ public partial class LatexParser : ILatexParser
 
         if (context.GroupDepth != baseDepth)
         {
-            throw new ArgumentException("Math segment has improperly closed group");
+            throw context.CreateParseError("Math segment has improperly closed group");
         }
         context.DecrementGroupDepth();
     }

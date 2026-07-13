@@ -92,7 +92,7 @@ public partial class LatexParser
 
             if (c == '$')
             {
-                throw new NotSupportedException("Command Super doesn't support math mode");
+                throw context.CreateParseError("Command Super doesn't support math mode");
             }
             
             context.AppendResult(c switch
@@ -112,8 +112,8 @@ public partial class LatexParser
                 'P' => 'ˀ',
                 'Q' => 'ˤ',
                 'W' => 'ᵚ',
-                _ => throw new ArgumentException(
-                    $"Cannot raise '{c}' (limitation of encoding or not implemented)", nameof(context))
+                _ => throw context.CreateParseError(
+                    $"Cannot raise '{c}' (limitation of encoding or not implemented)")
             });
         } while (context.GroupDepth > baseDepth);
     }
