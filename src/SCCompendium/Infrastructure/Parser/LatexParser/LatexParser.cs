@@ -187,7 +187,7 @@ public partial class LatexParser : ILatexParser
     /// <summary>
     /// Parses the next token (e.g. ligatures, replaced chars, commands, groups).
     /// This provides default parsing implementation.
-    /// Ligatures, Commands, math mode parsed results are added to <paramref name="context"/>'s source sb.
+    /// Ligatures, Commands, math mode, Group parsed results are added to <paramref name="context"/>'s source sb.
     /// Everything else (including escaped chars) are added to the result sb.
     /// </summary>
     private static void ParseCharacter(Context context)
@@ -222,7 +222,7 @@ public partial class LatexParser : ILatexParser
         }
         if (c == '{')
         {
-            context.IncrementGroupDepth();
+            ParseGroup(context);
             return;
         }
         if (c == '}')
@@ -242,6 +242,36 @@ public partial class LatexParser : ILatexParser
         }
 
         context.AppendResult(c);
+    }
+
+    /// <summary>
+    /// Parses the following group, then reconsumes the result back to <paramref name="context"/>'s Source.
+    /// </summary>
+    /// <remarks>
+    /// Assumes initial <c>{</c> <i>hasn't</i> been consumed, and group depth incremented.
+    /// Will do nothing otherwise.
+    /// </remarks>
+    private static void ParseGroup(Context context)
+    {
+        if (context.LengthSource == 0)
+        {
+            return;
+        }
+        if (context.PeekSource() != '{')
+        {
+            return;
+        }
+
+        _ = context.PopSource();
+        context.IncrementGroupDepth();
+        int baseDepth = context.GroupDepth;
+        int baseLength = context.LengthResult;
+        while (context.GroupDepth >= baseDepth)
+        {
+            // ParseCharacter decrements depth on '}'.
+            ParseCharacter(context);
+        }
+        context.ConsumeResult(context.LengthResult - baseLength);
     }
 
     /// <summary>
