@@ -1,4 +1,5 @@
 using System.Text;
+using SCCompendium.Domain.Exceptions;
 using SCCompendium.Infrastructure.Parser.LatexParser;
 
 namespace SCCompendium.Tests.Infrastructure.Parser;
@@ -172,16 +173,14 @@ public class LatexParserTests
     }
 
     [Test]
-    [Skip("Current exceptions are temporary. New ones will be implemented in future.")]
-    [Arguments("aaaaa")]
-    [Arguments("\\bbbbb")]
-    [Arguments("\\")]
+    [Arguments(@"\bbbbb")]
+    [Arguments(@"\")]
     public async Task ParseLatex_InvalidInput_ThrowsException(string invalidInput)
     {
         LatexParser parser = new();
 
         void ErrorAction() => parser.ParseLatexSegment(invalidInput, new());
 
-        await Assert.That(ErrorAction).ThrowsExactly<ArgumentException>();
+        await Assert.That(ErrorAction).ThrowsExactly<LatexParsingException>().WithMessageContaining(invalidInput);
     }
 }

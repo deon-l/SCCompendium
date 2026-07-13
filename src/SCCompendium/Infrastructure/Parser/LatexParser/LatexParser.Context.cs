@@ -115,7 +115,7 @@ public partial class LatexParser
                 }
             }
 
-            throw new InvalidOperationException($"command \\'{commandName}' is not defined at this point");
+            throw CreateParseError($"command \\'{commandName}' is not defined at this point");
         }
 
         public bool TryGetReplacement(char c, out string replacement)
