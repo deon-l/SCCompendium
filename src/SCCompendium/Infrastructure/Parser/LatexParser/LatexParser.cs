@@ -115,7 +115,7 @@ public partial class LatexParser : ILatexParser
     /// by surrounding them in curly braces and removing leading/in-between whitespace
     /// in <paramref name="context"/>'s source sb.
     /// </summary>
-    private static void PrepArguments(Context context, int argumentCount)
+    private static void PrepArguments(Context context, int argumentCount, bool addEndingBrace = false)
     {
         if (argumentCount <= 0)
         {
@@ -128,6 +128,10 @@ public partial class LatexParser : ILatexParser
             argumentLengths[i] = LoadArgument(context).Length;
         }
 
+        if (addEndingBrace)
+        {
+            context.AppendSource('}');
+        }
         for (int i = argumentCount - 1; i >= 0; i--)
         {
             context.AppendSource('}');
@@ -160,13 +164,14 @@ public partial class LatexParser : ILatexParser
 
         CommandData commandData = context.GetCommand(commandName);
 
-        PrepArguments(context, commandData.Arguments);
-
+        int baseDepth = context.GroupDepth;
         bool incrementDepth = commandData.AutoSurroundGroup;
         if (incrementDepth)
         {
             context.IncrementGroupDepth();
         }
+
+        PrepArguments(context, commandData.Arguments, incrementDepth);
 
         if (commandData.Typeset is not null)
         {
@@ -181,9 +186,9 @@ public partial class LatexParser : ILatexParser
             context.ConsumeResult(addedLength);
         }
 
-        if (incrementDepth)
+        if (context.GroupDepth != baseDepth)
         {
-            context.DecrementGroupDepth();
+            context.CreateParseError($"Command didn't return group depth (now {context.GroupDepth} to initial depth ({baseDepth})");
         }
     }
 

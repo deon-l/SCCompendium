@@ -61,7 +61,7 @@ public partial class LatexParser
                 continue;
             }
             ParseCharacter(context);
-        } while (context.GroupDepth > baseDepth);
+        } while (context.GroupDepth >= baseDepth);
     }
 
     /// <summary>
@@ -117,7 +117,7 @@ public partial class LatexParser
                 _ => throw context.CreateParseError(
                     $"Cannot raise '{c}' (limitation of encoding or not implemented)")
             });
-        } while (context.GroupDepth > baseDepth);
+        } while (context.GroupDepth >= baseDepth);
     }
 
     /// <summary>
@@ -181,6 +181,6 @@ public partial class LatexParser
             {
                 context.AppendResult(c);
             }
-        } while (context.GroupDepth > baseDepth);
+        } while (context.GroupDepth >= baseDepth);
     }
 }
