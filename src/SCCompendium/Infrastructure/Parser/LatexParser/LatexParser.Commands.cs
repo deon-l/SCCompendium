@@ -5,6 +5,8 @@ namespace SCCompendium.Infrastructure.Parser.LatexParser;
 // Note that some commands are implemented inline in static ctor in LatexParser.Constants.cs
 public partial class LatexParser
 {
+    // Holds the data (including methods) for creating commands.
+
     /// <summary>Command implementation that does nothing.</summary>
     private static readonly Action<Context> _nullCommand = context => { };
 

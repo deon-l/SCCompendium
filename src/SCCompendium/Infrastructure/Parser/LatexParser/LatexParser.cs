@@ -16,6 +16,9 @@ namespace SCCompendium.Infrastructure.Parser.LatexParser;
 /// </remarks>
 public partial class LatexParser : ILatexParser
 {
+    // The core logic of the parser. These methods are likely to be used (if indirectly) by
+    // essentially every macro / command.
+
     /// <summary>
     /// Pops the next command name from the source of <paramref name="context"/>, and adds it to the result sb.
     /// It returns a <see cref="StringSlice"/> of that command name in the result sb.
