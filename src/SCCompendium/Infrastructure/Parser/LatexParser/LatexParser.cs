@@ -225,6 +225,7 @@ public partial class LatexParser : ILatexParser
         }
         if (c == '{')
         {
+            context.AppendSource('{');
             ParseGroup(context);
             return;
         }
