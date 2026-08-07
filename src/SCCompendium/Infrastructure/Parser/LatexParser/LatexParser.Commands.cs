@@ -86,32 +86,6 @@ public partial class LatexParser
             for (int i = 0; i < added; i++)
             {
                 char c = context.PopSource();
-                if (c == '\\')
-                {
-                    if (!_escapedChars.TryGetValue(context.PeekSource(), out c))
-                    {
-                        ExecuteCommand(context);
-                        continue;
-                    }
-                }
-
-                if (c == '{')
-                {
-                    context.IncrementGroupDepth();
-                    continue;
-                }
-
-                if (c == '}')
-                {
-                    context.DecrementGroupDepth();
-                    continue;
-                }
-
-                if (c == '$')
-                {
-                    throw context.CreateParseError("Command Super doesn't support math mode");
-                }
-
                 context.AppendResult(c switch
                 {
                     'h' => 'ʰ',
