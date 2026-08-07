@@ -50,9 +50,9 @@ public partial class LatexParser
         _tipaCommands.Add("*", new(1, CommandAsterisk));
         _tipaCommands.Add("super", new (1, CommandSuper));
 
-        _mathCommands.Add("Omega", NewReplacementCommandData('Ω'));
-        _mathCommands.Add("langle", NewReplacementCommandData('⟨'));
-        _mathCommands.Add("rangle", NewReplacementCommandData('⟩'));
+        _mathCommands.Add("Omega", NewSymbolicCommandData('Ω'));
+        _mathCommands.Add("langle", NewSymbolicCommandData('⟨'));
+        _mathCommands.Add("rangle", NewSymbolicCommandData('⟩'));
     }
 
     private static readonly CommandData _commandTextIpaData = new(1, CommandTextIpa,
