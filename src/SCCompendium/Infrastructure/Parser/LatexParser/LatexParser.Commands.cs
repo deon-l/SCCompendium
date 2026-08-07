@@ -75,114 +75,114 @@ public partial class LatexParser
         int baseDepth = context.GroupDepth;
         do
         {
-            char c = context.PopSource();
-            if (c == '\\')
+            int oldLength = context.LengthResult;
+            ParseCharacter(context);
+            int added = context.LengthResult - oldLength;
+            if (added == 0)
             {
-                if (!_escapedChars.TryGetValue(context.PeekSource(), out c))
+                continue;
+            }
+            context.ConsumeResult(added);
+            for (int i = 0; i < added; i++)
+            {
+                char c = context.PopSource();
+                if (c == '\\')
                 {
-                    ExecuteCommand(context);
+                    if (!_escapedChars.TryGetValue(context.PeekSource(), out c))
+                    {
+                        ExecuteCommand(context);
+                        continue;
+                    }
+                }
+
+                if (c == '{')
+                {
+                    context.IncrementGroupDepth();
                     continue;
                 }
-            }
-            if (c == '{')
-            {
-                context.IncrementGroupDepth();
-                continue;
-            }
-            if (c == '}')
-            {
-                context.DecrementGroupDepth();
-                continue;
-            }
 
-            if (c == '$')
-            {
-                throw context.CreateParseError("Command Super doesn't support math mode");
+                if (c == '}')
+                {
+                    context.DecrementGroupDepth();
+                    continue;
+                }
+
+                if (c == '$')
+                {
+                    throw context.CreateParseError("Command Super doesn't support math mode");
+                }
+
+                context.AppendResult(c switch
+                {
+                    'h' => 'ʰ',
+                    'l' => 'ˡ',
+                    'm' => 'ᵐ',
+                    'n' => 'ⁿ',
+                    'j' => 'ʲ',
+                    'w' => 'ʷ',
+                    'x' => 'ˣ',
+                    'y' => 'ʸ',
+                    // This command is TIPA exclusive, so the capital conversions are preemptively applied.
+                    'H' => 'ʱ',
+                    'M' => 'ᶬ',
+                    'N' => 'ᵑ',
+                    'P' => 'ˀ',
+                    'Q' => 'ˤ',
+                    'W' => 'ᵚ',
+                    _ => throw context.CreateParseError(
+                        $"Cannot raise '{c}' (limitation of encoding or not implemented)")
+                });
             }
-            
-            context.AppendResult(c switch
-            {
-                'h' => 'ʰ',
-                'l' => 'ˡ',
-                'm' => 'ᵐ',
-                'n' => 'ⁿ',
-                'j' => 'ʲ',
-                'w' => 'ʷ',
-                'x' => 'ˣ',
-                'y' => 'ʸ',
-                // This command is TIPA exclusive, so the capital conversions are preemptively applied.
-                'H' => 'ʱ',
-                'M' => 'ᶬ',
-                'N' => 'ᵑ',
-                'P' => 'ˀ',
-                'Q' => 'ˤ',
-                'W' => 'ᵚ',
-                _ => throw context.CreateParseError(
-                    $"Cannot raise '{c}' (limitation of encoding or not implemented)")
-            });
         } while (context.GroupDepth >= baseDepth);
     }
 
     /// <summary>
-    /// Transforms a select few chars, and marks the rest to not be replaced by Tipa defiend replacements
+    /// Transforms a select few chars, and marks the rest to not be replaced by Tipa defined replacements
     /// </summary>
     private static void CommandAsterisk(Context context)
     {
         int baseDepth = context.GroupDepth;
         do
         {
-            char c = context.PopSource();
-            if (c == '\\')
+            int oldLength = context.LengthResult;
+            ParseCharacter(context);
+            int added = context.LengthResult - oldLength;
+            if (added == 0)
             {
-                context.AppendResult(TipaIgnoreNextChar);
-                context.AppendResult('\\');
-                LoadCommandName(context);
                 continue;
             }
-            if (c == '{')
+            context.ConsumeResult(added);
+            for (int i = 0; i < added; i++)
             {
-                context.IncrementGroupDepth();
-                context.AppendResult(c);
-                continue;
-            }
-            if (c == '}')
-            {
-                context.DecrementGroupDepth();
-                context.AppendResult(c);
-                continue;
-            }
-            if (c == '$')
-            {
-                int startLength = context.LengthResult;
-                ParseMathMode(context);
-                int length = context.LengthResult - startLength;
+                char c = context.PopSource();
+                if (c == '\\')
+                {
+                    context.AppendResult(TipaIgnoreNextChar);
+                    context.AppendResult('\\');
+                    i += LoadCommandName(context).Length;
+                    continue;
+                }
 
-                context.AppendSource('}');
-                context.ConsumeResult(length);
-                context.AppendSource('{');
-                CommandAsterisk(context);
-                continue;
-            }
+                char replace = c switch
+                {
+                    'f' => 'ⅎ',
+                    'k' => 'ʞ',
+                    'r' => 'ɹ',
+                    't' => 'ʇ',
+                    'w' => 'ʍ',
+                    'j' => 'ɟ',
+                    'n' => 'ɲ',
+                    'h' => 'ħ',
+                    'l' => 'ɬ',
+                    'z' => 'ɮ',
+                    _ => TipaIgnoreNextChar
+                };
 
-            char replace = c switch
-            {
-                'f' => 'ⅎ',
-                'k' => 'ʞ',
-                'r' => 'ɹ',
-                't' => 'ʇ',
-                'w' => 'ʍ',
-                'j' => 'ɟ',
-                'n' => 'ɲ',
-                'h' => 'ħ',
-                'l' => 'ɬ',
-                'z' => 'ɮ',
-                _ => TipaIgnoreNextChar
-            };
-
-            context.AppendResult(replace);
-            if (replace == TipaIgnoreNextChar)
-            {
-                context.AppendResult(c);
+                context.AppendResult(replace);
+                if (replace == TipaIgnoreNextChar)
+                {
+                    context.AppendResult(c);
+                }
             }
         } while (context.GroupDepth >= baseDepth);
     }
