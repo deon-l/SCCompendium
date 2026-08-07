@@ -183,4 +183,16 @@ public class LatexParserTests
 
         await Assert.That(ErrorAction).ThrowsExactly<LatexParsingException>().WithMessageContaining(invalidInput);
     }
+
+    [Test]
+    [Arguments(@"\tab")]
+    [Arguments(@"\ipa{\tab}")]
+    public async Task ParseLatex_TabInput_ProducesSingleTab(string input)
+    {
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo("\t");
+    }
 }

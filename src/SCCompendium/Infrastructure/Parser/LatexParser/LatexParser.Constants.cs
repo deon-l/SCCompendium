@@ -13,7 +13,8 @@ public partial class LatexParser
     /// </summary>
     private const char TipaIgnoreNextChar = (char)26; // 'Substitute' character, used as it seems unused and thematically similar.
 
-    private static readonly HashSet<char> _escapedChars = new("#$&%{} ");
+    /// <remarks>Some chars here aren't usually escapable by \, but it is easier this way.</remarks>
+    private static readonly HashSet<char> _escapedChars = new("#$&%{} \t");
     private static readonly HashSet<char> _spacingWhitespace = new(" \t");
 
     private const string TipaInput  = ":;\"0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ|";
@@ -46,6 +47,8 @@ public partial class LatexParser
         _normalCommands.Add("change", new(0, context => context.AppendResult('→')));
         _normalCommands.Add("textrightarrow", _normalCommands["change"]);
         _normalCommands.Add("bf", _commandBfData);
+        // `\tab` is a cmd defined by the Index Diachronica.
+        _normalCommands.Add("tab", NewSymbolicCommandData("\\\t"));
 
         _tipaCommands.Add("*", new(1, CommandAsterisk));
         _tipaCommands.Add("super", new (1, CommandSuper));

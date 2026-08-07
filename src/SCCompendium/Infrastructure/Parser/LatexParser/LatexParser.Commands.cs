@@ -7,8 +7,12 @@ public partial class LatexParser
 {
     // Holds the data (including methods) for creating commands.
 
+    /// <summary>Creates a <see cref="CommandData"/> representing a command that stands in for a character.</summary>
     private static CommandData NewSymbolicCommandData(char c) =>
         new CommandData(0, context => context.AppendResult(c), null, false);
+    /// <inheritdoc cref="NewSymbolicCommandData(char)"/>
+    private static CommandData NewSymbolicCommandData(string str) =>
+        new CommandData(0, context => context.AppendResult(str), null, false);
 
     /// <summary>Command implementation that does nothing.</summary>
     private static readonly Action<Context> _nullCommand = context => { };

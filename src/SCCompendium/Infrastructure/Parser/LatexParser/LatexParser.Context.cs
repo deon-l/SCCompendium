@@ -85,6 +85,7 @@ public partial class LatexParser
 
         public void AppendSource(char c) => _source.Insert(0, c);
         public void AppendResult(char c) => _result.Append(c);
+        public void AppendResult(string str) => _result.Append(str);
 
         public void RemoveResult(int start, int length) => _result.Remove(start, length);
         /// <summary>
