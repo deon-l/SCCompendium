@@ -7,6 +7,9 @@ public partial class LatexParser
 {
     // Holds the data (including methods) for creating commands.
 
+    private static CommandData NewReplacementCommandData(char c) =>
+        new CommandData(0, context => context.AppendResult(c), null, false);
+
     /// <summary>Command implementation that does nothing.</summary>
     private static readonly Action<Context> _nullCommand = context => { };
 
