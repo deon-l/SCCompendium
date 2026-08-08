@@ -35,6 +35,77 @@ public partial class LatexParser
         return replacements;
     }
 
+    private static readonly CommandData _commandHSpaceData = new(
+        0, CommandHSpace, null, false);
+    private const double _ptPerSpace = 6.5;
+    private static void CommandHSpace(Context context)
+    {
+        PopWhitespace(context);
+        bool hasBrace = false;
+        if (context.PeekSource() == '{')
+        {
+            hasBrace = true;
+            context.PopSource();
+        }
+        PopWhitespace(context);
+
+        double ptSize = 0;
+        if (!Char.IsAsciiDigit(context.PeekSource()))
+        {
+            throw context.CreateParseError("Expected a number.");
+        }
+        do
+        {
+            ptSize *= 10;
+            ptSize += context.PopSource() - '0';
+        } while (Char.IsAsciiDigit(context.PeekSource()));
+        if (context.PeekSource() == '.')
+        {
+            context.PopSource();
+            for (double digitPlace = 0.1; Char.IsAsciiDigit(context.PeekSource()); digitPlace /= 10)
+            {
+                ptSize += digitPlace * (context.PopSource() - '0');
+            }
+        }
+
+        PopWhitespace(context);
+        if (context.LengthSource < 2 || !Char.IsAsciiLetter(context.PeekSource(0)) ||
+            !Char.IsAsciiLetter(context.PeekSource(1)))
+        {
+            throw context.CreateParseError("Expected a 2 char measurement unit");
+        }
+        Span<char> measurementUnit = stackalloc char[2];
+        measurementUnit[0] = context.PopSource();
+        measurementUnit[1] = context.PopSource();
+        ptSize *= measurementUnit switch
+        {
+            "pt" => 1,
+            "mm" => 1 / 0.3515,
+            "cm" => 1 / 0.03515,
+            "in" => 72.27,
+            "ex" => 4.5,
+            "em" => 10,
+            "mu" => 10 / 18.0,
+            "sp" => 1 / 65536.0,
+            _ => throw context.CreateParseError("Not a char measurement unit.")
+        };
+        if (ptSize <= 0)
+        {
+            ptSize = 0.1;
+        }
+
+        if (hasBrace)
+        {
+            PopWhitespace(context);
+            if (context.PeekSource() != '}')
+            {
+                throw context.CreateParseError("Expected a closing brace after specs");
+            }
+            context.PopSource();
+        }
+
+        context.AppendResult(new String(' ', (int)Math.Ceiling(ptSize / _ptPerSpace)));
+    }
 
     private static readonly CommandData _commandBfData = new(0,
         context => _ = Char.IsWhiteSpace(context.PeekSource()) ? context.PopSource() : '\0',

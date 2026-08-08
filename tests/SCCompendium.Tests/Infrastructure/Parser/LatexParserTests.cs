@@ -195,4 +195,23 @@ public class LatexParserTests
 
         await Assert.That(result).IsEqualTo("\t");
     }
+
+    [Test]
+    [Arguments(@"\hspace{10pt}")]
+    [Arguments(@"\hspace{0pt}")]
+    [Arguments(@"\hspace  { 5.5   pt }")]
+    [Arguments(@"\hspace0pt")]
+    [Arguments(@"\hspace 10pt")]
+    [Arguments(@"\hspace  10  pt")]
+    [Arguments(@"\hspace5.5pt")]
+    [Arguments(@"\hspace10em")]
+    public async Task ParseLatex_HSpaceInputs_ProducesSomeWhitespace(string input)
+    {
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsNotEmpty();
+        await Assert.That(result).IsNullOrWhiteSpace();
+    }
 }

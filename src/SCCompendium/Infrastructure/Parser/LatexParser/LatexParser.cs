@@ -19,6 +19,19 @@ public partial class LatexParser : ILatexParser
     // The core logic of the parser. These methods are likely to be used (if indirectly) by
     // essentially every macro / command.
 
+    /// <summary>Removes all consecutive whitespace at the start of the source of <paramref name="context"/>.</summary>
+    /// <returns>The number of characters removed.</returns>
+    private static int PopWhitespace(Context context)
+    {
+        int count = 0;
+        while (Char.IsWhiteSpace(context.PeekSource()))
+        {
+            context.PopSource();
+            count++;
+        }
+        return count;
+    }
+
     /// <summary>
     /// Pops the next command name from the source of <paramref name="context"/>, and adds it to the result sb.
     /// It returns a <see cref="StringSlice"/> of that command name in the result sb.
@@ -35,10 +48,9 @@ public partial class LatexParser : ILatexParser
 
         int commandNameStart = context.LengthResult;
         char firstC = context.ConsumeSource();
-        // Todo: should be IsLetter.
-        if (Char.IsLetterOrDigit(firstC))
+        if (Char.IsLetter(firstC))
         {
-            while (Char.IsLetterOrDigit(context.PeekSource()))
+            while (Char.IsLetter(context.PeekSource()))
             {
                 context.ConsumeSource();
             }
