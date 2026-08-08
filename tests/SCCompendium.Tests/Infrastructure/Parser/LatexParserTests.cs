@@ -322,4 +322,17 @@ public class LatexParserTests
 
         await Assert.That(result).IsEqualTo(expectedOutput);
     }
+
+    [Test]
+    [Arguments(@"\'aa", "áa")]
+    [Arguments(@"\ipa{\'{bb}c}", "b́b́c")]
+    public async Task ParseLatex_ApostropheCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
 }

@@ -300,4 +300,7 @@ public partial class LatexParser
                 break;
         }
     }
+
+    private static CommandData _commandApostropheData = new(
+        1, DiacriticApplierMethod("́"));
 }
