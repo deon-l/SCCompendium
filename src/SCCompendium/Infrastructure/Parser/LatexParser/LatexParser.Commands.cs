@@ -16,6 +16,9 @@ public partial class LatexParser
 
     /// <summary>Command implementation that does nothing.</summary>
     private static readonly Action<Context> _nullCommand = context => { };
+    /// <summary>Command data for a command that does nothing.</summary>
+    private static readonly CommandData _nullCommandData = new(
+        0, _nullCommand, null, false);
 
     /// <summary>
     /// Helper command for creating replacements.
