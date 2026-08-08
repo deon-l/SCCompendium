@@ -257,4 +257,16 @@ public class LatexParserTests
 
         await Assert.That(ErrorAction).ThrowsExactly<LatexParsingException>().WithMessageContaining(invalidInput);
     }
+
+    [Test]
+    public async Task ParseLatex_TtCommand_ExpectedOutput()
+    {
+        const string input = @"{\tt aBc123}AbC";
+        const string expectedOutput = @"𝚊𝙱𝚌𝟷𝟸𝟹AbC";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
 }
