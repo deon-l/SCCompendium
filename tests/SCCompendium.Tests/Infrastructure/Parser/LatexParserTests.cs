@@ -204,7 +204,7 @@ public class LatexParserTests
     [Arguments(@"\hspace 10pt")]
     [Arguments(@"\hspace  10  pt")]
     [Arguments(@"\hspace5.5pt")]
-    [Arguments(@"\hspace10em")]
+    [Arguments(@"\hspace10 em")]
     public async Task ParseLatex_HSpaceInputs_ProducesSomeWhitespace(string input)
     {
         LatexParser parser = new();
@@ -213,5 +213,48 @@ public class LatexParserTests
 
         await Assert.That(result).IsNotEmpty();
         await Assert.That(result).IsNullOrWhiteSpace();
+    }
+
+    [Test]
+    public async Task ParseLatex_DifferentHSpaceSizes_ProducesDifferentWhitespaceCount()
+    {
+        const string smallerInput = @"\hspace{10pt}";
+        const string largerInput = @"\hspace 1000pt";
+        LatexParser parser = new();
+
+        int count1 = parser.ParseLatexSegment(smallerInput).Count(' '.Equals);
+        int count2 = parser.ParseLatexSegment(largerInput).Count(' '.Equals);
+
+        await Assert.That(count1).IsLessThan(count2);
+    }
+
+    [Test]
+    public async Task ParseLatex_DifferentUnits_ProduceDifferentWhitespaceCounts()
+    {
+        const string smallerInput = @"\hspace100mm";
+        const string largerInput = @"\hspace{100cm}";
+        LatexParser parser = new();
+
+        int count1 = parser.ParseLatexSegment(smallerInput).Count(' '.Equals);
+        int count2 = parser.ParseLatexSegment(largerInput).Count(' '.Equals);
+
+        await Assert.That(count1).IsLessThan(count2);
+    }
+
+    [Test]
+    [Arguments(@"\hspace{pt}")]
+    [Arguments(@"\hspace 10")]
+    [Arguments(@"\hspace{{10 pt}}")]
+    [Arguments(@"\hspace{10 pt")]
+    [Arguments(@"\hspace 10 pt}")]
+    [Arguments(@"\hspace{ 10 pt}}")]
+    [Arguments(@"\hspace10 ps")]
+    public async Task ParseLatex_BadHSpaceCommands_ProducesError(string invalidInput)
+    {
+        LatexParser parser = new();
+
+        void ErrorAction() => parser.ParseLatexSegment(invalidInput, new());
+
+        await Assert.That(ErrorAction).ThrowsExactly<LatexParsingException>().WithMessageContaining(invalidInput);
     }
 }

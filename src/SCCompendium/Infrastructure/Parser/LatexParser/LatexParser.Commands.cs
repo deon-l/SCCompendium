@@ -37,7 +37,7 @@ public partial class LatexParser
 
     private static readonly CommandData _commandHSpaceData = new(
         0, CommandHSpace, null, false);
-    private const double _ptPerSpace = 6.5;
+    private const double PtPerSpace = 6.5;
     private static void CommandHSpace(Context context)
     {
         PopWhitespace(context);
@@ -103,8 +103,9 @@ public partial class LatexParser
             }
             context.PopSource();
         }
+        Console.WriteLine(context.GroupDepth);
 
-        context.AppendResult(new String(' ', (int)Math.Ceiling(ptSize / _ptPerSpace)));
+        context.AppendResult(new String(' ', (int)Math.Ceiling(ptSize / PtPerSpace)));
     }
 
     private static readonly CommandData _commandBfData = new(0,

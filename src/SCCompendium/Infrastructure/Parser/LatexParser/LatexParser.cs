@@ -327,6 +327,11 @@ public partial class LatexParser : ILatexParser
         {
             throw context.CreateParseError("erroneous '}'.");
         }
+
+        if (isRoot && baseDepth != context.GroupDepth)
+        {
+            throw context.CreateParseError("Erroneous braces '{' / '}', group depth was " + context.GroupDepth + ".");
+        }
     }
 
     /// <summary>
