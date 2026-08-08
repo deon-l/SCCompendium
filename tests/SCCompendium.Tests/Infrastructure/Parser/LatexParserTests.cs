@@ -269,4 +269,16 @@ public class LatexParserTests
 
         await Assert.That(result).IsEqualTo(expectedOutput);
     }
+
+    [Test]
+    public async Task ParseLatex_TextPolHookCommand_ExpectedOutput()
+    {
+        const string input = @"\textpolhook{e}";
+        string expectedOutput = @"ę".Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
 }

@@ -35,6 +35,28 @@ public partial class LatexParser
         return replacements;
     }
 
+    private static Action<Context> DiacriticApplierMethod(string diacritic) => (context) =>
+    {
+        int baseDepth = context.GroupDepth;
+        while (context.GroupDepth >= baseDepth)
+        {
+            int oldLength = context.LengthResult;
+            ParseCharacter(context);
+            int added = context.LengthResult - oldLength;
+            if (added == 0)
+            {
+                continue;
+            }
+
+            context.ConsumeResult(added);
+            for (int i = 0; i < added; i++)
+            {
+                context.ConsumeSource();
+                context.AppendResult(diacritic);
+            }
+        }
+    };
+
     private static readonly CommandData _commandHSpaceData = new(
         0, CommandHSpace, null, false);
     private const double PtPerSpace = 6.5;
@@ -121,6 +143,9 @@ public partial class LatexParser
             "𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣𝟶𝟷𝟸𝟹𝟺𝟻𝟼𝟽𝟾𝟿")), false);
 
     private static readonly CommandData _commandLatexData = NewSymbolicCommandData("LaTeX");
+
+    private static readonly CommandData _commandTextPolHook = new(1, DiacriticApplierMethod("̨") );
+
 
     /// <summary>
     /// Parsing for adding IPA characters quickly

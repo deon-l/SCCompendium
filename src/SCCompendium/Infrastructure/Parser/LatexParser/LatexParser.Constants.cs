@@ -52,6 +52,7 @@ public partial class LatexParser
         _normalCommands.Add("tab", NewSymbolicCommandData("\\\t"));
         _normalCommands.Add("hspace", _commandHSpaceData);
         _normalCommands.Add("LaTeX", _commandLatexData);
+        _normalCommands.Add("textpolhook", _commandTextPolHook);
 
         _tipaCommands.Add("*", new(1, CommandAsterisk));
         _tipaCommands.Add("super", new (1, CommandSuper));
