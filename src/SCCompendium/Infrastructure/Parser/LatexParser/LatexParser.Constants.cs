@@ -55,9 +55,12 @@ public partial class LatexParser
         _normalCommands.Add("LaTeX", _commandLatexData);
         _normalCommands.Add("textpolhook", _commandTextPolHook);
         _normalCommands.Add("newpage", _nullCommandData);
+        _normalCommands.Add("tilde", _commandTildeData);
+        _normalCommands.Add("~", _commandTildeData);
 
         _tipaCommands.Add("*", new(1, CommandAsterisk));
         _tipaCommands.Add("super", new (1, CommandSuper));
+        _tipaCommands.Add("~", _ipaCommandTildeData);
 
         _mathCommands.Add("Omega", NewSymbolicCommandData('Ω'));
         _mathCommands.Add("langle", NewSymbolicCommandData('⟨'));

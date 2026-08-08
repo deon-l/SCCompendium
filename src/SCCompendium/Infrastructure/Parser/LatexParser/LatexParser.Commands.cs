@@ -274,4 +274,30 @@ public partial class LatexParser
             }
         } while (context.GroupDepth >= baseDepth);
     }
+
+    private static CommandData _commandTildeData = new(
+        1, DiacriticApplierMethod("̃"));
+
+    private static CommandData _ipaCommandTildeData = new(0,
+        IpaCommandTilde, null, false);
+    private static CommandData _ipaSubcommandTildeDotData = new(1,
+        DiacriticApplierMethod("̇̃"));
+    private static CommandData _ipaSubcommandSubscriptTildeData = new(1, DiacriticApplierMethod("̰"));
+    private static void IpaCommandTilde(Context context)
+    {
+        char c = context.PopSource();
+        switch (c)
+        {
+            case '.':
+                ExecuteCommand(context, _ipaSubcommandTildeDotData);
+                break;
+            case '*':
+                ExecuteCommand(context, _ipaSubcommandSubscriptTildeData);
+                break;
+            default:
+                context.AppendSource(c);
+                ExecuteCommand(context, _commandTildeData);
+                break;
+        }
+    }
 }

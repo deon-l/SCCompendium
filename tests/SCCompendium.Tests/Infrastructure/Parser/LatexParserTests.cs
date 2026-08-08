@@ -293,4 +293,33 @@ public class LatexParserTests
 
         await Assert.That(result).IsEqualTo(expectedOutput);
     }
+
+    [Test]
+    public async Task ParseLatex_NormalTildeCommand_ExpectedOutput()
+    {
+        const string input = @"\~{a} \~ea";
+        string expectedOutput = @"ã ẽa".Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\ipa{\~aa}", "ãa")]
+    [Arguments(@"\ipa{\~.ee}", "ė̃e")]
+    [Arguments(@"\ipa{\~*ee}", "ḛe")]
+    [Arguments(@"\ipa{\~* de}", "d̰e")] // subscript tilde seems to be put on the next char in some fonts, rather than prior char.
+    [Arguments(@"\ipa{\~.{cc}d}","ċ̃ċ̃d")]
+    [Arguments(@"\ipa{\~{ff}g}", "f̃f̃g")]
+    public async Task ParseLatex_AllIpaTildeVariations_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
 }

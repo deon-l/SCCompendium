@@ -171,11 +171,19 @@ public partial class LatexParser : ILatexParser
 
         StringSlice commandNameSlice = LoadCommandName(context);
         string commandName = commandNameSlice.ToString();
-        context.RemoveResult(commandNameSlice.Start,commandNameSlice.Length);
+        context.RemoveResult(commandNameSlice.Start, commandNameSlice.Length);
         commandNameSlice = default;
 
         CommandData commandData = context.GetCommand(commandName);
+        ExecuteCommand(context, commandData);
+    }
 
+    /// <summary>
+    /// Executes the specified command, preparing the arguments and putting the results back onto the source sb.
+    /// </summary>
+    /// <remarks>Doesn't handle escaped characters.</remarks>
+    private static void ExecuteCommand(Context context, CommandData commandData)
+    {
         int baseDepth = context.GroupDepth;
         bool incrementDepth = commandData.AutoSurroundGroup;
         if (incrementDepth)
