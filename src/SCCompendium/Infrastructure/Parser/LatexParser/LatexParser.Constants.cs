@@ -51,6 +51,7 @@ public partial class LatexParser
         // `\tab` is a cmd defined by the Index Diachronica.
         _normalCommands.Add("tab", NewSymbolicCommandData("\\\t"));
         _normalCommands.Add("hspace", _commandHSpaceData);
+        _normalCommands.Add("LaTeX", _commandLatexData);
 
         _tipaCommands.Add("*", new(1, CommandAsterisk));
         _tipaCommands.Add("super", new (1, CommandSuper));
