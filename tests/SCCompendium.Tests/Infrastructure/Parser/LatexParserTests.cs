@@ -55,6 +55,18 @@ public class LatexParserTests
     }
 
     [Test]
+    public async Task ParseLatex_CommandTextBf_ExpectedOutput()
+    {
+        const string input = @"\textbf{abc}def";
+        const string expectedOutput = "𝐚𝐛𝐜def";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
     public async Task ParseLatexSegment_SourceLigatures_GetLigatures()
     {
         const string input = @"``''-- ---";
