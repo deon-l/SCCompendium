@@ -152,6 +152,10 @@ public partial class LatexParser
 
     private static readonly CommandData _commandTextPolHook = new(1, DiacriticApplierMethod("̨") );
 
+    private static CommandData _commandApostropheData = new(
+        1, DiacriticApplierMethod("́"));
+
+    private static CommandData _commandCData = new(1, DiacriticApplierMethod("̧"));
 
     /// <summary>
     /// Parsing for adding IPA characters quickly
@@ -301,6 +305,4 @@ public partial class LatexParser
         }
     }
 
-    private static CommandData _commandApostropheData = new(
-        1, DiacriticApplierMethod("́"));
 }
