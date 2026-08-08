@@ -300,7 +300,10 @@ public partial class LatexParser : ILatexParser
             // ParseCharacter decrements depth on '}'.
             ParseCharacter(context);
         }
-        context.ConsumeResult(context.LengthResult - baseLength);
+        if (context.LengthResult - baseLength > 0)
+        {
+            context.ConsumeResult(context.LengthResult - baseLength);
+        }
     }
 
     /// <summary>

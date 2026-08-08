@@ -349,4 +349,19 @@ public class LatexParserTests
         await Assert.That(result).IsEqualTo(expectedOutput);
     }
 
+    [Test]
+    [Arguments(@"\i{}i", "ıi")]
+    [Arguments(@"\~{\i}", "ı̃")]
+    // [Arguments(@"\~{\i}", "ĩ")] // These have result as normal i with tilde. They are not equivalent.
+    // [Arguments(@"\~{\i}", "ĩ")]
+    public async Task ParseLatex_ICommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
 }

@@ -157,6 +157,8 @@ public partial class LatexParser
 
     private static CommandData _commandCData = new(1, DiacriticApplierMethod("̧"));
 
+    private static CommandData _commandIData = NewSymbolicCommandData('ı');
+
     /// <summary>
     /// Parsing for adding IPA characters quickly
     /// </summary>
@@ -304,5 +306,4 @@ public partial class LatexParser
                 break;
         }
     }
-
 }

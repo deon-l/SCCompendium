@@ -59,6 +59,7 @@ public partial class LatexParser
         _normalCommands.Add("~", _commandTildeData);
         _normalCommands.Add("'", _commandApostropheData);
         _normalCommands.Add("c", _commandCData);
+        _normalCommands.Add("i", _commandIData);
 
         _tipaCommands.Add("*", new(1, CommandAsterisk));
         _tipaCommands.Add("super", new (1, CommandSuper));
