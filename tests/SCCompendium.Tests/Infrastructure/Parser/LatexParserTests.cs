@@ -391,6 +391,19 @@ public class LatexParserTests
     }
 
     [Test]
+    [Arguments(@"\d{S}", "Ṣ")]
+    [Arguments(@"\d{A}", "Ạ")]
+    public async Task ParseLatex_dCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
     [Arguments(@"\^ a", "â")]
     [Arguments(@"\textsubcircum{a}", "a̭")]
     [Arguments(@"\textcircumdot z","ż̂")]

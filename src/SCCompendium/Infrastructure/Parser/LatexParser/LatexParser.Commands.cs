@@ -156,6 +156,8 @@ public partial class LatexParser
 
     private static CommandData _commandIData = NewSymbolicCommandData('ı');
 
+    private static CommandData _dCommandData = new(1, DiacriticApplierMethod("̣"));
+
     /// <summary>
     /// Parsing for adding IPA characters quickly
     /// </summary>

@@ -62,6 +62,7 @@ public partial class LatexParser
         _normalCommands.Add("'", _commandApostropheData);
         _normalCommands.Add("c", _commandCData);
         _normalCommands.Add("i", _commandIData);
+        _normalCommands.Add("d", _dCommandData);
         _normalCommands.Add("^", _caretCommandData);
         _normalCommands.Add("textsubcircum", _textsubcircumCommandData);
         _normalCommands.Add("textcircumdot", _textcircumdotCommandData);
