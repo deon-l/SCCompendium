@@ -479,4 +479,16 @@ public class LatexParserTests
 
         await Assert.That(result).IsEqualTo(expectedOutput);
     }
+
+    [Test]
+    public async Task ParseLatex_tIpaCommand_ExpectedOutput()
+    {
+        const string input = @"\ipa{\t{gb}a}";
+        const string expectedOutput = "g͡ba";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
 }

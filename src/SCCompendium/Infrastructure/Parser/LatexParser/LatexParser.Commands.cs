@@ -336,4 +336,33 @@ public partial class LatexParser
                 break;
         }
     }
+
+    private static readonly CommandData _tIpaCommandData = new(1, TIpaCommand);
+    // ReSharper disable once InconsistentNaming
+    private static void TIpaCommand(Context context)
+    {
+        int baseDepth = context.GroupDepth;
+        bool isFirst = true;
+        while (context.GroupDepth >= baseDepth)
+        {
+            int oldLength = context.LengthResult;
+            ParseCharacter(context);
+            int added = context.LengthResult - oldLength;
+            if (added == 0)
+            {
+                continue;
+            }
+
+            context.ConsumeResult(added);
+            for (int i = 0; i < added; i++)
+            {
+                if (!isFirst)
+                {
+                    context.AppendResult('͡');
+                }
+                context.ConsumeSource();
+                isFirst = false;
+            }
+        }
+    }
 }
