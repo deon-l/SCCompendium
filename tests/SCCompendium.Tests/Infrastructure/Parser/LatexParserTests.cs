@@ -365,7 +365,7 @@ public class LatexParserTests
     [Test]
     [Arguments(@"\c aa", "a̧a")]
     [Arguments(@"\ipa{\c{bb}c}", "b̧b̧c")]
-    public async Task ParseLatex_CCommand_ExpectedOutput(string input, string expectedOutput)
+    public async Task ParseLatex_cCommand_ExpectedOutput(string input, string expectedOutput)
     {
         expectedOutput = expectedOutput.Normalize();
         LatexParser parser = new();
@@ -380,7 +380,7 @@ public class LatexParserTests
     [Arguments(@"\~{\i}", "ı̃")]
     // [Arguments(@"\~{\i}", "ĩ")] // These have result as normal i with tilde. They are not equivalent.
     // [Arguments(@"\~{\i}", "ĩ")]
-    public async Task ParseLatex_ICommand_ExpectedOutput(string input, string expectedOutput)
+    public async Task ParseLatex_iCommand_ExpectedOutput(string input, string expectedOutput)
     {
         expectedOutput = expectedOutput.Normalize();
         LatexParser parser = new();
@@ -394,6 +394,19 @@ public class LatexParserTests
     [Arguments(@"\d{S}", "Ṣ")]
     [Arguments(@"\d{A}", "Ạ")]
     public async Task ParseLatex_dCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\O{}i", "∅i")]
+    [Arguments(@"\ipa{\O}", "∅")]
+    public async Task ParseLatex_OCommand_ExpectedOutput(string input, string expectedOutput)
     {
         expectedOutput = expectedOutput.Normalize();
         LatexParser parser = new();

@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace SCCompendium.Infrastructure.Parser.LatexParser;
 
 // This file stores all other commands and their associated data.
@@ -157,6 +155,9 @@ public partial class LatexParser
     private static CommandData _commandIData = NewSymbolicCommandData('ı');
 
     private static CommandData _dCommandData = new(1, DiacriticApplierMethod("̣"));
+
+    // ReSharper disable once InconsistentNaming
+    private static readonly CommandData _OCommandData = NewSymbolicCommandData("∅");
 
     /// <summary>
     /// Parsing for adding IPA characters quickly
