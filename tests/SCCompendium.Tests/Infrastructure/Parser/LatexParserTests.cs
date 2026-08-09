@@ -474,6 +474,7 @@ public class LatexParserTests
     [Arguments(@"a\textltailn{}b", "aɲb")]
     [Arguments(@"a\textless{}b", "a<b")]
     [Arguments(@"a\textgreater{}b", "a>b")]
+    [Arguments(@"a\ae{}D", "aæD")]
     public async Task ParseLatex_ReplacementCommands_ExpectedOutput(string input, string expectedOutput)
     {
         LatexParser parser = new();
@@ -488,6 +489,18 @@ public class LatexParserTests
     {
         const string input = @"\ipa{\t{gb}a}";
         const string expectedOutput = "g͡ba";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    public async Task ParseLatex_QuoteCommand_ExpectedOutput()
+    {
+        const string input = "\\\"{adt}" ;
+        string expectedOutput = "äd̈ẗ".Normalize();
         LatexParser parser = new();
 
         string result = parser.ParseLatexSegment(input).Normalize();

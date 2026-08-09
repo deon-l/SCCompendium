@@ -173,6 +173,12 @@ public partial class LatexParser
     // ReSharper disable once InconsistentNaming
     private static readonly CommandData _OCommandData = NewSymbolicCommandData("∅");
 
+    private static readonly CommandData _aeCommandData = NewSymbolicCommandData("æ");
+
+    private static readonly CommandData _quoteCommandData = new(1, DiacriticApplierMethod("̈"));
+
+
+
     /// <summary>
     /// Parsing for adding IPA characters quickly
     /// </summary>
