@@ -471,6 +471,9 @@ public class LatexParserTests
     [Test]
     [Arguments(@"a\textcrh{}b", "aħb")]
     [Arguments(@"a\textbeltl{}b", "aɬb")]
+    [Arguments(@"a\textltailn{}b", "aɲb")]
+    [Arguments(@"a\textless{}b", "a<b")]
+    [Arguments(@"a\textgreater{}b", "a>b")]
     public async Task ParseLatex_ReplacementCommands_ExpectedOutput(string input, string expectedOutput)
     {
         LatexParser parser = new();

@@ -153,6 +153,14 @@ public partial class LatexParser
 
     private static readonly CommandData _textbeltlCommandData = NewSymbolicCommandData("ɬ");
 
+    private static readonly CommandData _textquotedblleftCommandData = NewSymbolicCommandData("“");
+
+    private static readonly CommandData _textltailnCommandData = NewSymbolicCommandData("ɲ");
+
+    private static readonly CommandData _textlessCommandData = NewSymbolicCommandData("<");
+
+    private static readonly CommandData _textgreaterCommandData = NewSymbolicCommandData(">");
+
     private static CommandData _commandApostropheData = new(
         1, DiacriticApplierMethod("́"));
 

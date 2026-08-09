@@ -42,8 +42,6 @@ public partial class LatexParser
         /// <returns>This instance, modified.</returns>
         public Typeset AddLigatures(string input, string output)
         {
-            Console.WriteLine(input + " => " + output);
-            Console.WriteLine(input.Length + "/" + output.Length);
             Ligatures ??= new();
             Debug.Assert(input.Length % 2 == 0);
             Debug.Assert(output.Length % (input.Length / 2) == 0);
