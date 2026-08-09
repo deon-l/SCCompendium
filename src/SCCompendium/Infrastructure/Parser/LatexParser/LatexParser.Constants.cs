@@ -60,10 +60,14 @@ public partial class LatexParser
         _normalCommands.Add("'", _commandApostropheData);
         _normalCommands.Add("c", _commandCData);
         _normalCommands.Add("i", _commandIData);
+        _normalCommands.Add("^", _caretCommandData);
+        _normalCommands.Add("textsubcircum", _textsubcircumCommandData);
+        _normalCommands.Add("textcircumdot", _textcircumdotCommandData);
 
         _tipaCommands.Add("*", new(1, CommandAsterisk));
         _tipaCommands.Add("super", new (1, CommandSuper));
         _tipaCommands.Add("~", _ipaCommandTildeData);
+        _tipaCommands.Add("^", _caretIpaCommandData);
 
         _mathCommands.Add("Omega", NewSymbolicCommandData('Ω'));
         _mathCommands.Add("langle", NewSymbolicCommandData('⟨'));

@@ -364,4 +364,31 @@ public class LatexParserTests
         await Assert.That(result).IsEqualTo(expectedOutput);
     }
 
+    [Test]
+    [Arguments(@"\^ a", "â")]
+    [Arguments(@"\textsubcircum{a}", "a̭")]
+    [Arguments(@"\textcircumdot z","ż̂")]
+    public async Task ParseLatex_CaretCommandAndVariations_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\ipa{\^ ab}", "âb")]
+    [Arguments(@"\ipa{\^*{a}b}", "a̭b")]
+    [Arguments(@"\ipa{\^. zz}","ż̂z")]
+    public async Task ParseLatex_IpaCaretCommandAndVariations_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
 }

@@ -306,4 +306,28 @@ public partial class LatexParser
                 break;
         }
     }
+
+    private static CommandData _caretCommandData = new(1, DiacriticApplierMethod("̂"));
+    private static CommandData _textsubcircumCommandData = new(1, DiacriticApplierMethod("̭"));
+    private static CommandData _textcircumdotCommandData = new(1, DiacriticApplierMethod("̇̂"));
+    private static CommandData _caretIpaCommandData = new(0, CaretIpaCommand, null, false);
+    private static void CaretIpaCommand(Context context)
+    {
+        char c = context.PopSource();
+        Console.WriteLine(c);
+        Console.WriteLine(context.PeekSource());
+        switch (c)
+        {
+            case '.':
+                ExecuteCommand(context, _textcircumdotCommandData);
+                break;
+            case '*':
+                ExecuteCommand(context, _textsubcircumCommandData);
+                break;
+            default:
+                context.AppendSource(c);
+                ExecuteCommand(context, _caretCommandData);
+                break;
+        }
+    }
 }
