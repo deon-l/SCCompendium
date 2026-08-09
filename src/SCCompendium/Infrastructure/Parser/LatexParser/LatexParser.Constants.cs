@@ -48,6 +48,8 @@ public partial class LatexParser
         _normalCommands.Add("textrightarrow", _normalCommands["change"]);
         _normalCommands.Add("bf", _commandBfData);
         _normalCommands.Add("textbf", _commandTextBf);
+        _normalCommands.Add("it", _itCommandData);
+        _normalCommands.Add("textit", _textitCommandData);
         _normalCommands.Add("tt", _commandTtData);
         // `\tab` is a cmd defined by the Index Diachronica.
         _normalCommands.Add("tab", NewSymbolicCommandData("\\\t"));

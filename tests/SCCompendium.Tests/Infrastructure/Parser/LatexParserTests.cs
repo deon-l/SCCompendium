@@ -67,6 +67,32 @@ public class LatexParserTests
     }
 
     [Test]
+    [Arguments(@"\textit{aBcz}def", "𝑎𝐵𝑐𝑧def")]
+    [Arguments(@"{\it aBcz}def", "𝑎𝐵𝑐𝑧def")]
+    public async Task ParseLatex_ItAndVariants_ExpectedOutput(string input, string expectedOutput)
+    {
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\textbf{\textit{ABCxyz}}", "𝑨𝑩𝑪𝒙𝒚𝒛")]
+    [Arguments(@"\textit{\textbf{ABCxyz}}", "𝑨𝑩𝑪𝒙𝒚𝒛")]
+    [Arguments(@"{\it{\bf ABCxyz}}", "𝑨𝑩𝑪𝒙𝒚𝒛")]
+    [Arguments(@"{\bf{\it ABCxyz}}", "𝑨𝑩𝑪𝒙𝒚𝒛")]
+    public async Task parseLatex_CombiningItBf_BoldItalicOutput(string input, string expectedOutput)
+    {
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
     public async Task ParseLatexSegment_SourceLigatures_GetLigatures()
     {
         const string input = @"``''-- ---";
