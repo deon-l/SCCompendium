@@ -391,4 +391,16 @@ public class LatexParserTests
 
         await Assert.That(result).IsEqualTo(expectedOutput);
     }
+
+    [Test]
+    public async Task ParseLatex_textellipsisCommand_ExpectedOutput()
+    {
+        const string input = @"a\textellipsis{}b";
+        const string expectedOutput = "a…b";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
 }
