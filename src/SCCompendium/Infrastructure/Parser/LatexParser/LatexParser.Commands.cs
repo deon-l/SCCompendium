@@ -147,6 +147,8 @@ public partial class LatexParser
 
     private static readonly CommandData _commandTextPolHook = new(1, DiacriticApplierMethod("̨") );
 
+    private static readonly CommandData _textbardotlessjCommandData = NewSymbolicCommandData("ɟ");
+
     private static CommandData _commandApostropheData = new(
         1, DiacriticApplierMethod("́"));
 

@@ -455,4 +455,16 @@ public class LatexParserTests
 
         await Assert.That(result).IsEqualTo(expectedOutput);
     }
+
+    [Test]
+    public async Task ParseLatex_textbardotlessjCommand_ExpectedOutput()
+    {
+        const string input = @"a\textbardotlessj{}b";
+        const string expectedOutput = "aɟb";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
 }
