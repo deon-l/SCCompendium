@@ -149,6 +149,10 @@ public partial class LatexParser
 
     private static readonly CommandData _textbardotlessjCommandData = NewSymbolicCommandData("ɟ");
 
+    private static readonly CommandData _textcrhCommandData = NewSymbolicCommandData("ħ");
+
+    private static readonly CommandData _textbeltlCommandData = NewSymbolicCommandData("ɬ");
+
     private static CommandData _commandApostropheData = new(
         1, DiacriticApplierMethod("́"));
 

@@ -467,4 +467,16 @@ public class LatexParserTests
 
         await Assert.That(result).IsEqualTo(expectedOutput);
     }
+
+    [Test]
+    [Arguments(@"a\textcrh{}b", "aħb")]
+    [Arguments(@"a\textbeltl{}b", "aɬb")]
+    public async Task ParseLatex_ReplacementCommands_ExpectedOutput(string input, string expectedOutput)
+    {
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
 }

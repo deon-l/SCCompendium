@@ -69,6 +69,8 @@ public partial class LatexParser
         _normalCommands.Add("textcircumdot", _textcircumdotCommandData);
         _normalCommands.Add("textellipsis", _textellipsisCommandData);
         _normalCommands.Add("textbardotlessj", _textbardotlessjCommandData);
+        _normalCommands.Add("textcrh", _textcrhCommandData);
+        _normalCommands.Add("textbeltl", _textbeltlCommandData);
 
         _tipaCommands.Add("*", new(1, CommandAsterisk));
         _tipaCommands.Add("super", new (1, CommandSuper));
