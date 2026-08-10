@@ -422,6 +422,18 @@ public partial class LatexParser : ILatexParser
     }
 
     /// <summary>
+    /// Method that does no special parsing, simply parsing chars until the group depth drops below the initial depth.
+    /// </summary>
+    private static void DefaultParse(Context context)
+    {
+        int baseDepth = context.GroupDepth;
+        while (context.GroupDepth >= baseDepth)
+        {
+            ParseCharacter(context);
+        }
+    }
+
+    /// <summary>
     /// Parse the latex <paramref name="segment"/> into a string and return it.
     /// </summary>
     public string ParseLatexSegment(ReadOnlySpan<char> segment)

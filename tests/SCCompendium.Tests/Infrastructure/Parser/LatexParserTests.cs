@@ -507,4 +507,43 @@ public class LatexParserTests
 
         await Assert.That(result).IsEqualTo(expectedOutput);
     }
+
+    [Test]
+    [Arguments(@"\ipa{\; B}", "ʙ")]
+    [Arguments(@"\ipa{\;{AZ}Z}", "ᴀᴢʒ")]
+    public async Task ParseLatex_SymSemicolonCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\ipa{\: d\:l\:nt}", "ɖɭɳt")]
+    [Arguments(@"\ipa{\:{tszr}d}", "ʈʂʐɽd")]
+    public async Task ParseLatex_SymColonCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\ipa{\! b\!dd}", "ɓɗd")]
+    [Arguments(@"\ipa{\!{ogGj}d}", "ʘɠʛʄd")]
+    public async Task ParseLatex_SymExclamationPointCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
 }

@@ -301,6 +301,15 @@ public partial class LatexParser
         } while (context.GroupDepth >= baseDepth);
     }
 
+    private static CommandData _symSemicolonIpaCommandData = new(1, DefaultParse, new Typeset()
+        .AddReplacements("ABCDEFGHIJKLMNOPQRSTUVWYZ", "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘꞯʀꜱᴛᴜᴠᴡʏᴢ"));
+
+    private static CommandData _symColonIpaCommandData = new(1, DefaultParse, new Typeset()
+        .AddReplacements("tdsznlr", "ʈɖʂʐɳɭɽ"));
+
+    private static CommandData _symExclamationPointIpaCommandData = new(1, DefaultParse, new Typeset()
+        .AddReplacements("bdɖjgGo", "ɓɗᶑʄɠʛʘ"));
+
     private static CommandData _commandTildeData = new(
         1, DiacriticApplierMethod("̃"));
 

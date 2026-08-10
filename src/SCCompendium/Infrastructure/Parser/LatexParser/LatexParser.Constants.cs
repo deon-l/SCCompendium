@@ -83,6 +83,9 @@ public partial class LatexParser
         _tipaCommands.Add("~", _ipaCommandTildeData);
         _tipaCommands.Add("^", _caretIpaCommandData);
         _tipaCommands.Add("t", _tIpaCommandData);
+        _tipaCommands.Add(";", _symSemicolonIpaCommandData);
+        _tipaCommands.Add(":", _symColonIpaCommandData);
+        _tipaCommands.Add("!", _symExclamationPointIpaCommandData);
 
         _mathCommands.Add("Omega", NewSymbolicCommandData('Ω'));
         _mathCommands.Add("langle", NewSymbolicCommandData('⟨'));
