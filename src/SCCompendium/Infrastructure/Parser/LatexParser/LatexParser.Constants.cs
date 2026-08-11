@@ -77,6 +77,21 @@ public partial class LatexParser
         _normalCommands.Add("textltailn", _textltailnCommandData);
         _normalCommands.Add("textless", _textlessCommandData);
         _normalCommands.Add("textgreater", _textgreaterCommandData);
+        _normalCommands.Add("textltilde", _textltildeCommandData);
+        _normalCommands.Add("textroundcap", _textroundcapCommandData);
+        _normalCommands.Add("textsubbridge", _textsubbridgeCommandData);
+        _normalCommands.Add("textinvsubbridge", _textinvsubbridgeCommandData);
+        _normalCommands.Add("textsubrhalfring", _textsubrhalfringCommandData);
+        _normalCommands.Add("textsublhalfring", _textsublhalfringCommandData);
+        _normalCommands.Add("textsubw", _textsubwCommandData);
+        _normalCommands.Add("textseagull", _textseagullCommandData);
+        _normalCommands.Add("textovercross", _textovercrossCommandData);
+        _normalCommands.Add("textsubplus", _textsubplusCommandData);
+        _normalCommands.Add("textraising", _textraisingCommandData);
+        _normalCommands.Add("textlowering", _textloweringCommandData);
+        _normalCommands.Add("textadvancing", _textadvancingCommandData);
+        _normalCommands.Add("textretracting", _textretractingCommandData);
+        _normalCommands.Add("textsuperimposedtilde", _textsuperimposedtildeCommandData);
 
         _tipaCommands.Add("*", new(1, CommandAsterisk));
         _tipaCommands.Add("super", new (1, CommandSuper));
@@ -86,6 +101,7 @@ public partial class LatexParser
         _tipaCommands.Add(";", _symSemicolonIpaCommandData);
         _tipaCommands.Add(":", _symColonIpaCommandData);
         _tipaCommands.Add("!", _symExclamationPointIpaCommandData);
+        _tipaCommands.Add("|", _symVertIpaCommandData);
 
         _mathCommands.Add("Omega", NewSymbolicCommandData('Ω'));
         _mathCommands.Add("langle", NewSymbolicCommandData('⟨'));

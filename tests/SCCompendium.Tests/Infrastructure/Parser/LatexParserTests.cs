@@ -546,4 +546,55 @@ public class LatexParserTests
 
         await Assert.That(result).IsEqualTo(expectedOutput);
     }
+
+    [Test]
+    [Arguments(@"\textltilde", "ɫ")]
+    [Arguments(@"\textroundcap{a}", "ȃ")]
+    [Arguments(@"\textsubbridge{a}", "a̪")]
+    [Arguments(@"\textinvsubbridge{a}", "a̺")]
+    [Arguments(@"\textsubrhalfring{a}", "a̹")]
+    [Arguments(@"\textsublhalfring{a}", "a̜")]
+    [Arguments(@"\textsubw{a}", "a̫")]
+    [Arguments(@"\textseagull{a}", "a̼")]
+    [Arguments(@"\textovercross{a}", "a̽")]
+    [Arguments(@"\textsubplus{a}", "a̟")]
+    [Arguments(@"\textraising{a}", "a̝")]
+    [Arguments(@"\textlowering{a}", "a̞")]
+    [Arguments(@"\textadvancing{a}", "a̘")]
+    [Arguments(@"\textretracting{a}", "a̘")]
+    [Arguments(@"\textsuperimposedtilde{a}", "a̴")]
+    public async Task ParseLatex_VertCommandFamily_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\ipa{\|ca}", "ȃ")]
+    [Arguments(@"\ipa{\|[a}", "a̪")]
+    [Arguments(@"\ipa{\|]a}", "a̺")]
+    [Arguments(@"\ipa{\|(a}", "a̹")]
+    [Arguments(@"\ipa{\|)a}", "a̜")]
+    [Arguments(@"\ipa{\|wa}", "a̫")]
+    [Arguments(@"\ipa{\|ma}", "a̼")]
+    [Arguments(@"\ipa{\|xa}", "a̽")]
+    [Arguments(@"\ipa{\|+a}", "a̟")]
+    [Arguments(@"\ipa{\|'a}", "a̝")]
+    [Arguments(@"\ipa{\|`a}", "a̞")]
+    [Arguments(@"\ipa{\|<a}", "a̘")]
+    [Arguments(@"\ipa{\|>a}", "a̘")]
+    [Arguments(@"\ipa{\|~a}", "a̴")]
+    public async Task ParseLatex_TipaVertCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
 }

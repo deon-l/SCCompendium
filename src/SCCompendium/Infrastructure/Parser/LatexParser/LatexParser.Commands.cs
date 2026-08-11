@@ -10,12 +10,14 @@ public partial class LatexParser
     /// <summary>Creates a <see cref="CommandData"/> representing a command that stands in for a character.</summary>
     private static CommandData NewSymbolicCommandData(char c) =>
         new CommandData(0, context => context.AppendResult(c), null, false);
+
     /// <inheritdoc cref="NewSymbolicCommandData(char)"/>
     private static CommandData NewSymbolicCommandData(string str) =>
         new CommandData(0, context => context.AppendResult(str), null, false);
 
     /// <summary>Command implementation that does nothing.</summary>
     private static readonly Action<Context> _nullCommand = context => { };
+
     /// <summary>Command data for a command that does nothing.</summary>
     private static readonly CommandData _nullCommandData = new(
         0, _nullCommand, null, false);
@@ -44,7 +46,9 @@ public partial class LatexParser
 
     private static readonly CommandData _commandHSpaceData = new(
         0, CommandHSpace, null, false);
+
     private const double PtPerSpace = 6.5;
+
     private static void CommandHSpace(Context context)
     {
         PopWhitespace(context);
@@ -54,6 +58,7 @@ public partial class LatexParser
             hasBrace = true;
             context.PopSource();
         }
+
         PopWhitespace(context);
 
         double ptSize = 0;
@@ -61,11 +66,13 @@ public partial class LatexParser
         {
             throw context.CreateParseError("Expected a number.");
         }
+
         do
         {
             ptSize *= 10;
             ptSize += context.PopSource() - '0';
         } while (Char.IsAsciiDigit(context.PeekSource()));
+
         if (context.PeekSource() == '.')
         {
             context.PopSource();
@@ -81,6 +88,7 @@ public partial class LatexParser
         {
             throw context.CreateParseError("Expected a 2 char measurement unit");
         }
+
         Span<char> measurementUnit = stackalloc char[2];
         measurementUnit[0] = context.PopSource();
         measurementUnit[1] = context.PopSource();
@@ -108,8 +116,10 @@ public partial class LatexParser
             {
                 throw context.CreateParseError("Expected a closing brace after specs");
             }
+
             context.PopSource();
         }
+
         Console.WriteLine(context.GroupDepth);
 
         context.AppendResult(new String(' ', (int)Math.Ceiling(ptSize / PtPerSpace)));
@@ -118,34 +128,42 @@ public partial class LatexParser
     private static readonly CommandData _commandBfData = new(0,
         context => _ = Char.IsWhiteSpace(context.PeekSource()) ? context.PopSource() : '\0',
         new Typeset()
-            .AddLigatures("𝐴𝐵𝐶𝐷𝐸𝐹𝐺𝐻𝐼𝐽𝐾𝐿𝑀𝑁𝑂𝑃𝑄𝑅𝑆𝑇𝑈𝑉𝑊𝑋𝑌𝑍𝑎𝑏𝑐𝑑𝑒𝑓𝑔𝑖𝑗𝑘𝑙𝑚𝑛𝑜𝑝𝑞𝑟𝑠𝑡𝑢𝑣𝑤𝑥𝑦𝑧", "𝑨𝑩𝑪𝑫𝑬𝑭𝑮𝑯𝑰𝑱𝑲𝑳𝑴𝑵𝑶𝑷𝑸𝑹𝑺𝑻𝑼𝑽𝑾𝑿𝒀𝒁𝒂𝒃𝒄𝒅𝒆𝒇𝒈𝒊𝒋𝒌𝒍𝒎𝒏𝒐𝒑𝒒𝒓𝒔𝒕𝒖𝒗𝒘𝒙𝒚𝒛")
+            .AddLigatures(
+                "𝐴𝐵𝐶𝐷𝐸𝐹𝐺𝐻𝐼𝐽𝐾𝐿𝑀𝑁𝑂𝑃𝑄𝑅𝑆𝑇𝑈𝑉𝑊𝑋𝑌𝑍𝑎𝑏𝑐𝑑𝑒𝑓𝑔𝑖𝑗𝑘𝑙𝑚𝑛𝑜𝑝𝑞𝑟𝑠𝑡𝑢𝑣𝑤𝑥𝑦𝑧",
+                "𝑨𝑩𝑪𝑫𝑬𝑭𝑮𝑯𝑰𝑱𝑲𝑳𝑴𝑵𝑶𝑷𝑸𝑹𝑺𝑻𝑼𝑽𝑾𝑿𝒀𝒁𝒂𝒃𝒄𝒅𝒆𝒇𝒈𝒊𝒋𝒌𝒍𝒎𝒏𝒐𝒑𝒒𝒓𝒔𝒕𝒖𝒗𝒘𝒙𝒚𝒛")
             .AddReplacements("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789ℎ",
                 "𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳𝟎𝟏𝟐𝟑𝟒𝟓𝟔𝟕𝟖𝟗𝒉"),
-         false);
+        false);
+
     private static readonly CommandData _commandTextBf = new(1,
         con => ParseParagraphMode(con), _commandBfData.Typeset);
 
     private static readonly CommandData _itCommandData = new(0,
         context => _ = Char.IsWhiteSpace(context.PeekSource()) ? context.PopSource() : '\0',
-        new Typeset().AddLigatures("𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳", "𝑨𝑩𝑪𝑫𝑬𝑭𝑮𝑯𝑰𝑱𝑲𝑳𝑴𝑵𝑶𝑷𝑸𝑹𝑺𝑻𝑼𝑽𝑾𝑿𝒀𝒁𝒂𝒃𝒄𝒅𝒆𝒇𝒈𝒉𝒊𝒋𝒌𝒍𝒎𝒏𝒐𝒑𝒒𝒓𝒔𝒕𝒖𝒗𝒘𝒙𝒚𝒛")
+        new Typeset()
+            .AddLigatures(
+                "𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳",
+                "𝑨𝑩𝑪𝑫𝑬𝑭𝑮𝑯𝑰𝑱𝑲𝑳𝑴𝑵𝑶𝑷𝑸𝑹𝑺𝑻𝑼𝑽𝑾𝑿𝒀𝒁𝒂𝒃𝒄𝒅𝒆𝒇𝒈𝒉𝒊𝒋𝒌𝒍𝒎𝒏𝒐𝒑𝒒𝒓𝒔𝒕𝒖𝒗𝒘𝒙𝒚𝒛")
             .AddReplacements("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefgijklmnopqrstuvwxyz",
                 "𝐴𝐵𝐶𝐷𝐸𝐹𝐺𝐻𝐼𝐽𝐾𝐿𝑀𝑁𝑂𝑃𝑄𝑅𝑆𝑇𝑈𝑉𝑊𝑋𝑌𝑍𝑎𝑏𝑐𝑑𝑒𝑓𝑔𝑖𝑗𝑘𝑙𝑚𝑛𝑜𝑝𝑞𝑟𝑠𝑡𝑢𝑣𝑤𝑥𝑦𝑧"),
-         false);
+        false);
+
     private static readonly CommandData _textitCommandData = new(1,
         con => ParseParagraphMode(con), _itCommandData.Typeset);
 
 
     private static readonly CommandData _commandTtData = new(0,
         context => _ = Char.IsWhiteSpace(context.PeekSource()) ? context.PopSource() : '\0',
-     new Typeset()
-         .AddReplacements("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
-            "𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣𝟶𝟷𝟸𝟹𝟺𝟻𝟼𝟽𝟾𝟿"), false);
+        new Typeset()
+            .AddReplacements("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+                "𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣𝟶𝟷𝟸𝟹𝟺𝟻𝟼𝟽𝟾𝟿"),
+        false);
 
     private static readonly CommandData _textellipsisCommandData = NewSymbolicCommandData("…");
 
     private static readonly CommandData _commandLatexData = NewSymbolicCommandData("LaTeX");
 
-    private static readonly CommandData _commandTextPolHook = new(1, DiacriticApplierMethod("̨") );
+    private static readonly CommandData _commandTextPolHook = new(1, DiacriticApplierMethod("̨"));
 
     private static readonly CommandData _textbardotlessjCommandData = NewSymbolicCommandData("ɟ");
 
@@ -203,6 +221,7 @@ public partial class LatexParser
                 context.ConsumeSource();
                 continue;
             }
+
             ParseCharacter(context);
         } while (context.GroupDepth >= baseDepth);
     }
@@ -222,6 +241,7 @@ public partial class LatexParser
             {
                 continue;
             }
+
             context.ConsumeResult(added);
             for (int i = 0; i < added; i++)
             {
@@ -265,6 +285,7 @@ public partial class LatexParser
             {
                 continue;
             }
+
             context.ConsumeResult(added);
             for (int i = 0; i < added; i++)
             {
@@ -315,9 +336,12 @@ public partial class LatexParser
 
     private static CommandData _ipaCommandTildeData = new(0,
         IpaCommandTilde, null, false);
+
     private static CommandData _ipaSubcommandTildeDotData = new(1,
         DiacriticApplierMethod("̇̃"));
+
     private static CommandData _ipaSubcommandSubscriptTildeData = new(1, DiacriticApplierMethod("̰"));
+
     private static void IpaCommandTilde(Context context)
     {
         char c = context.PopSource();
@@ -340,11 +364,10 @@ public partial class LatexParser
     private static CommandData _textsubcircumCommandData = new(1, DiacriticApplierMethod("̭"));
     private static CommandData _textcircumdotCommandData = new(1, DiacriticApplierMethod("̇̂"));
     private static CommandData _caretIpaCommandData = new(0, CaretIpaCommand, null, false);
+
     private static void CaretIpaCommand(Context context)
     {
         char c = context.PopSource();
-        Console.WriteLine(c);
-        Console.WriteLine(context.PeekSource());
         switch (c)
         {
             case '.':
@@ -361,6 +384,7 @@ public partial class LatexParser
     }
 
     private static readonly CommandData _tIpaCommandData = new(1, TIpaCommand);
+
     // ReSharper disable once InconsistentNaming
     private static void TIpaCommand(Context context)
     {
@@ -383,9 +407,52 @@ public partial class LatexParser
                 {
                     context.AppendResult('͡');
                 }
+
                 context.ConsumeSource();
                 isFirst = false;
             }
+        }
+    }
+
+    private static CommandData _textltildeCommandData = NewSymbolicCommandData("ɫ");
+    private static CommandData _textroundcapCommandData = new(1, DiacriticApplierMethod("̑"));
+    private static CommandData _textsubbridgeCommandData = new(1, DiacriticApplierMethod("̪"));
+    private static CommandData _textinvsubbridgeCommandData = new(1, DiacriticApplierMethod("̺"));
+    private static CommandData _textsubrhalfringCommandData = new(1, DiacriticApplierMethod("̹"));
+    private static CommandData _textsublhalfringCommandData = new(1, DiacriticApplierMethod("̜"));
+    private static CommandData _textsubwCommandData = new(1, DiacriticApplierMethod("̫"));
+    private static CommandData _textseagullCommandData = new(1, DiacriticApplierMethod("̼"));
+    private static CommandData _textovercrossCommandData = new(1, DiacriticApplierMethod("̽"));
+    private static CommandData _textsubplusCommandData = new(1, DiacriticApplierMethod("̟"));
+    private static CommandData _textraisingCommandData = new(1, DiacriticApplierMethod("̝"));
+    private static CommandData _textloweringCommandData = new(1, DiacriticApplierMethod("̞"));
+    private static CommandData _textadvancingCommandData = new(1, DiacriticApplierMethod("̘"));
+    private static CommandData _textretractingCommandData = new(1, DiacriticApplierMethod("̘"));
+    private static CommandData _textsuperimposedtildeCommandData = new(1, DiacriticApplierMethod("̴"));
+    private static CommandData _symVertIpaCommandData = new(0, SymVertIpaCommand, null, false);
+
+    private static void SymVertIpaCommand(Context context)
+    {
+        char c = context.PopSource();
+        switch (c)
+        {
+            case 'c': ExecuteCommand(context, _textroundcapCommandData); break;
+            case '[': ExecuteCommand(context, _textsubbridgeCommandData); break;
+            case ']': ExecuteCommand(context, _textinvsubbridgeCommandData); break;
+            case '(': ExecuteCommand(context, _textsubrhalfringCommandData); break;
+            case ')': ExecuteCommand(context, _textsublhalfringCommandData); break;
+            case 'w': ExecuteCommand(context, _textsubwCommandData); break;
+            case 'm': ExecuteCommand(context, _textseagullCommandData); break;
+            case 'x': ExecuteCommand(context, _textovercrossCommandData); break;
+            case '+': ExecuteCommand(context, _textsubplusCommandData); break;
+            case '\'': ExecuteCommand(context, _textraisingCommandData); break;
+            case '`': ExecuteCommand(context, _textloweringCommandData); break;
+            case '<': ExecuteCommand(context, _textadvancingCommandData); break;
+            case '>': ExecuteCommand(context, _textretractingCommandData); break;
+            case '~': ExecuteCommand(context, _textsuperimposedtildeCommandData); break;
+            default:
+                context.AppendSource(c);
+                throw context.CreateParseError("Command '\\|' requires a subcommand");
         }
     }
 }
