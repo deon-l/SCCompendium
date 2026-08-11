@@ -455,4 +455,22 @@ public partial class LatexParser
                 throw context.CreateParseError("Command '\\|' requires a subcommand");
         }
     }
+
+    private static CommandData _symEqualsCommandData = new(1, DiacriticApplierMethod("̄"));
+    private static CommandData _textsubbarCommandData = new(1, DiacriticApplierMethod("̠"));
+    private static CommandData _symEqualsIpaCommandData = new(0, SymEqualsIpaCommand, null, false);
+
+    private static void SymEqualsIpaCommand(Context context)
+    {
+        if (context.PeekSource() == '*')
+        {
+            _ = context.PopSource();
+            ExecuteCommand(context, _textsubbarCommandData);
+        }
+        else
+        {
+            ExecuteCommand(context, _symEqualsCommandData);
+        }
+    }
+
 }

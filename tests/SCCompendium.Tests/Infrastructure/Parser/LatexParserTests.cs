@@ -597,4 +597,18 @@ public class LatexParserTests
 
         await Assert.That(result).IsEqualTo(expectedOutput);
     }
+
+    [Test]
+    [Arguments(@"\=e \=*e", "ē *̄e")]
+    [Arguments(@"\textsubbar{ez}", "e̠z̠")]
+    [Arguments(@"\ipa{\=e \=*e}", "ē e̠")]
+    public async Task ParseLatex_SymEqualsCommandFamily_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
 }

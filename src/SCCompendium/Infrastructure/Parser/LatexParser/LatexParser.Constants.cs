@@ -92,6 +92,8 @@ public partial class LatexParser
         _normalCommands.Add("textadvancing", _textadvancingCommandData);
         _normalCommands.Add("textretracting", _textretractingCommandData);
         _normalCommands.Add("textsuperimposedtilde", _textsuperimposedtildeCommandData);
+        _normalCommands.Add("=", _symEqualsCommandData);
+        _normalCommands.Add("textsubbar", _textsubbarCommandData);
 
         _tipaCommands.Add("*", new(1, CommandAsterisk));
         _tipaCommands.Add("super", new (1, CommandSuper));
@@ -102,6 +104,7 @@ public partial class LatexParser
         _tipaCommands.Add(":", _symColonIpaCommandData);
         _tipaCommands.Add("!", _symExclamationPointIpaCommandData);
         _tipaCommands.Add("|", _symVertIpaCommandData);
+        _tipaCommands.Add("=", _symEqualsIpaCommandData);
 
         _mathCommands.Add("Omega", NewSymbolicCommandData('Ω'));
         _mathCommands.Add("langle", NewSymbolicCommandData('⟨'));
