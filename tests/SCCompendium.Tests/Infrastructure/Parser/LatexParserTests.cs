@@ -404,8 +404,8 @@ public class LatexParserTests
     }
 
     [Test]
-    [Arguments(@"\O{}i", "∅i")]
-    [Arguments(@"\ipa{\O}", "∅")]
+    [Arguments(@"\O{}i", "Øi")]
+    [Arguments(@"\ipa{\O}", "Ø")]
     public async Task ParseLatex_OCommand_ExpectedOutput(string input, string expectedOutput)
     {
         expectedOutput = expectedOutput.Normalize();
@@ -475,8 +475,23 @@ public class LatexParserTests
     [Arguments(@"a\textless{}b", "a<b")]
     [Arguments(@"a\textgreater{}b", "a>b")]
     [Arguments(@"a\ae{}D", "aæD")]
+    [Arguments(@"A\o{}z", "Aøz")]
+    [Arguments(@"A\textturnmrleg{}z", "Aɰz")]
     public async Task ParseLatex_ReplacementCommands_ExpectedOutput(string input, string expectedOutput)
     {
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"a\textsubarch xe", "ax̯e")]
+    [Arguments(@"a\. xe", "aẋe")]
+    public async Task ParseLatex_SimpleDiacriticApplierCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
         LatexParser parser = new();
 
         string result = parser.ParseLatexSegment(input).Normalize();
@@ -603,6 +618,36 @@ public class LatexParserTests
     [Arguments(@"\textsubbar{ez}", "e̠z̠")]
     [Arguments(@"\ipa{\=e \=*e}", "ē e̠")]
     public async Task ParseLatex_SymEqualsCommandFamily_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\v a \v*z", "ǎ *̌z")]
+    [Arguments(@"\textacutewedge{sa}d", "š́ǎ́d")]
+    [Arguments(@"\textsubwedge vb", "v̬b")]
+    [Arguments(@"\textipa{\v a\v*{b}\v' c}", "ǎb̬č́")]
+    public async Task ParseLatex_VCommandFamily_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\r{a}\r*z", "å*̊z")]
+    [Arguments(@"\textsubring{d}", "d̥")]
+    [Arguments(@"\textringmacron g", "ḡ̊")]
+    [Arguments(@"\textipa{\r* a \r= b \r{c}}", "ḁ b̄̊ c̊")]
+    public async Task ParseLatex_rCommandFamily_ExpectedOutput(string input, string expectedOutput)
     {
         expectedOutput = expectedOutput.Normalize();
         LatexParser parser = new();

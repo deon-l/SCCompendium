@@ -179,6 +179,10 @@ public partial class LatexParser
 
     private static readonly CommandData _textgreaterCommandData = NewSymbolicCommandData(">");
 
+    private static readonly CommandData _textturnmrleg = NewSymbolicCommandData("ɰ");
+
+    private static readonly CommandData _textsubarchCommandData = new(1, DiacriticApplierMethod("̯"));
+
     private static CommandData _commandApostropheData = new(
         1, DiacriticApplierMethod("́"));
 
@@ -189,11 +193,15 @@ public partial class LatexParser
     private static CommandData _dCommandData = new(1, DiacriticApplierMethod("̣"));
 
     // ReSharper disable once InconsistentNaming
-    private static readonly CommandData _OCommandData = NewSymbolicCommandData("∅");
+    private static readonly CommandData _OCommandData = NewSymbolicCommandData("Ø");
+
+    private static readonly CommandData _oCommandData = NewSymbolicCommandData("ø");
 
     private static readonly CommandData _aeCommandData = NewSymbolicCommandData("æ");
 
     private static readonly CommandData _quoteCommandData = new(1, DiacriticApplierMethod("̈"));
+
+    private static readonly CommandData _symPeriodCommandData = new(1, DiacriticApplierMethod("̇"));
 
 
 
@@ -473,4 +481,41 @@ public partial class LatexParser
         }
     }
 
+    private static readonly CommandData _vCommandData = new(1, DiacriticApplierMethod("̌"));
+    private static readonly CommandData _textacutewedgeCommandData = new(1, DiacriticApplierMethod("̌́"));
+    private static readonly CommandData _textsubwedgeCommandData = new(1, DiacriticApplierMethod("̬"));
+    private static readonly CommandData _vTipaCommandData = new(0, VTipaCommandData, null, false);
+
+    private static void VTipaCommandData(Context context)
+    {
+        char c = context.PopSource();
+        switch (c)
+        {
+            case '\'': ExecuteCommand(context, _textacutewedgeCommandData); break;
+            case '*': ExecuteCommand(context, _textsubwedgeCommandData); break;
+            default:
+                context.AppendSource(c);
+                ExecuteCommand(context, _vCommandData);
+                break;
+        }
+    }
+
+    private static readonly CommandData _rCommandData = new(1, DiacriticApplierMethod("̊"));
+    private static readonly CommandData _textsubringCommandData = new(1, DiacriticApplierMethod("̥"));
+    private static readonly CommandData _textringmacronCommandData = new(1, DiacriticApplierMethod("̄̊"));
+    private static readonly CommandData _rTipaCommandData = new(0, RTipaCommandData,null, false);
+
+    private static void RTipaCommandData(Context context)
+    {
+        char c = context.PopSource();
+        switch (c)
+        {
+            case '=': ExecuteCommand(context, _textringmacronCommandData); break;
+            case '*': ExecuteCommand(context, _textsubringCommandData); break;
+            default:
+                context.AppendSource(c);
+                ExecuteCommand(context, _rCommandData);
+                break;
+        }
+    }
 }

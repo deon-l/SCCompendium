@@ -64,9 +64,12 @@ public partial class LatexParser
         _normalCommands.Add("i", _commandIData);
         _normalCommands.Add("d", _dCommandData);
         _normalCommands.Add("O", _OCommandData);
+        _normalCommands.Add("o", _oCommandData);
         _normalCommands.Add("^", _caretCommandData);
         _normalCommands.Add("\"", _quoteCommandData);
         _normalCommands.Add("ae", _aeCommandData);
+        _normalCommands.Add(".", _symPeriodCommandData);
+        _normalCommands.Add("textturnmrleg", _textturnmrleg);
         _normalCommands.Add("textsubcircum", _textsubcircumCommandData);
         _normalCommands.Add("textcircumdot", _textcircumdotCommandData);
         _normalCommands.Add("textellipsis", _textellipsisCommandData);
@@ -94,6 +97,13 @@ public partial class LatexParser
         _normalCommands.Add("textsuperimposedtilde", _textsuperimposedtildeCommandData);
         _normalCommands.Add("=", _symEqualsCommandData);
         _normalCommands.Add("textsubbar", _textsubbarCommandData);
+        _normalCommands.Add("textsubarch", _textsubarchCommandData);
+        _normalCommands.Add("v", _vCommandData);
+        _normalCommands.Add("textacutewedge", _textacutewedgeCommandData);
+        _normalCommands.Add("textsubwedge", _textsubwedgeCommandData);
+        _normalCommands.Add("r", _rCommandData);
+        _normalCommands.Add("textsubring", _textsubringCommandData);
+        _normalCommands.Add("textringmacron", _textringmacronCommandData);
 
         _tipaCommands.Add("*", new(1, CommandAsterisk));
         _tipaCommands.Add("super", new (1, CommandSuper));
@@ -105,6 +115,8 @@ public partial class LatexParser
         _tipaCommands.Add("!", _symExclamationPointIpaCommandData);
         _tipaCommands.Add("|", _symVertIpaCommandData);
         _tipaCommands.Add("=", _symEqualsIpaCommandData);
+        _tipaCommands.Add("v", _vTipaCommandData);
+        _tipaCommands.Add("r", _rTipaCommandData);
 
         _mathCommands.Add("Omega", NewSymbolicCommandData('Ω'));
         _mathCommands.Add("langle", NewSymbolicCommandData('⟨'));
