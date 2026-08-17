@@ -183,6 +183,10 @@ public partial class LatexParser
 
     private static readonly CommandData _textsubarchCommandData = new(1, DiacriticApplierMethod("̯"));
 
+    private static readonly CommandData _textturnwCommandData = NewSymbolicCommandData("ʍ");
+
+    
+
     private static CommandData _commandApostropheData = new(
         1, DiacriticApplierMethod("́"));
 
