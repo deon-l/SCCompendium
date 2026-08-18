@@ -214,6 +214,8 @@ public partial class LatexParser
 
     private static readonly CommandData _textturnwCommandData = NewSymbolicCommandData("ʍ");
 
+    private static readonly CommandData _textasciitildeCommandData = NewSymbolicCommandData("\e~");
+
     private static readonly CommandData _jCommandData = NewSymbolicCommandData("ȷ");
 
     private static CommandData _commandApostropheData = new(

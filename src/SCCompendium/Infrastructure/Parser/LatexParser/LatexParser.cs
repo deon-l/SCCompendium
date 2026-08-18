@@ -222,6 +222,12 @@ public partial class LatexParser : ILatexParser
     {
         char c = context.PopSource();
 
+        if (c == ForceNormalToken)
+        {
+            context.AppendResult(ForceNormalToken);
+            context.ConsumeSource();
+            return;
+        }
         if (context.TryGetLigature(c, context.PeekSource(), out string ligature))
         {
             _ = context.PopSource();
@@ -324,12 +330,14 @@ public partial class LatexParser : ILatexParser
         while (context.GroupDepth >= baseDepth && context.LengthSource > 0)
         {
             char c = context.PeekSource();
-            if (isRoot && c == '\\' && _escapedChars.Contains(context.PeekSource(1)))
+            if (isRoot && (c == '\\' && _escapedChars.Contains(context.PeekSource(1)))
+                            || c == ForceNormalToken)
             {
                 _ = context.PopSource();
                 context.ConsumeSource();
                 continue;
             }
+
 
             ParseCharacter(context);
         }

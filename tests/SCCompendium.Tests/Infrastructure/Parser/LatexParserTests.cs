@@ -489,6 +489,7 @@ public class LatexParserTests
     [Arguments(@"A\textturnmrleg{}z", "Aɰz")]
     [Arguments(@"A\textturnw{}z", "Aʍz")]
     [Arguments(@"A\j{}z", "Aȷz")]
+    [Arguments(@"A\textasciitilde{}z", "A~z")]
     public async Task ParseLatex_ReplacementCommands_ExpectedOutput(string input, string expectedOutput)
     {
         LatexParser parser = new();

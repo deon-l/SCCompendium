@@ -12,9 +12,11 @@ public partial class LatexParser
     /// Char used to signal to <see cref="CommandTextIpa"/> to not apply replacements to next character.
     /// </summary>
     private const char TipaIgnoreNextChar = (char)26; // 'Substitute' character, used as it seems unused and thematically similar.
+    /// <summary>Signals next character is a normal char, and should not be interpreted as a special char.</summary>
+    private const char ForceNormalToken = '\e';
 
     /// <remarks>Some chars here aren't usually escapable by \, but it is easier this way.</remarks>
-    private static readonly HashSet<char> _escapedChars = new("#$&%{} \t");
+    private static readonly HashSet<char> _escapedChars = new("#$&%{} ");
     private static readonly HashSet<char> _spacingWhitespace = new(" \t");
 
     private const string TipaInput  = ":;\"0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ|";
@@ -52,7 +54,7 @@ public partial class LatexParser
         _normalCommands.Add("textit", _textitCommandData);
         _normalCommands.Add("tt", _commandTtData);
         // `\tab` is a cmd defined by the Index Diachronica.
-        _normalCommands.Add("tab", NewSymbolicCommandData("\\\t"));
+        _normalCommands.Add("tab", NewSymbolicCommandData("\e\t"));
         _normalCommands.Add("hspace", _commandHSpaceData);
         _normalCommands.Add("raisebox", _raiseboxCommandData);
         _normalCommands.Add("LaTeX", _commandLatexData);
@@ -97,6 +99,7 @@ public partial class LatexParser
         _normalCommands.Add("textretracting", _textretractingCommandData);
         _normalCommands.Add("textsuperimposedtilde", _textsuperimposedtildeCommandData);
         _normalCommands.Add("textturnw", _textturnwCommandData);
+        _normalCommands.Add("textasciitilde", _textasciitildeCommandData);
         _normalCommands.Add("j", _jCommandData);
         _normalCommands.Add("=", _symEqualsCommandData);
         _normalCommands.Add("textsubbar", _textsubbarCommandData);
