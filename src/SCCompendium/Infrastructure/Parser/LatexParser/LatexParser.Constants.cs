@@ -68,6 +68,7 @@ public partial class LatexParser
         _normalCommands.Add("d", _dCommandData);
         _normalCommands.Add("O", _OCommandData);
         _normalCommands.Add("o", _oCommandData);
+        _normalCommands.Add("l", _lCommandData);
         _normalCommands.Add("^", _caretCommandData);
         _normalCommands.Add("\"", _quoteCommandData);
         _normalCommands.Add("ae", _aeCommandData);
@@ -118,6 +119,8 @@ public partial class LatexParser
         _normalCommands.Add("r", _rCommandData);
         _normalCommands.Add("textsubring", _textsubringCommandData);
         _normalCommands.Add("textringmacron", _textringmacronCommandData);
+        _normalCommands.Add("u", _uCommandData);
+        _normalCommands.Add("textbrevemacron", _textbrevemacronCommandData);
 
         _tipaCommands.Add("*", new(1, CommandAsterisk));
         _tipaCommands.Add("super", new (1, CommandSuper));
@@ -132,6 +135,7 @@ public partial class LatexParser
         _tipaCommands.Add("v", _vTipaCommandData);
         _tipaCommands.Add("r", _rTipaCommandData);
         _tipaCommands.Add("s", _sTipaCommandData);
+        _tipaCommands.Add("u", _uTipaCommandData);
 
         _mathCommands.Add("Omega", NewSymbolicCommandData('Ω'));
         _mathCommands.Add("langle", NewSymbolicCommandData('⟨'));

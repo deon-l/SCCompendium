@@ -498,6 +498,7 @@ public class LatexParserTests
     [Arguments(@"t\AA{}p", "tÅp")]
     [Arguments(@"t\textlyoghlig{}p", "tɮp")]
     [Arguments(@"t\textctz{}p", "tʑp")]
+    [Arguments(@"t\l p", "tłp")]
     public async Task ParseLatex_ReplacementCommands_ExpectedOutput(string input, string expectedOutput)
     {
         expectedOutput = expectedOutput.Normalize();
@@ -716,4 +717,17 @@ public class LatexParserTests
         await Assert.That(result).IsNullOrWhiteSpace();
     }
 
+    [Test]
+    [Arguments(@"\u ba\u{z}a", "b̆az̆a")]
+    [Arguments(@"\textbrevemacron{a}a", "ā̆a")]
+    [Arguments(@"\textipa{\u az\u=b}", "ăzb̄̆")]
+    public async Task ParseLatex_uCommandFamily_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
 }

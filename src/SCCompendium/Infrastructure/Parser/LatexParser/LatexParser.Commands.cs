@@ -9,11 +9,19 @@ public partial class LatexParser
 
     /// <summary>Creates a <see cref="CommandData"/> representing a command that stands in for a character.</summary>
     private static CommandData NewSymbolicCommandData(char c) =>
-        new CommandData(0, context => context.AppendResult(c), null, false);
+        new CommandData(0, context =>
+        {
+            context.AppendResult(c);
+            if (Char.IsWhiteSpace(context.PeekSource())) _ = context.PopSource();
+        }, null, false);
 
     /// <inheritdoc cref="NewSymbolicCommandData(char)"/>
     private static CommandData NewSymbolicCommandData(string str) =>
-        new CommandData(0, context => context.AppendResult(str), null, false);
+        new CommandData(0, context =>
+        {
+            context.AppendResult(str);
+            if (Char.IsWhiteSpace(context.PeekSource())) _ = context.PopSource();
+        }, null, false);
 
     /// <summary>Command implementation that does nothing.</summary>
     private static readonly Action<Context> _nullCommand = context => { };
@@ -223,6 +231,8 @@ public partial class LatexParser
     private static readonly CommandData _textctzCommandData = NewSymbolicCommandData("ʑ");
 
     private static readonly CommandData _jCommandData = NewSymbolicCommandData("ȷ");
+
+    private static readonly CommandData _lCommandData = NewSymbolicCommandData("ł");
 
     private static CommandData _commandApostropheData = new(
         1, DiacriticApplierMethod("́"));
@@ -569,6 +579,22 @@ public partial class LatexParser
                 context.AppendSource(c);
                 ExecuteCommand(context, _rCommandData);
                 break;
+        }
+    }
+
+    private static readonly CommandData _uCommandData = new(1, DiacriticApplierMethod("̆"));
+    private static readonly CommandData _textbrevemacronCommandData = new(1, DiacriticApplierMethod("̄̆"));
+    private static readonly CommandData _uTipaCommandData = new(0, UTipaCommand, null, false);
+    private static void UTipaCommand(Context context)
+    {
+        if (context.PeekSource() == '=')
+        {
+            _ = context.PopSource();
+            ExecuteCommand(context, _textbrevemacronCommandData);
+        }
+        else
+        {
+            ExecuteCommand(context, _uCommandData);
         }
     }
 }
