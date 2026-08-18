@@ -109,6 +109,16 @@ public partial class LatexParser
         _normalCommands.Add("textcorner", _textcornerCommandData);
         _normalCommands.Add("textlyoghlig", _textlyoghligCommandData);
         _normalCommands.Add("textctz", _textctzCommandData);
+        _normalCommands.Add("textsoftsign", _textsoftsignCommandData);
+        _normalCommands.Add("texthardsign",_texthardsignCommandData);
+        _normalCommands.Add("textctn",_textctnCommandData);
+        _normalCommands.Add("textleftarrow",_textleftarrowCommandData);
+        _normalCommands.Add("textdoublebarpipe",_textdoublebarpipeCommandData);
+        _normalCommands.Add("textquoteleft",_textquoteleftCommandData);
+        _normalCommands.Add("textrhoticity",_textrhoticityCommandData);
+        _normalCommands.Add("textturna",_textturnaCommandData);
+        _normalCommands.Add("textlhtlongi",_textlhtlongiCommandData);
+        _normalCommands.Add("textraisevibyi",_textraisevibyiCommandData);
         _normalCommands.Add("j", _jCommandData);
         _normalCommands.Add("=", _symEqualsCommandData);
         _normalCommands.Add("textsubbar", _textsubbarCommandData);

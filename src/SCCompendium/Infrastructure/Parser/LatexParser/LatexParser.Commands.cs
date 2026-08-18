@@ -230,6 +230,26 @@ public partial class LatexParser
 
     private static readonly CommandData _textctzCommandData = NewSymbolicCommandData("ʑ");
 
+    private static readonly CommandData _textsoftsignCommandData = NewSymbolicCommandData("Ь");
+
+    private static readonly CommandData _texthardsignCommandData = NewSymbolicCommandData("Ъ");
+
+    private static readonly CommandData _textctnCommandData = NewSymbolicCommandData('ȵ');
+
+    private static readonly CommandData _textleftarrowCommandData = NewSymbolicCommandData('←');
+
+    private static readonly CommandData _textdoublebarpipeCommandData = NewSymbolicCommandData('ⱡ');
+
+    private static readonly CommandData _textquoteleftCommandData = NewSymbolicCommandData('“');
+
+    private static readonly CommandData _textrhoticityCommandData = NewSymbolicCommandData('˞');
+
+    private static readonly CommandData _textturnaCommandData = NewSymbolicCommandData('ɐ');
+
+    private static readonly CommandData _textlhtlongiCommandData = NewSymbolicCommandData('ɿ');
+
+    private static readonly CommandData _textraisevibyiCommandData = NewSymbolicCommandData('ʅ');
+
     private static readonly CommandData _jCommandData = NewSymbolicCommandData("ȷ");
 
     private static readonly CommandData _lCommandData = NewSymbolicCommandData("ł");

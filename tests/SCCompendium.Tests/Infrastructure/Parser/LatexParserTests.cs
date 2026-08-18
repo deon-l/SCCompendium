@@ -499,6 +499,16 @@ public class LatexParserTests
     [Arguments(@"t\textlyoghlig{}p", "tɮp")]
     [Arguments(@"t\textctz{}p", "tʑp")]
     [Arguments(@"t\l p", "tłp")]
+    [Arguments(@"\textsoftsign", "Ь")]
+    [Arguments(@"\texthardsign", "Ъ")]
+    [Arguments(@"\textctn", "ȵ")]
+    [Arguments(@"\textleftarrow", "←")]
+    [Arguments(@"\textdoublebarpipe", "ⱡ")]
+    [Arguments(@"\textquoteleft", "“")]
+    [Arguments(@"\textrhoticity", "˞")]
+    [Arguments(@"\textturna", "ɐ")]
+    [Arguments(@"\textlhtlongi", "ɿ")]
+    [Arguments(@"\textraisevibyi", "ʅ")]
     public async Task ParseLatex_ReplacementCommands_ExpectedOutput(string input, string expectedOutput)
     {
         expectedOutput = expectedOutput.Normalize();
