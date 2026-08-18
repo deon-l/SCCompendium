@@ -17,7 +17,7 @@ public partial class LatexParser
 
     /// <remarks>Some chars here aren't usually escapable by \, but it is easier this way.</remarks>
     private static readonly HashSet<char> _escapedChars = new("#$&%{} ");
-    private static readonly HashSet<char> _spacingWhitespace = new(" \t");
+    private static readonly HashSet<char> _spacingWhitespace = new(" \t\u2009");
 
     private const string TipaInput  = ":;\"0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ|";
     private const string TipaOutput = "ː\u02D1ˈʉɨʌɜɥɐɒɤɵɘəɑβɕðɛɸɣɦɪʝʁʎɱŋɔʔʕɾʃθʊʋɯχʏʒ|";
@@ -71,7 +71,12 @@ public partial class LatexParser
         _normalCommands.Add("^", _caretCommandData);
         _normalCommands.Add("\"", _quoteCommandData);
         _normalCommands.Add("ae", _aeCommandData);
+        _normalCommands.Add("oe", _oeCommandData);
+        _normalCommands.Add("AA", _AACommandData);
         _normalCommands.Add(".", _symPeriodCommandData);
+        _normalCommands.Add("`", _symGraveAccentCommandData);
+        _normalCommands.Add("-", _symMinusCommandData);
+        _normalCommands.Add(",", _symCommaCommandData);
         _normalCommands.Add("textturnmrleg", _textturnmrleg);
         _normalCommands.Add("textsubcircum", _textsubcircumCommandData);
         _normalCommands.Add("textcircumdot", _textcircumdotCommandData);
@@ -100,6 +105,9 @@ public partial class LatexParser
         _normalCommands.Add("textsuperimposedtilde", _textsuperimposedtildeCommandData);
         _normalCommands.Add("textturnw", _textturnwCommandData);
         _normalCommands.Add("textasciitilde", _textasciitildeCommandData);
+        _normalCommands.Add("textcorner", _textcornerCommandData);
+        _normalCommands.Add("textlyoghlig", _textlyoghligCommandData);
+        _normalCommands.Add("textctz", _textctzCommandData);
         _normalCommands.Add("j", _jCommandData);
         _normalCommands.Add("=", _symEqualsCommandData);
         _normalCommands.Add("textsubbar", _textsubbarCommandData);
@@ -123,6 +131,7 @@ public partial class LatexParser
         _tipaCommands.Add("=", _symEqualsIpaCommandData);
         _tipaCommands.Add("v", _vTipaCommandData);
         _tipaCommands.Add("r", _rTipaCommandData);
+        _tipaCommands.Add("s", _sTipaCommandData);
 
         _mathCommands.Add("Omega", NewSymbolicCommandData('Ω'));
         _mathCommands.Add("langle", NewSymbolicCommandData('⟨'));

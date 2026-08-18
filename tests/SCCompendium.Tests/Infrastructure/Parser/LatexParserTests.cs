@@ -106,11 +106,13 @@ public class LatexParserTests
 
     public class DataSource
     {
-        public const string SimpleTipaInput  = ":;\"0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ|";
+        public const string SimpleTipaInput = ":;\"0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ|";
         public const string SimpleTipaOutput = "ːˑˈʉɨʌɜɥɐɒɤɵɘəɑβɕðɛɸɣɦɪʝʁʎɱŋɔʔʕɾʃθʊʋɯχʏʒ|";
+
         public static IEnumerable<(char, char)> TipaSourceToOutput()
         {
-            Debug.Assert(SimpleTipaInput.Length == SimpleTipaOutput.Length, $"{SimpleTipaInput.Length} != {SimpleTipaOutput.Length}");
+            Debug.Assert(SimpleTipaInput.Length == SimpleTipaOutput.Length,
+                $"{SimpleTipaInput.Length} != {SimpleTipaOutput.Length}");
             for (int i = 0; i < SimpleTipaOutput.Length; i++)
             {
                 yield return (SimpleTipaInput[i], SimpleTipaOutput[i]);
@@ -346,8 +348,9 @@ public class LatexParserTests
     [Arguments(@"\ipa{\~aa}", "ãa")]
     [Arguments(@"\ipa{\~.ee}", "ė̃e")]
     [Arguments(@"\ipa{\~*ee}", "ḛe")]
-    [Arguments(@"\ipa{\~* de}", "d̰e")] // subscript tilde seems to be put on the next char in some fonts, rather than prior char.
-    [Arguments(@"\ipa{\~.{cc}d}","ċ̃ċ̃d")]
+    [Arguments(@"\ipa{\~* de}",
+        "d̰e")] // subscript tilde seems to be put on the next char in some fonts, rather than prior char.
+    [Arguments(@"\ipa{\~.{cc}d}", "ċ̃ċ̃d")]
     [Arguments(@"\ipa{\~{ff}g}", "f̃f̃g")]
     public async Task ParseLatex_AllIpaTildeVariations_ExpectedOutput(string input, string expectedOutput)
     {
@@ -429,7 +432,7 @@ public class LatexParserTests
     [Test]
     [Arguments(@"\^ a", "â")]
     [Arguments(@"\textsubcircum{a}", "a̭")]
-    [Arguments(@"\textcircumdot z","ż̂")]
+    [Arguments(@"\textcircumdot z", "ż̂")]
     public async Task ParseLatex_CaretCommandAndVariations_ExpectedOutput(string input, string expectedOutput)
     {
         expectedOutput = expectedOutput.Normalize();
@@ -443,7 +446,7 @@ public class LatexParserTests
     [Test]
     [Arguments(@"\ipa{\^ ab}", "âb")]
     [Arguments(@"\ipa{\^*{a}b}", "a̭b")]
-    [Arguments(@"\ipa{\^. zz}","ż̂z")]
+    [Arguments(@"\ipa{\^. zz}", "ż̂z")]
     public async Task ParseLatex_IpaCaretCommandAndVariations_ExpectedOutput(string input, string expectedOutput)
     {
         expectedOutput = expectedOutput.Normalize();
@@ -490,8 +493,14 @@ public class LatexParserTests
     [Arguments(@"A\textturnw{}z", "Aʍz")]
     [Arguments(@"A\j{}z", "Aȷz")]
     [Arguments(@"A\textasciitilde{}z", "A~z")]
+    [Arguments(@"t\textcorner{}p", "t̚p")]
+    [Arguments(@"t\oe{}p", "tœp")]
+    [Arguments(@"t\AA{}p", "tÅp")]
+    [Arguments(@"t\textlyoghlig{}p", "tɮp")]
+    [Arguments(@"t\textctz{}p", "tʑp")]
     public async Task ParseLatex_ReplacementCommands_ExpectedOutput(string input, string expectedOutput)
     {
+        expectedOutput = expectedOutput.Normalize();
         LatexParser parser = new();
 
         string result = parser.ParseLatexSegment(input).Normalize();
@@ -527,7 +536,7 @@ public class LatexParserTests
     [Test]
     public async Task ParseLatex_QuoteCommand_ExpectedOutput()
     {
-        const string input = "\\\"{adt}" ;
+        const string input = "\\\"{adt}";
         string expectedOutput = "äd̈ẗ".Normalize();
         LatexParser parser = new();
 
@@ -669,4 +678,42 @@ public class LatexParserTests
 
         await Assert.That(result).IsEqualTo(expectedOutput);
     }
+
+    [Test]
+    [Arguments(@"\`e", "è")]
+    [Arguments(@"\`{az}", "àz̀")]
+    public async Task ParseLatex_SymGraveAccentCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    public async Task ParseLatex_sTipaCommand_ExpectedOutput()
+    {
+        const string input = @"\textipa{\s{m}b}";
+        string expectedOutput = @"m̩b";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    public async Task ParseLatex_symCommaCommand_ExpectedOutput()
+    {
+        const string input = @"\,";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsNotNullOrEmpty();
+        await Assert.That(result).IsNullOrWhiteSpace();
+    }
+
 }

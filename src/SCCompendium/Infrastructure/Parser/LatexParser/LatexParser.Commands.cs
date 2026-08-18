@@ -216,6 +216,12 @@ public partial class LatexParser
 
     private static readonly CommandData _textasciitildeCommandData = NewSymbolicCommandData("\e~");
 
+    private static readonly CommandData _textcornerCommandData = NewSymbolicCommandData("̚");
+
+    private static readonly CommandData _textlyoghligCommandData = NewSymbolicCommandData("ɮ");
+
+    private static readonly CommandData _textctzCommandData = NewSymbolicCommandData("ʑ");
+
     private static readonly CommandData _jCommandData = NewSymbolicCommandData("ȷ");
 
     private static CommandData _commandApostropheData = new(
@@ -234,9 +240,21 @@ public partial class LatexParser
 
     private static readonly CommandData _aeCommandData = NewSymbolicCommandData("æ");
 
+    private static readonly CommandData _oeCommandData = NewSymbolicCommandData("œ");
+
+    // ReSharper disable once InconsistentNaming
+    private static readonly CommandData _AACommandData = NewSymbolicCommandData("Å");
+
     private static readonly CommandData _quoteCommandData = new(1, DiacriticApplierMethod("̈"));
 
     private static readonly CommandData _symPeriodCommandData = new(1, DiacriticApplierMethod("̇"));
+
+    private static readonly CommandData _symGraveAccentCommandData = new(1, DiacriticApplierMethod("̀"));
+
+    private static readonly CommandData _symMinusCommandData =
+        new(0, _ => Console.Error.WriteLine("command '\\-' does nothing."));
+
+    private static readonly CommandData _symCommaCommandData = NewSymbolicCommandData("\u2009"); // thin space
 
     /// <summary>
     /// Parsing for adding IPA characters quickly
@@ -266,6 +284,8 @@ public partial class LatexParser
             ParseCharacter(context);
         } while (context.GroupDepth >= baseDepth);
     }
+
+    private static readonly CommandData _sTipaCommandData = new(1, DiacriticApplierMethod("̩"));
 
     /// <summary>
     /// Convert its argument into superscript text.
