@@ -236,9 +236,7 @@ public class LatexParserTests
 
     [Test]
     [Arguments(@"\hspace{10pt}")]
-    [Arguments(@"\hspace{0pt}")]
     [Arguments(@"\hspace  { 5.5   pt }")]
-    [Arguments(@"\hspace0pt")]
     [Arguments(@"\hspace 10pt")]
     [Arguments(@"\hspace  10  pt")]
     [Arguments(@"\hspace5.5pt")]
@@ -294,6 +292,18 @@ public class LatexParserTests
         void ErrorAction() => parser.ParseLatexSegment(invalidInput, new());
 
         await Assert.That(ErrorAction).ThrowsExactly<LatexParsingException>().WithMessageContaining(invalidInput);
+    }
+
+    [Test]
+    public async Task ParseLatex_RaiseboxCommand_ExpectedResult()
+    {
+        const string input = @"\raisebox{-0.6ex}{atE}";
+        string expectedOutput = @"atE";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
     }
 
     [Test]

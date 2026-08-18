@@ -44,12 +44,10 @@ public partial class LatexParser
         }
     };
 
-    private static readonly CommandData _commandHSpaceData = new(
-        0, CommandHSpace, null, false);
-
-    private const double PtPerSpace = 6.5;
-
-    private static void CommandHSpace(Context context)
+    /// <summary>
+    /// Parses and gets a length measurement specifier, returning the size in pt.
+    /// </summary>
+    private static double GetMeasurement(Context context)
     {
         PopWhitespace(context);
         bool hasBrace = false;
@@ -60,6 +58,12 @@ public partial class LatexParser
         }
 
         PopWhitespace(context);
+        bool isNegative = false;
+        if (context.PeekSource() == '-')
+        {
+            isNegative = true;
+            _ = context.PopSource();
+        }
 
         double ptSize = 0;
         if (!Char.IsAsciiDigit(context.PeekSource()))
@@ -80,6 +84,11 @@ public partial class LatexParser
             {
                 ptSize += digitPlace * (context.PopSource() - '0');
             }
+        }
+
+        if (isNegative)
+        {
+            ptSize *= -1;
         }
 
         PopWhitespace(context);
@@ -104,10 +113,6 @@ public partial class LatexParser
             "sp" => 1 / 65536.0,
             _ => throw context.CreateParseError("Not a char measurement unit.")
         };
-        if (ptSize <= 0)
-        {
-            ptSize = 0.1;
-        }
 
         if (hasBrace)
         {
@@ -120,9 +125,33 @@ public partial class LatexParser
             context.PopSource();
         }
 
-        Console.WriteLine(context.GroupDepth);
+        return ptSize;
+    }
+
+    private static readonly CommandData _commandHSpaceData = new(
+        0, CommandHSpace, null, false);
+
+    private const double PtPerSpace = 6.5;
+
+    private static void CommandHSpace(Context context)
+    {
+        double ptSize = GetMeasurement(context);
+        if (ptSize < 0)
+        {
+            Console.Error.WriteLine("Command 'hspace' current cannot handle negative values");
+        }
 
         context.AppendResult(new String(' ', (int)Math.Ceiling(ptSize / PtPerSpace)));
+    }
+
+    private static readonly CommandData _raiseboxCommandData = new(1, RaiseboxCommand);
+    private static void RaiseboxCommand(Context context)
+    {
+        double ptSize = GetMeasurement(context);
+        if (Math.Abs(ptSize) > 4)
+        {
+            Console.Error.WriteLine("Latex Command 'raisebox' currently does nothing, but is invoked with a significant vertical displacement.");
+        }
     }
 
     private static readonly CommandData _commandBfData = new(0,
