@@ -185,7 +185,7 @@ public partial class LatexParser
 
     private static readonly CommandData _textturnwCommandData = NewSymbolicCommandData("ʍ");
 
-    
+    private static readonly CommandData _jCommandData = NewSymbolicCommandData("ȷ");
 
     private static CommandData _commandApostropheData = new(
         1, DiacriticApplierMethod("́"));
@@ -206,8 +206,6 @@ public partial class LatexParser
     private static readonly CommandData _quoteCommandData = new(1, DiacriticApplierMethod("̈"));
 
     private static readonly CommandData _symPeriodCommandData = new(1, DiacriticApplierMethod("̇"));
-
-
 
     /// <summary>
     /// Parsing for adding IPA characters quickly
