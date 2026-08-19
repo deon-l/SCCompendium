@@ -1,4 +1,5 @@
 using System.Text;
+using SCCompendium.Domain.Exceptions;
 using SCCompendium.Infrastructure.Parser.LatexParser;
 
 namespace SCCompendium.Tests.Infrastructure.Parser;
@@ -54,6 +55,91 @@ public class LatexParserTests
     }
 
     [Test]
+    public async Task ParseLatex_CommandTextBf_ExpectedOutput()
+    {
+        const string input = @"\textbf{abc}def";
+        const string expectedOutput = "𝐚𝐛𝐜def";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\textit{aBcz}def", "𝑎𝐵𝑐𝑧def")]
+    [Arguments(@"{\it aBcz}def", "𝑎𝐵𝑐𝑧def")]
+    public async Task ParseLatex_ItAndVariants_ExpectedOutput(string input, string expectedOutput)
+    {
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\textbf{\textit{ABCxyz}}", "𝑨𝑩𝑪𝒙𝒚𝒛")]
+    [Arguments(@"\textit{\textbf{ABCxyz}}", "𝑨𝑩𝑪𝒙𝒚𝒛")]
+    [Arguments(@"{\it{\bf ABCxyz}}", "𝑨𝑩𝑪𝒙𝒚𝒛")]
+    [Arguments(@"{\bf{\it ABCxyz}}", "𝑨𝑩𝑪𝒙𝒚𝒛")]
+    public async Task ParseLatex_CombiningItBf_BoldItalicOutput(string input, string expectedOutput)
+    {
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    public async Task ParseLatex_TtCommand_ExpectedOutput()
+    {
+        const string input = @"{\tt aBc123}AbC";
+        const string expectedOutput = @"𝚊𝙱𝚌𝟷𝟸𝟹AbC";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    public async Task ParseLatex_textttCommand_ExpectedOutput()
+    {
+        const string input = @"\texttt{aBc123}AbC";
+        const string expectedOutput = @"𝚊𝙱𝚌𝟷𝟸𝟹AbC";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    public async Task ParseLatex_scCommand_ExpectedOutput()
+    {
+        const string input = @"{\sc AETZD}QWERT";
+        const string expectedOutput = "ᴀᴇᴛᴢᴅQWERT";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    public async Task ParseLatex_urlCommand_ExpectedOutput()
+    {
+        const string input = @"\url{https://asdf.com}aaa";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).EndsWith("aaa");
+    }
+
+    [Test]
     public async Task ParseLatexSegment_SourceLigatures_GetLigatures()
     {
         const string input = @"``''-- ---";
@@ -67,11 +153,13 @@ public class LatexParserTests
 
     public class DataSource
     {
-        public const string SimpleTipaInput  = ":;\"0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ|";
+        public const string SimpleTipaInput = ":;\"0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ|";
         public const string SimpleTipaOutput = "ːˑˈʉɨʌɜɥɐɒɤɵɘəɑβɕðɛɸɣɦɪʝʁʎɱŋɔʔʕɾʃθʊʋɯχʏʒ|";
+
         public static IEnumerable<(char, char)> TipaSourceToOutput()
         {
-            Debug.Assert(SimpleTipaInput.Length == SimpleTipaOutput.Length, $"{SimpleTipaInput.Length} != {SimpleTipaOutput.Length}");
+            Debug.Assert(SimpleTipaInput.Length == SimpleTipaOutput.Length,
+                $"{SimpleTipaInput.Length} != {SimpleTipaOutput.Length}");
             for (int i = 0; i < SimpleTipaOutput.Length; i++)
             {
                 yield return (SimpleTipaInput[i], SimpleTipaOutput[i]);
@@ -144,6 +232,18 @@ public class LatexParserTests
     }
 
     [Test]
+    public async Task parseLatex_textsuperscriptCommand_ReturnsExpectedOutput()
+    {
+        const string input = @"\textsuperscript{AWhɫ}";
+        const string expectedOutput = "ᴬᵂʰꭞ";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
     public async Task ParseLatex_EmptyMathInput_NoModification()
     {
         LatexParser parser = new();
@@ -172,16 +272,493 @@ public class LatexParserTests
     }
 
     [Test]
-    [Skip("Current exceptions are temporary. New ones will be implemented in future.")]
-    [Arguments("aaaaa")]
-    [Arguments("\\bbbbb")]
-    [Arguments("\\")]
+    [Arguments(@"\bbbbb")]
+    [Arguments(@"\")]
     public async Task ParseLatex_InvalidInput_ThrowsException(string invalidInput)
     {
         LatexParser parser = new();
 
         void ErrorAction() => parser.ParseLatexSegment(invalidInput, new());
 
-        await Assert.That(ErrorAction).ThrowsExactly<ArgumentException>();
+        await Assert.That(ErrorAction).ThrowsExactly<LatexParsingException>().WithMessageContaining(invalidInput);
+    }
+
+    [Test]
+    [Arguments(@"\tab")]
+    [Arguments(@"\ipa{\tab}")]
+    public async Task ParseLatex_TabInput_ProducesSingleTab(string input)
+    {
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo("\t");
+    }
+
+    [Test]
+    [Arguments(@"\hspace{10pt}")]
+    [Arguments(@"\hspace  { 5.5   pt }")]
+    [Arguments(@"\hspace 10pt")]
+    [Arguments(@"\hspace  10  pt")]
+    [Arguments(@"\hspace5.5pt")]
+    [Arguments(@"\hspace10 em")]
+    public async Task ParseLatex_HSpaceInputs_ProducesSomeWhitespace(string input)
+    {
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsNotEmpty();
+        await Assert.That(result).IsNullOrWhiteSpace();
+    }
+
+    [Test]
+    public async Task ParseLatex_DifferentHSpaceSizes_ProducesDifferentWhitespaceCount()
+    {
+        const string smallerInput = @"\hspace{10pt}";
+        const string largerInput = @"\hspace 1000pt";
+        LatexParser parser = new();
+
+        int count1 = parser.ParseLatexSegment(smallerInput).Count(' '.Equals);
+        int count2 = parser.ParseLatexSegment(largerInput).Count(' '.Equals);
+
+        await Assert.That(count1).IsLessThan(count2);
+    }
+
+    [Test]
+    public async Task ParseLatex_DifferentUnits_ProduceDifferentWhitespaceCounts()
+    {
+        const string smallerInput = @"\hspace100mm";
+        const string largerInput = @"\hspace{100cm}";
+        LatexParser parser = new();
+
+        int count1 = parser.ParseLatexSegment(smallerInput).Count(' '.Equals);
+        int count2 = parser.ParseLatexSegment(largerInput).Count(' '.Equals);
+
+        await Assert.That(count1).IsLessThan(count2);
+    }
+
+    [Test]
+    [Arguments(@"\hspace{pt}")]
+    [Arguments(@"\hspace 10")]
+    [Arguments(@"\hspace{{10 pt}}")]
+    [Arguments(@"\hspace{10 pt")]
+    [Arguments(@"\hspace 10 pt}")]
+    [Arguments(@"\hspace{ 10 pt}}")]
+    [Arguments(@"\hspace10 ps")]
+    public async Task ParseLatex_BadHSpaceCommands_ProducesError(string invalidInput)
+    {
+        LatexParser parser = new();
+
+        void ErrorAction() => parser.ParseLatexSegment(invalidInput, new());
+
+        await Assert.That(ErrorAction).ThrowsExactly<LatexParsingException>().WithMessageContaining(invalidInput);
+    }
+
+    [Test]
+    public async Task ParseLatex_RaiseboxCommand_ExpectedResult()
+    {
+        const string input = @"\raisebox{-0.6ex}{atE}";
+        string expectedOutput = @"atE";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+
+    [Test]
+    public async Task ParseLatex_TextPolHookCommand_ExpectedOutput()
+    {
+        const string input = @"\textpolhook{e}";
+        string expectedOutput = @"ę".Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    public async Task ParseLatex_NormalTildeCommand_ExpectedOutput()
+    {
+        const string input = @"\~{a} \~ea";
+        string expectedOutput = @"ã ẽa".Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\ipa{\~aa}", "ãa")]
+    [Arguments(@"\ipa{\~.ee}", "ė̃e")]
+    [Arguments(@"\ipa{\~*ee}", "ḛe")]
+    [Arguments(@"\ipa{\~* de}",
+        "d̰e")] // subscript tilde seems to be put on the next char in some fonts, rather than prior char.
+    [Arguments(@"\ipa{\~.{cc}d}", "ċ̃ċ̃d")]
+    [Arguments(@"\ipa{\~{ff}g}", "f̃f̃g")]
+    public async Task ParseLatex_AllIpaTildeVariations_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\'aa", "áa")]
+    [Arguments(@"\ipa{\'{bb}c}", "b́b́c")]
+    public async Task ParseLatex_ApostropheCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\c aa", "a̧a")]
+    [Arguments(@"\ipa{\c{bb}c}", "b̧b̧c")]
+    public async Task ParseLatex_cCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\i{}i", "ıi")]
+    [Arguments(@"\~{\i}", "ı̃")]
+    // [Arguments(@"\~{\i}", "ĩ")] // These have result as normal i with tilde. They are not equivalent.
+    // [Arguments(@"\~{\i}", "ĩ")]
+    public async Task ParseLatex_iCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\d{S}", "Ṣ")]
+    [Arguments(@"\d{A}", "Ạ")]
+    public async Task ParseLatex_dCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\O{}i", "Øi")]
+    [Arguments(@"\ipa{\O}", "Ø")]
+    public async Task ParseLatex_OCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\^ a", "â")]
+    [Arguments(@"\textsubcircum{a}", "a̭")]
+    [Arguments(@"\textcircumdot z", "ż̂")]
+    public async Task ParseLatex_CaretCommandAndVariations_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\ipa{\^ ab}", "âb")]
+    [Arguments(@"\ipa{\^*{a}b}", "a̭b")]
+    [Arguments(@"\ipa{\^. zz}", "ż̂z")]
+    public async Task ParseLatex_IpaCaretCommandAndVariations_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    public async Task ParseLatex_textellipsisCommand_ExpectedOutput()
+    {
+        const string input = @"a\textellipsis{}b";
+        const string expectedOutput = "a…b";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    public async Task ParseLatex_textbardotlessjCommand_ExpectedOutput()
+    {
+        const string input = @"a\textbardotlessj{}b";
+        const string expectedOutput = "aɟb";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"a\textcrh{}b", "aħb")]
+    [Arguments(@"a\textbeltl{}b", "aɬb")]
+    [Arguments(@"a\textltailn{}b", "aɲb")]
+    [Arguments(@"a\textless{}b", "a<b")]
+    [Arguments(@"a\textgreater{}b", "a>b")]
+    [Arguments(@"a\ae{}D", "aæD")]
+    [Arguments(@"A\o{}z", "Aøz")]
+    [Arguments(@"A\textturnmrleg{}z", "Aɰz")]
+    [Arguments(@"A\textturnw{}z", "Aʍz")]
+    [Arguments(@"A\j{}z", "Aȷz")]
+    [Arguments(@"A\textasciitilde{}z", "A~z")]
+    [Arguments(@"t\textcorner{}p", "t̚p")]
+    [Arguments(@"t\oe{}p", "tœp")]
+    [Arguments(@"t\AA{}p", "tÅp")]
+    [Arguments(@"t\aa{}p", "tåp")]
+    [Arguments(@"t\textlyoghlig{}p", "tɮp")]
+    [Arguments(@"t\textctz{}p", "tʑp")]
+    [Arguments(@"t\l p", "tłp")]
+    [Arguments(@"t\L p", "tŁp")]
+    [Arguments(@"\textsoftsign", "Ь")]
+    [Arguments(@"\texthardsign", "Ъ")]
+    [Arguments(@"\textctn", "ȵ")]
+    [Arguments(@"\textleftarrow", "←")]
+    [Arguments(@"\textdoublebarpipe", "ⱡ")]
+    [Arguments(@"\textquoteleft", "“")]
+    [Arguments(@"\textrhoticity", "˞")]
+    [Arguments(@"\textturna", "ɐ")]
+    [Arguments(@"\textlhtlongi", "ɿ")]
+    [Arguments(@"\textraisevibyi", "ʅ")]
+    [Arguments(@"{{\textbackslash}}", "\\")]
+    [Arguments(@"{{\backslash}}", "\\")]
+    [Arguments(@"{{\\}}", "\n")]
+    public async Task ParseLatex_ReplacementCommands_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"a\textsubarch xe", "ax̯e")]
+    [Arguments(@"a\. xe", "aẋe")]
+    [Arguments(@"a\textsubsquare xe", "ax̻e")]
+    [Arguments(@"\ipa{\t{gb}a}",  "g͡ba")]
+    [Arguments("\\\"{adt}",  "äd̈ẗ")]
+    [Arguments(@"\textipa{\s{m}b}", @"m̩b")]
+    public async Task ParseLatex_SimpleDiacriticApplierCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\ipa{\; B}", "ʙ")]
+    [Arguments(@"\ipa{\;{AZ}Z}", "ᴀᴢʒ")]
+    public async Task ParseLatex_SymSemicolonCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\ipa{\: d\:l\:nt}", "ɖɭɳt")]
+    [Arguments(@"\ipa{\:{tszr}d}", "ʈʂʐɽd")]
+    public async Task ParseLatex_SymColonCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\ipa{\! b\!dd}", "ɓɗd")]
+    [Arguments(@"\ipa{\!{ogGj}d}", "ʘɠʛʄd")]
+    public async Task ParseLatex_SymExclamationPointCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\textltilde", "ɫ")]
+    [Arguments(@"\textroundcap{a}", "ȃ")]
+    [Arguments(@"\textsubbridge{a}", "a̪")]
+    [Arguments(@"\textinvsubbridge{a}", "a̺")]
+    [Arguments(@"\textsubrhalfring{a}", "a̹")]
+    [Arguments(@"\textsublhalfring{a}", "a̜")]
+    [Arguments(@"\textsubw{a}", "a̫")]
+    [Arguments(@"\textseagull{a}", "a̼")]
+    [Arguments(@"\textovercross{a}", "a̽")]
+    [Arguments(@"\textsubplus{a}", "a̟")]
+    [Arguments(@"\textraising{a}", "a̝")]
+    [Arguments(@"\textlowering{a}", "a̞")]
+    [Arguments(@"\textadvancing{a}", "a̘")]
+    [Arguments(@"\textretracting{a}", "a̘")]
+    [Arguments(@"\textsuperimposetilde{a}", "a̴")]
+    public async Task ParseLatex_VertCommandFamily_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\ipa{\|ca}", "ȃ")]
+    [Arguments(@"\ipa{\|[a}", "a̪")]
+    [Arguments(@"\ipa{\|]a}", "a̺")]
+    [Arguments(@"\ipa{\|(a}", "a̹")]
+    [Arguments(@"\ipa{\|)a}", "a̜")]
+    [Arguments(@"\ipa{\|wa}", "a̫")]
+    [Arguments(@"\ipa{\|ma}", "a̼")]
+    [Arguments(@"\ipa{\|xa}", "a̽")]
+    [Arguments(@"\ipa{\|+a}", "a̟")]
+    [Arguments(@"\ipa{\|'a}", "a̝")]
+    [Arguments(@"\ipa{\|`a}", "a̞")]
+    [Arguments(@"\ipa{\|<a}", "a̘")]
+    [Arguments(@"\ipa{\|>a}", "a̘")]
+    [Arguments(@"\ipa{\|~a}", "a̴")]
+    public async Task ParseLatex_TipaVertCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\=e \=*e", "ē *̄e")]
+    [Arguments(@"\textsubbar{ez}", "e̠z̠")]
+    [Arguments(@"\ipa{\=e \=*e}", "ē e̠")]
+    public async Task ParseLatex_SymEqualsCommandFamily_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\v a \v*z", "ǎ *̌z")]
+    [Arguments(@"\textacutewedge{sa}d", "š́ǎ́d")]
+    [Arguments(@"\textsubwedge vb", "v̬b")]
+    [Arguments(@"\textipa{\v a\v*{b}\v' c}", "ǎb̬č́")]
+    public async Task ParseLatex_VCommandFamily_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\r{a}\r*z", "å*̊z")]
+    [Arguments(@"\textsubring{d}", "d̥")]
+    [Arguments(@"\textringmacron g", "ḡ̊")]
+    [Arguments(@"\textipa{\r* a \r= b \r{c}}", "ḁ b̄̊ c̊")]
+    public async Task ParseLatex_rCommandFamily_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    [Arguments(@"\`e", "è")]
+    [Arguments(@"\`{az}", "àz̀")]
+    public async Task ParseLatex_SymGraveAccentCommand_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    public async Task ParseLatex_symCommaCommand_ExpectedOutput()
+    {
+        const string input = @"\,";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsNotNullOrEmpty();
+        await Assert.That(result).IsNullOrWhiteSpace();
+    }
+
+    [Test]
+    [Arguments(@"\u ba\u{z}a", "b̆az̆a")]
+    [Arguments(@"\textbrevemacron{a}a", "ā̆a")]
+    [Arguments(@"\textipa{\u az\u=b}", "ăzb̄̆")]
+    public async Task ParseLatex_uCommandFamily_ExpectedOutput(string input, string expectedOutput)
+    {
+        expectedOutput = expectedOutput.Normalize();
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
     }
 }

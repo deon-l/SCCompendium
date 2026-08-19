@@ -1,4 +1,3 @@
-using System.Text;
 
 namespace SCCompendium.Infrastructure.Parser.LatexParser;
 
@@ -11,11 +10,13 @@ public partial class LatexParser
     /// <param name="Command">Method defining a commands behaviour</param>
     /// <param name="Typeset">Typeset a command defines, applied automatically</param>
     /// <param name="AutoSurroundGroup">
-    /// Whether to surround command in a group (i.e. automatically increase indent at start, and decrease at end.
+    /// If true, automatically increments depth at start, and appends a closing brace after all parameters.
+    /// This can be used to tell when arguments end.
     /// </param>
     private record struct CommandData(
         int Arguments,
         Action<Context> Command,
+        // ReSharper disable once MemberHidesStaticFromOuterClass
         Typeset? Typeset = null,
         bool AutoSurroundGroup = true);
 }

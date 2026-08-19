@@ -1,5 +1,6 @@
 using System.Text;
 using SCCompendium.Application.Parser;
+using SCCompendium.Domain.Exceptions;
 
 namespace SCCompendium.Infrastructure.Parser.LatexParser;
 
@@ -15,6 +16,22 @@ namespace SCCompendium.Infrastructure.Parser.LatexParser;
 /// </remarks>
 public partial class LatexParser : ILatexParser
 {
+    // The core logic of the parser. These methods are likely to be used (if indirectly) by
+    // essentially every macro / command.
+
+    /// <summary>Removes all consecutive whitespace at the start of the source of <paramref name="context"/>.</summary>
+    /// <returns>The number of characters removed.</returns>
+    private static int PopWhitespace(Context context)
+    {
+        int count = 0;
+        while (Char.IsWhiteSpace(context.PeekSource()))
+        {
+            context.PopSource();
+            count++;
+        }
+        return count;
+    }
+
     /// <summary>
     /// Pops the next command name from the source of <paramref name="context"/>, and adds it to the result sb.
     /// It returns a <see cref="StringSlice"/> of that command name in the result sb.
@@ -26,15 +43,14 @@ public partial class LatexParser : ILatexParser
     {
         if (context.LengthSource == 0)
         {
-            throw new ArgumentException("Ran out of source for command name", nameof(context));
+            throw context.CreateParseError("Ran out of source for command name");
         }
 
         int commandNameStart = context.LengthResult;
         char firstC = context.ConsumeSource();
-        // Todo: should be IsLetter.
-        if (Char.IsLetterOrDigit(firstC))
+        if (Char.IsLetter(firstC))
         {
-            while (Char.IsLetterOrDigit(context.PeekSource()))
+            while (Char.IsLetter(context.PeekSource()))
             {
                 context.ConsumeSource();
             }
@@ -66,7 +82,7 @@ public partial class LatexParser : ILatexParser
         {
             if (context.LengthSource == 0)
             {
-                throw new ArgumentException("Expected chars for argument, but end of source", nameof(context));
+                throw context.CreateParseError("Expected chars for argument, but end of source");
             }
 
             char c = context.PopSource();
@@ -83,7 +99,7 @@ public partial class LatexParser : ILatexParser
             {
                 if (groupDepth == 0)
                 {
-                    throw new ArgumentException("unexpected '}' closing an unopened group (argument)");
+                    throw context.CreateParseError("unexpected '}' closing an unopened group (argument)");
                 }
                 groupDepth--;
                 if (groupDepth != 0)
@@ -111,7 +127,7 @@ public partial class LatexParser : ILatexParser
     /// by surrounding them in curly braces and removing leading/in-between whitespace
     /// in <paramref name="context"/>'s source sb.
     /// </summary>
-    private static void PrepArguments(Context context, int argumentCount)
+    private static void PrepArguments(Context context, int argumentCount, bool addEndingBrace = false)
     {
         if (argumentCount <= 0)
         {
@@ -124,6 +140,10 @@ public partial class LatexParser : ILatexParser
             argumentLengths[i] = LoadArgument(context).Length;
         }
 
+        if (addEndingBrace)
+        {
+            context.AppendSource('}');
+        }
         for (int i = argumentCount - 1; i >= 0; i--)
         {
             context.AppendSource('}');
@@ -151,18 +171,27 @@ public partial class LatexParser : ILatexParser
 
         StringSlice commandNameSlice = LoadCommandName(context);
         string commandName = commandNameSlice.ToString();
-        context.RemoveResult(commandNameSlice.Start,commandNameSlice.Length);
+        context.RemoveResult(commandNameSlice.Start, commandNameSlice.Length);
         commandNameSlice = default;
 
         CommandData commandData = context.GetCommand(commandName);
+        ExecuteCommand(context, commandData);
+    }
 
-        PrepArguments(context, commandData.Arguments);
-
+    /// <summary>
+    /// Executes the specified command, preparing the arguments and putting the results back onto the source sb.
+    /// </summary>
+    /// <remarks>Doesn't handle escaped characters.</remarks>
+    private static void ExecuteCommand(Context context, CommandData commandData)
+    {
+        int baseDepth = context.GroupDepth;
         bool incrementDepth = commandData.AutoSurroundGroup;
         if (incrementDepth)
         {
             context.IncrementGroupDepth();
         }
+
+        PrepArguments(context, commandData.Arguments, incrementDepth);
 
         if (commandData.Typeset is not null)
         {
@@ -177,22 +206,28 @@ public partial class LatexParser : ILatexParser
             context.ConsumeResult(addedLength);
         }
 
-        if (incrementDepth)
+        if (context.GroupDepth != baseDepth)
         {
-            context.DecrementGroupDepth();
+            context.CreateParseError($"Command didn't return group depth (now {context.GroupDepth} to initial depth ({baseDepth})");
         }
     }
 
     /// <summary>
     /// Parses the next token (e.g. ligatures, replaced chars, commands, groups).
     /// This provides default parsing implementation.
-    /// Ligatures, Commands, math mode parsed results are added to <paramref name="context"/>'s source sb.
+    /// Ligatures, Commands, math mode, Group parsed results are added to <paramref name="context"/>'s source sb.
     /// Everything else (including escaped chars) are added to the result sb.
     /// </summary>
     private static void ParseCharacter(Context context)
     {
         char c = context.PopSource();
 
+        if (c == ForceNormalToken)
+        {
+            context.AppendResult(ForceNormalToken);
+            context.ConsumeSource();
+            return;
+        }
         if (context.TryGetLigature(c, context.PeekSource(), out string ligature))
         {
             _ = context.PopSource();
@@ -221,7 +256,8 @@ public partial class LatexParser : ILatexParser
         }
         if (c == '{')
         {
-            context.IncrementGroupDepth();
+            context.AppendSource('{');
+            ParseGroup(context);
             return;
         }
         if (c == '}')
@@ -244,6 +280,39 @@ public partial class LatexParser : ILatexParser
     }
 
     /// <summary>
+    /// Parses the following group, then reconsumes the result back to <paramref name="context"/>'s Source.
+    /// </summary>
+    /// <remarks>
+    /// Assumes initial <c>{</c> <i>hasn't</i> been consumed, and group depth incremented.
+    /// Will do nothing otherwise.
+    /// </remarks>
+    private static void ParseGroup(Context context)
+    {
+        if (context.LengthSource == 0)
+        {
+            return;
+        }
+        if (context.PeekSource() != '{')
+        {
+            return;
+        }
+
+        _ = context.PopSource();
+        context.IncrementGroupDepth();
+        int baseDepth = context.GroupDepth;
+        int baseLength = context.LengthResult;
+        while (context.GroupDepth >= baseDepth)
+        {
+            // ParseCharacter decrements depth on '}'.
+            ParseCharacter(context);
+        }
+        if (context.LengthResult - baseLength > 0)
+        {
+            context.ConsumeResult(context.LengthResult - baseLength);
+        }
+    }
+
+    /// <summary>
     /// Parse latex segment in Paragraph Mode.
     /// Entry point to begin parsing latex if <paramref name="isRoot"/> is <see langword="true"/>.
     /// Otherwise, assumes it is parsing inside a group, where leading '{' has already been consumed.
@@ -261,19 +330,26 @@ public partial class LatexParser : ILatexParser
         while (context.GroupDepth >= baseDepth && context.LengthSource > 0)
         {
             char c = context.PeekSource();
-            if (isRoot && c == '\\' && _escapedChars.Contains(context.PeekSource(1)))
+            if (isRoot && (c == '\\' && _escapedChars.Contains(context.PeekSource(1)))
+                            || c == ForceNormalToken)
             {
                 _ = context.PopSource();
                 context.ConsumeSource();
                 continue;
             }
 
+
             ParseCharacter(context);
         }
 
         if (isRoot && context.LengthSource > 0)
         {
-            throw new ArgumentException("erroneous '}'.", nameof(context));
+            throw context.CreateParseError("erroneous '}'.");
+        }
+
+        if (isRoot && baseDepth != context.GroupDepth)
+        {
+            throw context.CreateParseError("Erroneous braces '{' / '}', group depth was " + context.GroupDepth + ".");
         }
     }
 
@@ -292,7 +368,7 @@ public partial class LatexParser : ILatexParser
         {
             if (context.LengthSource == 0)
             {
-                throw new ArgumentException("Unclosed math segment.");
+                throw context.CreateParseError("Unclosed math segment.");
             }
 
             char c = context.PeekSource();
@@ -348,9 +424,21 @@ public partial class LatexParser : ILatexParser
 
         if (context.GroupDepth != baseDepth)
         {
-            throw new ArgumentException("Math segment has improperly closed group");
+            throw context.CreateParseError("Math segment has improperly closed group");
         }
         context.DecrementGroupDepth();
+    }
+
+    /// <summary>
+    /// Method that does no special parsing, simply parsing chars until the group depth drops below the initial depth.
+    /// </summary>
+    private static void DefaultParse(Context context)
+    {
+        int baseDepth = context.GroupDepth;
+        while (context.GroupDepth >= baseDepth)
+        {
+            ParseCharacter(context);
+        }
     }
 
     /// <summary>
@@ -369,6 +457,14 @@ public partial class LatexParser : ILatexParser
     public void ParseLatexSegment(ReadOnlySpan<char> segment, StringBuilder builder)
     {
         Context context = new(segment, builder);
-        ParseParagraphMode(context, isRoot: true);
+        try
+        {
+            ParseParagraphMode(context, isRoot: true);
+        }
+        catch (LatexParsingException e)
+        {
+            throw new LatexParsingException(e, segment.ToString(), e.ErrorMessage,
+                segment.Length - context.LengthSource);
+        }
     }
 }
