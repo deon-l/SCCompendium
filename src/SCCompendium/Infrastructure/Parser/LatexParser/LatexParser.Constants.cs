@@ -36,6 +36,7 @@ public partial class LatexParser
 
     static LatexParser()
     {
+        _normalCommands.Add("clearpage", _clearpageCommandData);
         _normalCommands.Add("ipa", _textipaCommandData);
         _normalCommands.Add("textipa", _textipaCommandData);
         _normalCommands.Add("change", _textrightarrowCommandData);

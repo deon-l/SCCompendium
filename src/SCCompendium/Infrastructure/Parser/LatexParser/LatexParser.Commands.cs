@@ -204,6 +204,9 @@ public partial class LatexParser
             .AddReplacements("ABCDEFGHIJKLMNOPQRSTUVWYZ", "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘꞯʀꜱᴛᴜᴠᴡʏᴢ"),
             false);
 
+    private static readonly CommandData _clearpageCommandData =
+        new(0, c => Console.Error.WriteLine("cmd clearpage currently does nothing."));
+
     private static readonly CommandData _tabCommandData = NewSymbolicCommandData("\e\t");
 
     private static readonly CommandData _textellipsisCommandData = NewSymbolicCommandData("…");
