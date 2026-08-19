@@ -339,4 +339,30 @@ public class PhonologicalRuleParserTests
         await Assert.That(resultRule.Note.Count(c => c == 'z')).IsEqualTo(2);
         await Assert.That(resultRule.Note).Contains(expectedSeparatorChar);
     }
+
+    [Test]
+    public async Task TryParseRule_RuleWithStartingItemCommand_SlicesOutItemCommand()
+    {
+        const string input = @" \item \ipa{a} \change\ \ipa{a}";
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) => sb.Append(str));
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+
+        _ = parser.TryParseRule(input, out _);
+
+        latexParserMock.ParseLatexSegment(s => s.Contains(@"\item"), Any()).WasNeverCalled();
+    }
+
+    [Test]
+    public void TryParseRule_RuleWithEndingEndCommand_SlicesOutEndCommand()
+    {
+        const string input = @"\ipa{a} \change \ipa{b} \end{tabular}";
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) => sb.Append(str));
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+
+        _ = parser.TryParseRule(input, out _);
+
+        latexParserMock.ParseLatexSegment(s => s.Contains(@"\end"), Any()).WasNeverCalled();
+    }
 }
