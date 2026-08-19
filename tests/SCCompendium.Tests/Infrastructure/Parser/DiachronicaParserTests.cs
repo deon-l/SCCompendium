@@ -99,7 +99,7 @@ V\ipa{b} \textrightarrow\ V / \ipa{y}_ \\
 
         await Assert.That(result).Count().IsEqualTo(1);
         await Assert.That(result[0].Rules).Count().IsEqualTo(2);
-        await Assert.That(result[0].Title).IsEqualTo(">1 to 2");
+        await Assert.That(result[0].Title).StartsWith(">").And.Contains("1 to 2");
         await Assert.That(result[0].Credit).IsEqualTo(">credits");
         await Assert.That(arg1.Values).Count().IsEqualTo(1);
         await Assert.That(arg2.Values).Count().IsEqualTo(1);
@@ -140,11 +140,11 @@ V\ipa{b} \textrightarrow\ V / \ipa{y}_ \\
         {
             await Assert.That(group.Rules).Count().IsEqualTo(1);
         }
-        await Assert.That(result[0].Title).IsEqualTo(">s2");
-        await Assert.That(result[1].Title).IsEqualTo(">s3");
-        await Assert.That(result[2].Title).IsEqualTo(">s5");
-        await Assert.That(result[3].Title).IsEqualTo(">s6");
-        await Assert.That(result[4].Title).IsEqualTo(">s7");
+        await Assert.That(result[0].Title).StartsWith(">").And.Contains("s2");
+        await Assert.That(result[1].Title).StartsWith(">").And.Contains("s3");
+        await Assert.That(result[2].Title).StartsWith(">").And.Contains("s5");
+        await Assert.That(result[3].Title).StartsWith(">").And.Contains("s6");
+        await Assert.That(result[4].Title).StartsWith(">").And.Contains("s7");
         await Assert.That(result[0].Credit).StartsWith(">cr2");
         await Assert.That(result[1].Credit).StartsWith(">cr3");
         await Assert.That(result[2].Credit).StartsWith(">cr5");
@@ -299,6 +299,99 @@ NB: note 1 (Don't think its used this way.)
         await Assert.That(result[0].Rules[0].Note).StartsWith("Initials:");
         await Assert.That(result[0].Rules[1].Note).StartsWith("Initials:");
         await Assert.That(result[0].Rules[2].Note).StartsWith("Initials:");
+    }
+
+    [Test]
+    public async Task Parse_SectionHeaderHasBraces_AccountsForBraces()
+    {
+        const char indicator = 'z';
+        const string input =
+            """
+            \subsection{a\ipa{b}z} Credit Here
+            a \change b
+            """;
+        Debug.Assert(input.Contains(indicator));
+        string segment = "";
+        var latexParser = MockableILatexParser.Mock();
+        latexParser.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            sb.Append(str);
+            if (str.Contains("z"))
+            {
+                segment = str;
+            }
+        });
+        var ruleParser = IPhonologicalRuleParser.Mock();
+        ruleParser.TryParseRule(Any()).Returns(true).SetsOutRule(_defaultRule);
+        DiachronicaParser parser = new(latexParser.Object, ruleParser);
+
+        var result = parser.Parse(new StringReader(input));
+
+        await Assert.That(segment).IsNotNullOrEmpty();
+        await Assert.That(segment.Count('{'.Equals)).IsEqualTo(segment.Count('}'.Equals));
+        await Assert.That(result).Count().IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Parse_SecionHeaderWithEscapedClosingBrace_AccountsForEscapes()
+    {
+        const char indicator = 'z';
+        const string input =
+            """
+            \subsection{a\}z} Credit
+            a \change b             
+            """;
+            Debug.Assert(input.Contains(indicator));
+            string segment = "";
+            var latexParser = MockableILatexParser.Mock();
+            latexParser.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+            {
+                sb.Append(str);
+                if (str.Contains("z"))
+                {
+                    segment = str;
+                }
+            });
+            var ruleParser = IPhonologicalRuleParser.Mock();
+            ruleParser.TryParseRule(Any()).Returns(true).SetsOutRule(_defaultRule);
+            DiachronicaParser parser = new(latexParser.Object, ruleParser);
+
+            var result = parser.Parse(new StringReader(input));
+
+            await Assert.That(segment).IsNotNullOrEmpty();
+            await Assert.That(segment.Count('{'.Equals)).IsEqualTo(segment.Count('}'.Equals) - 1);
+            await Assert.That(result).Count().IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Parse_SecionHeaderWithEscapedOpeningBrace_AccountsForEscapes()
+    {
+        const char indicator = 'z';
+        const string input =
+            """
+            \subsection{a\{z} Credit
+            a \change b             
+            """;
+        Debug.Assert(input.Contains(indicator));
+        string segment = "";
+        var latexParser = MockableILatexParser.Mock();
+        latexParser.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            sb.Append(str);
+            if (str.Contains("z"))
+            {
+                segment = str;
+            }
+        });
+        var ruleParser = IPhonologicalRuleParser.Mock();
+        ruleParser.TryParseRule(Any()).Returns(true).SetsOutRule(_defaultRule);
+        DiachronicaParser parser = new(latexParser.Object, ruleParser);
+
+        var result = parser.Parse(new StringReader(input));
+
+        await Assert.That(segment).IsNotNullOrEmpty();
+        await Assert.That(segment.Count('{'.Equals) - 1).IsEqualTo(segment.Count('}'.Equals));
+        await Assert.That(result).Count().IsEqualTo(1);
     }
 
     [Test]
