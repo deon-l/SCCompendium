@@ -196,6 +196,14 @@ public partial class LatexParser
                 "𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣𝟶𝟷𝟸𝟹𝟺𝟻𝟼𝟽𝟾𝟿"),
         false);
 
+    private static readonly CommandData _textttComandData = new(1, DefaultParse, _commandTtData.Typeset);
+
+    private static readonly CommandData _scCommandData = new(0,
+        context => _ = Char.IsWhiteSpace(context.PeekSource()) ? context.PopSource() : '\0',
+        new Typeset()
+            .AddReplacements("ABCDEFGHIJKLMNOPQRSTUVWYZ", "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘꞯʀꜱᴛᴜᴠᴡʏᴢ"),
+            false);
+
     private static readonly CommandData _textellipsisCommandData = NewSymbolicCommandData("…");
 
     private static readonly CommandData _commandLatexData = NewSymbolicCommandData("LaTeX");
@@ -219,6 +227,8 @@ public partial class LatexParser
     private static readonly CommandData _textturnmrleg = NewSymbolicCommandData("ɰ");
 
     private static readonly CommandData _textsubarchCommandData = new(1, DiacriticApplierMethod("̯"));
+
+    private static readonly CommandData _textsubsquareCommandData = new(1, DiacriticApplierMethod("̻"));
 
     private static readonly CommandData _textturnwCommandData = NewSymbolicCommandData("ʍ");
 
@@ -250,9 +260,14 @@ public partial class LatexParser
 
     private static readonly CommandData _textraisevibyiCommandData = NewSymbolicCommandData('ʅ');
 
+    private static readonly CommandData _textbackslashCommandData = NewSymbolicCommandData("\e\\");
+
     private static readonly CommandData _jCommandData = NewSymbolicCommandData("ȷ");
 
     private static readonly CommandData _lCommandData = NewSymbolicCommandData("ł");
+
+    // ReSharper disable once InconsistentNaming
+    private static readonly CommandData _LCommandData = NewSymbolicCommandData("ł".ToUpper());
 
     private static CommandData _commandApostropheData = new(
         1, DiacriticApplierMethod("́"));
@@ -274,6 +289,8 @@ public partial class LatexParser
 
     // ReSharper disable once InconsistentNaming
     private static readonly CommandData _AACommandData = NewSymbolicCommandData("Å");
+
+    private static readonly CommandData _aaCommandData = NewSymbolicCommandData("å");
 
     private static readonly CommandData _quoteCommandData = new(1, DiacriticApplierMethod("̈"));
 

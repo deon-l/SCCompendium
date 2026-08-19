@@ -83,8 +83,44 @@ public class LatexParserTests
     [Arguments(@"\textit{\textbf{ABCxyz}}", "𝑨𝑩𝑪𝒙𝒚𝒛")]
     [Arguments(@"{\it{\bf ABCxyz}}", "𝑨𝑩𝑪𝒙𝒚𝒛")]
     [Arguments(@"{\bf{\it ABCxyz}}", "𝑨𝑩𝑪𝒙𝒚𝒛")]
-    public async Task parseLatex_CombiningItBf_BoldItalicOutput(string input, string expectedOutput)
+    public async Task ParseLatex_CombiningItBf_BoldItalicOutput(string input, string expectedOutput)
     {
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    public async Task ParseLatex_TtCommand_ExpectedOutput()
+    {
+        const string input = @"{\tt aBc123}AbC";
+        const string expectedOutput = @"𝚊𝙱𝚌𝟷𝟸𝟹AbC";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    public async Task ParseLatex_textttCommand_ExpectedOutput()
+    {
+        const string input = @"\texttt{aBc123}AbC";
+        const string expectedOutput = @"𝚊𝙱𝚌𝟷𝟸𝟹AbC";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
+
+    [Test]
+    public async Task ParseLatex_scCommand_ExpectedOutput()
+    {
+        const string input = @"{\sc AETZD}QWERT";
+        const string expectedOutput = "ᴀᴇᴛᴢᴅQWERT";
         LatexParser parser = new();
 
         string result = parser.ParseLatexSegment(input);
@@ -308,17 +344,6 @@ public class LatexParserTests
         await Assert.That(result).IsEqualTo(expectedOutput);
     }
 
-    [Test]
-    public async Task ParseLatex_TtCommand_ExpectedOutput()
-    {
-        const string input = @"{\tt aBc123}AbC";
-        const string expectedOutput = @"𝚊𝙱𝚌𝟷𝟸𝟹AbC";
-        LatexParser parser = new();
-
-        string result = parser.ParseLatexSegment(input);
-
-        await Assert.That(result).IsEqualTo(expectedOutput);
-    }
 
     [Test]
     public async Task ParseLatex_TextPolHookCommand_ExpectedOutput()
@@ -496,9 +521,11 @@ public class LatexParserTests
     [Arguments(@"t\textcorner{}p", "t̚p")]
     [Arguments(@"t\oe{}p", "tœp")]
     [Arguments(@"t\AA{}p", "tÅp")]
+    [Arguments(@"t\aa{}p", "tåp")]
     [Arguments(@"t\textlyoghlig{}p", "tɮp")]
     [Arguments(@"t\textctz{}p", "tʑp")]
     [Arguments(@"t\l p", "tłp")]
+    [Arguments(@"t\L p", "tŁp")]
     [Arguments(@"\textsoftsign", "Ь")]
     [Arguments(@"\texthardsign", "Ъ")]
     [Arguments(@"\textctn", "ȵ")]
@@ -509,6 +536,8 @@ public class LatexParserTests
     [Arguments(@"\textturna", "ɐ")]
     [Arguments(@"\textlhtlongi", "ɿ")]
     [Arguments(@"\textraisevibyi", "ʅ")]
+    [Arguments(@"{{\textbackslash}}", "\\")]
+    [Arguments(@"{{\backslash}}", "\\")]
     public async Task ParseLatex_ReplacementCommands_ExpectedOutput(string input, string expectedOutput)
     {
         expectedOutput = expectedOutput.Normalize();
@@ -522,6 +551,7 @@ public class LatexParserTests
     [Test]
     [Arguments(@"a\textsubarch xe", "ax̯e")]
     [Arguments(@"a\. xe", "aẋe")]
+    [Arguments(@"a\textsubsquare xe", "ax̻e")]
     public async Task ParseLatex_SimpleDiacriticApplierCommand_ExpectedOutput(string input, string expectedOutput)
     {
         expectedOutput = expectedOutput.Normalize();

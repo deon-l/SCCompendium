@@ -53,6 +53,8 @@ public partial class LatexParser
         _normalCommands.Add("it", _itCommandData);
         _normalCommands.Add("textit", _textitCommandData);
         _normalCommands.Add("tt", _commandTtData);
+        _normalCommands.Add("texttt", _textttComandData);
+        _normalCommands.Add("sc", _scCommandData);
         // `\tab` is a cmd defined by the Index Diachronica.
         _normalCommands.Add("tab", NewSymbolicCommandData("\e\t"));
         _normalCommands.Add("hspace", _commandHSpaceData);
@@ -69,11 +71,13 @@ public partial class LatexParser
         _normalCommands.Add("O", _OCommandData);
         _normalCommands.Add("o", _oCommandData);
         _normalCommands.Add("l", _lCommandData);
+        _normalCommands.Add("L", _LCommandData);
         _normalCommands.Add("^", _caretCommandData);
         _normalCommands.Add("\"", _quoteCommandData);
         _normalCommands.Add("ae", _aeCommandData);
         _normalCommands.Add("oe", _oeCommandData);
         _normalCommands.Add("AA", _AACommandData);
+        _normalCommands.Add("aa", _aaCommandData);
         _normalCommands.Add(".", _symPeriodCommandData);
         _normalCommands.Add("`", _symGraveAccentCommandData);
         _normalCommands.Add("-", _symMinusCommandData);
@@ -96,6 +100,7 @@ public partial class LatexParser
         _normalCommands.Add("textsubrhalfring", _textsubrhalfringCommandData);
         _normalCommands.Add("textsublhalfring", _textsublhalfringCommandData);
         _normalCommands.Add("textsubw", _textsubwCommandData);
+        _normalCommands.Add("textsubsquare", _textsubsquareCommandData);
         _normalCommands.Add("textseagull", _textseagullCommandData);
         _normalCommands.Add("textovercross", _textovercrossCommandData);
         _normalCommands.Add("textsubplus", _textsubplusCommandData);
@@ -119,6 +124,8 @@ public partial class LatexParser
         _normalCommands.Add("textturna",_textturnaCommandData);
         _normalCommands.Add("textlhtlongi",_textlhtlongiCommandData);
         _normalCommands.Add("textraisevibyi",_textraisevibyiCommandData);
+        _normalCommands.Add("textbackslash",_textbackslashCommandData);
+        _normalCommands.Add("backslash",_textbackslashCommandData);
         _normalCommands.Add("j", _jCommandData);
         _normalCommands.Add("=", _symEqualsCommandData);
         _normalCommands.Add("textsubbar", _textsubbarCommandData);
