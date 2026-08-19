@@ -2,7 +2,6 @@ namespace SCCompendium.Infrastructure.Parser.LatexParser;
 
 // This file stores all other commands and their associated data.
 // Also holds a few helper methods in that regard.
-// Note that some commands are implemented inline in static ctor in LatexParser.Constants.cs
 public partial class LatexParser
 {
     // Holds the data (including methods) for creating commands.
@@ -136,7 +135,7 @@ public partial class LatexParser
         return ptSize;
     }
 
-    private static readonly CommandData _commandHSpaceData = new(
+    private static readonly CommandData _hspaceCommandData = new(
         0, CommandHSpace, null, false);
 
     private const double PtPerSpace = 6.5;
@@ -152,8 +151,8 @@ public partial class LatexParser
         context.AppendResult(new String(' ', (int)Math.Ceiling(ptSize / PtPerSpace)));
     }
 
-    private static readonly CommandData _raiseboxCommandData = new(1, RaiseboxCommand);
-    private static void RaiseboxCommand(Context context)
+    private static readonly CommandData _raiseboxCommandData = new(1, CommandRaiseBox);
+    private static void CommandRaiseBox(Context context)
     {
         double ptSize = GetMeasurement(context);
         if (Math.Abs(ptSize) > 4)
@@ -162,7 +161,7 @@ public partial class LatexParser
         }
     }
 
-    private static readonly CommandData _commandBfData = new(0,
+    private static readonly CommandData _bfCommandData = new(0,
         context => _ = Char.IsWhiteSpace(context.PeekSource()) ? context.PopSource() : '\0',
         new Typeset()
             .AddLigatures(
@@ -172,8 +171,8 @@ public partial class LatexParser
                 "𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳𝟎𝟏𝟐𝟑𝟒𝟓𝟔𝟕𝟖𝟗𝒉"),
         false);
 
-    private static readonly CommandData _commandTextBf = new(1,
-        con => ParseParagraphMode(con), _commandBfData.Typeset);
+    private static readonly CommandData _textbfCommandData = new(1,
+        con => ParseParagraphMode(con), _bfCommandData.Typeset);
 
     private static readonly CommandData _itCommandData = new(0,
         context => _ = Char.IsWhiteSpace(context.PeekSource()) ? context.PopSource() : '\0',
@@ -189,14 +188,14 @@ public partial class LatexParser
         con => ParseParagraphMode(con), _itCommandData.Typeset);
 
 
-    private static readonly CommandData _commandTtData = new(0,
+    private static readonly CommandData _ttCommandData = new(0,
         context => _ = Char.IsWhiteSpace(context.PeekSource()) ? context.PopSource() : '\0',
         new Typeset()
             .AddReplacements("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
                 "𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣𝟶𝟷𝟸𝟹𝟺𝟻𝟼𝟽𝟾𝟿"),
         false);
 
-    private static readonly CommandData _textttComandData = new(1, DefaultParse, _commandTtData.Typeset);
+    private static readonly CommandData _textttComandData = new(1, DefaultParse, _ttCommandData.Typeset);
 
     private static readonly CommandData _scCommandData = new(0,
         context => _ = Char.IsWhiteSpace(context.PeekSource()) ? context.PopSource() : '\0',
@@ -204,11 +203,13 @@ public partial class LatexParser
             .AddReplacements("ABCDEFGHIJKLMNOPQRSTUVWYZ", "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘꞯʀꜱᴛᴜᴠᴡʏᴢ"),
             false);
 
+    private static readonly CommandData _tabCommandData = NewSymbolicCommandData("\e\t");
+
     private static readonly CommandData _textellipsisCommandData = NewSymbolicCommandData("…");
 
-    private static readonly CommandData _commandLatexData = NewSymbolicCommandData("LaTeX");
+    private static readonly CommandData _capLaTeXCommandData = NewSymbolicCommandData("LaTeX");
 
-    private static readonly CommandData _commandTextPolHook = new(1, DiacriticApplierMethod("̨"));
+    private static readonly CommandData _textpolhookCommandData = new(1, DiacriticApplierMethod("̨"));
 
     private static readonly CommandData _textbardotlessjCommandData = NewSymbolicCommandData("ɟ");
 
@@ -268,20 +269,18 @@ public partial class LatexParser
 
     private static readonly CommandData _lCommandData = NewSymbolicCommandData("ł");
 
-    // ReSharper disable once InconsistentNaming
-    private static readonly CommandData _LCommandData = NewSymbolicCommandData("ł".ToUpper());
+    private static readonly CommandData _capitalLCommandData = NewSymbolicCommandData("ł".ToUpper());
 
-    private static CommandData _commandApostropheData = new(
+    private static CommandData _symApostropheCommandData = new(
         1, DiacriticApplierMethod("́"));
 
-    private static CommandData _commandCData = new(1, DiacriticApplierMethod("̧"));
+    private static CommandData _cCommandData = new(1, DiacriticApplierMethod("̧"));
 
-    private static CommandData _commandIData = NewSymbolicCommandData('ı');
+    private static CommandData _iCommandData = NewSymbolicCommandData('ı');
 
     private static CommandData _dCommandData = new(1, DiacriticApplierMethod("̣"));
 
-    // ReSharper disable once InconsistentNaming
-    private static readonly CommandData _OCommandData = NewSymbolicCommandData("Ø");
+    private static readonly CommandData _capitalOCommandData = NewSymbolicCommandData("Ø");
 
     private static readonly CommandData _oCommandData = NewSymbolicCommandData("ø");
 
@@ -289,12 +288,11 @@ public partial class LatexParser
 
     private static readonly CommandData _oeCommandData = NewSymbolicCommandData("œ");
 
-    // ReSharper disable once InconsistentNaming
-    private static readonly CommandData _AACommandData = NewSymbolicCommandData("Å");
+    private static readonly CommandData _capitalAACommandData = NewSymbolicCommandData("Å");
 
     private static readonly CommandData _aaCommandData = NewSymbolicCommandData("å");
 
-    private static readonly CommandData _quoteCommandData = new(1, DiacriticApplierMethod("̈"));
+    private static readonly CommandData _symQuoteCommandData = new(1, DiacriticApplierMethod("̈"));
 
     private static readonly CommandData _symPeriodCommandData = new(1, DiacriticApplierMethod("̇"));
 
@@ -314,7 +312,7 @@ public partial class LatexParser
         Enumerable.Zip(TipaInput, TipaOutput)
             .Select(pair => (pair.First, pair.Second.ToString()))
             .ToDictionary();
-    private static readonly CommandData _commandTextIpaData = new(1, CommandTextIpa,
+    private static readonly CommandData _textipaCommandData = new(1, CommandTextIpa,
         new Typeset(new(),
             new() { { ('|', '|'), "‖" }, {('\"', '\"'), "ˌ"} },
             _tipaSingleCharConversions));
@@ -349,11 +347,11 @@ public partial class LatexParser
 
     private static readonly CommandData _sTipaCommandData = new(1, DiacriticApplierMethod("̩"));
 
-    private static readonly CommandData _superTipaCommandData = new (1, CommandSuper);
+    private static readonly CommandData _superTipaCommandData = new (1, TipaCommandSuper);
     /// <summary>
     /// Convert its argument into superscript text.
     /// </summary>
-    private static void CommandSuper(Context context)
+    private static void TipaCommandSuper(Context context)
     {
         int baseDepth = context.GroupDepth;
         do
@@ -394,11 +392,11 @@ public partial class LatexParser
         } while (context.GroupDepth >= baseDepth);
     }
 
-    private static readonly CommandData _symAsteriskTipaCommandData = new(1, CommandAsterisk);
+    private static readonly CommandData _symAsteriskTipaCommandData = new(1, TipaCommandSymAsterisk);
     /// <summary>
     /// Transforms a select few chars, and marks the rest to not be replaced by Tipa defined replacements
     /// </summary>
-    private static void CommandAsterisk(Context context)
+    private static void TipaCommandSymAsterisk(Context context)
     {
         int baseDepth = context.GroupDepth;
         do
@@ -447,27 +445,27 @@ public partial class LatexParser
         } while (context.GroupDepth >= baseDepth);
     }
 
-    private static CommandData _symSemicolonIpaCommandData = new(1, DefaultParse, new Typeset()
+    private static CommandData _symSemicolonTipaCommandData = new(1, DefaultParse, new Typeset()
         .AddReplacements("ABCDEFGHIJKLMNOPQRSTUVWYZ", "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘꞯʀꜱᴛᴜᴠᴡʏᴢ"));
 
-    private static CommandData _symColonIpaCommandData = new(1, DefaultParse, new Typeset()
+    private static CommandData _symColonTipaCommandData = new(1, DefaultParse, new Typeset()
         .AddReplacements("tdsznlr", "ʈɖʂʐɳɭɽ"));
 
-    private static CommandData _symExclamationPointIpaCommandData = new(1, DefaultParse, new Typeset()
+    private static CommandData _symExclamationPointTipaCommandData = new(1, DefaultParse, new Typeset()
         .AddReplacements("bdɖjgGo", "ɓɗᶑʄɠʛʘ"));
 
-    private static CommandData _commandTildeData = new(
+    private static CommandData _symTildeCommandData = new(
         1, DiacriticApplierMethod("̃"));
 
-    private static CommandData _ipaCommandTildeData = new(0,
-        IpaCommandTilde, null, false);
+    private static CommandData _symTildeTipaCommandData = new(0,
+        TipaCommandSymTilde, null, false);
 
     private static CommandData _ipaSubcommandTildeDotData = new(1,
         DiacriticApplierMethod("̇̃"));
 
     private static CommandData _ipaSubcommandSubscriptTildeData = new(1, DiacriticApplierMethod("̰"));
 
-    private static void IpaCommandTilde(Context context)
+    private static void TipaCommandSymTilde(Context context)
     {
         char c = context.PopSource();
         switch (c)
@@ -480,17 +478,17 @@ public partial class LatexParser
                 break;
             default:
                 context.AppendSource(c);
-                ExecuteCommand(context, _commandTildeData);
+                ExecuteCommand(context, _symTildeCommandData);
                 break;
         }
     }
 
-    private static CommandData _caretCommandData = new(1, DiacriticApplierMethod("̂"));
+    private static CommandData _symCaretCommandData = new(1, DiacriticApplierMethod("̂"));
     private static CommandData _textsubcircumCommandData = new(1, DiacriticApplierMethod("̭"));
     private static CommandData _textcircumdotCommandData = new(1, DiacriticApplierMethod("̇̂"));
-    private static CommandData _caretIpaCommandData = new(0, CaretIpaCommand, null, false);
+    private static CommandData _symCaretTipaCommandData = new(0, TipaCommandSymCaret, null, false);
 
-    private static void CaretIpaCommand(Context context)
+    private static void TipaCommandSymCaret(Context context)
     {
         char c = context.PopSource();
         switch (c)
@@ -503,15 +501,14 @@ public partial class LatexParser
                 break;
             default:
                 context.AppendSource(c);
-                ExecuteCommand(context, _caretCommandData);
+                ExecuteCommand(context, _symCaretCommandData);
                 break;
         }
     }
 
-    private static readonly CommandData _tIpaCommandData = new(1, TIpaCommand);
+    private static readonly CommandData _tTipaCommandData = new(1, TipaCommandT);
 
-    // ReSharper disable once InconsistentNaming
-    private static void TIpaCommand(Context context)
+    private static void TipaCommandT(Context context)
     {
         int baseDepth = context.GroupDepth;
         bool isFirst = true;
@@ -554,9 +551,9 @@ public partial class LatexParser
     private static CommandData _textadvancingCommandData = new(1, DiacriticApplierMethod("̘"));
     private static CommandData _textretractingCommandData = new(1, DiacriticApplierMethod("̘"));
     private static CommandData _textsuperimposedtildeCommandData = new(1, DiacriticApplierMethod("̴"));
-    private static CommandData _symVertIpaCommandData = new(0, SymVertIpaCommand, null, false);
+    private static CommandData _symVertTipaCommandData = new(0, TipaCommandSymVert, null, false);
 
-    private static void SymVertIpaCommand(Context context)
+    private static void TipaCommandSymVert(Context context)
     {
         char c = context.PopSource();
         switch (c)
@@ -583,9 +580,9 @@ public partial class LatexParser
 
     private static CommandData _symEqualsCommandData = new(1, DiacriticApplierMethod("̄"));
     private static CommandData _textsubbarCommandData = new(1, DiacriticApplierMethod("̠"));
-    private static CommandData _symEqualsIpaCommandData = new(0, SymEqualsIpaCommand, null, false);
+    private static CommandData _symEqualsTipaCommandData = new(0, TypaCommandSymEquals, null, false);
 
-    private static void SymEqualsIpaCommand(Context context)
+    private static void TypaCommandSymEquals(Context context)
     {
         if (context.PeekSource() == '*')
         {
@@ -601,9 +598,9 @@ public partial class LatexParser
     private static readonly CommandData _vCommandData = new(1, DiacriticApplierMethod("̌"));
     private static readonly CommandData _textacutewedgeCommandData = new(1, DiacriticApplierMethod("̌́"));
     private static readonly CommandData _textsubwedgeCommandData = new(1, DiacriticApplierMethod("̬"));
-    private static readonly CommandData _vTipaCommandData = new(0, VTipaCommandData, null, false);
+    private static readonly CommandData _vTipaCommandData = new(0, TipaCommandV, null, false);
 
-    private static void VTipaCommandData(Context context)
+    private static void TipaCommandV(Context context)
     {
         char c = context.PopSource();
         switch (c)
@@ -620,9 +617,9 @@ public partial class LatexParser
     private static readonly CommandData _rCommandData = new(1, DiacriticApplierMethod("̊"));
     private static readonly CommandData _textsubringCommandData = new(1, DiacriticApplierMethod("̥"));
     private static readonly CommandData _textringmacronCommandData = new(1, DiacriticApplierMethod("̄̊"));
-    private static readonly CommandData _rTipaCommandData = new(0, RTipaCommandData,null, false);
+    private static readonly CommandData _rTipaCommandData = new(0, TipaCommandR,null, false);
 
-    private static void RTipaCommandData(Context context)
+    private static void TipaCommandR(Context context)
     {
         char c = context.PopSource();
         switch (c)
@@ -638,8 +635,8 @@ public partial class LatexParser
 
     private static readonly CommandData _uCommandData = new(1, DiacriticApplierMethod("̆"));
     private static readonly CommandData _textbrevemacronCommandData = new(1, DiacriticApplierMethod("̄̆"));
-    private static readonly CommandData _uTipaCommandData = new(0, UTipaCommand, null, false);
-    private static void UTipaCommand(Context context)
+    private static readonly CommandData _uTipaCommandData = new(0, TipaCommandU, null, false);
+    private static void TipaCommandU(Context context)
     {
         if (context.PeekSource() == '=')
         {
