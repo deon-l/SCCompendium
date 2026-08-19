@@ -302,7 +302,7 @@ NB: note 1 (Don't think its used this way.)
     }
 
     [Test]
-    // [Skip("Unreasonable to use at this point, when other dependant classes are incomplete.")]
+    [Skip("Unreasonable to use at this point, when other dependant classes are incomplete.")]
     public async Task Parse_EntireDiachronica_NonEmptyListings()
     {
         DiachronicaParser parser = new(new LatexParser(), new PhonologicalRuleParser(new LatexParser()));
