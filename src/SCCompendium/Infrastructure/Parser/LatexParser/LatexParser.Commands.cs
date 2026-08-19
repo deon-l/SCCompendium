@@ -23,7 +23,7 @@ public partial class LatexParser
         }, null, false);
 
     /// <summary>Command implementation that does nothing.</summary>
-    private static readonly Action<Context> _nullCommand = context => { };
+    private static readonly Action<Context> _nullCommand = _ => { };
 
     /// <summary>Command data for a command that does nothing.</summary>
     private static readonly CommandData _nullCommandData = new(
@@ -151,8 +151,8 @@ public partial class LatexParser
         context.AppendResult(new String(' ', (int)Math.Ceiling(ptSize / PtPerSpace)));
     }
 
-    private static readonly CommandData _raiseboxCommandData = new(1, CommandRaiseBox);
-    private static void CommandRaiseBox(Context context)
+    private static readonly CommandData _raiseboxCommandData = new(1, CommandRaisebox);
+    private static void CommandRaisebox(Context context)
     {
         double ptSize = GetMeasurement(context);
         if (Math.Abs(ptSize) > 4)
@@ -271,14 +271,14 @@ public partial class LatexParser
 
     private static readonly CommandData _capitalLCommandData = NewSymbolicCommandData("ł".ToUpper());
 
-    private static CommandData _symApostropheCommandData = new(
+    private static readonly CommandData _symApostropheCommandData = new(
         1, DiacriticApplierMethod("́"));
 
-    private static CommandData _cCommandData = new(1, DiacriticApplierMethod("̧"));
+    private static readonly CommandData _cCommandData = new(1, DiacriticApplierMethod("̧"));
 
-    private static CommandData _iCommandData = NewSymbolicCommandData('ı');
+    private static readonly CommandData _iCommandData = NewSymbolicCommandData('ı');
 
-    private static CommandData _dCommandData = new(1, DiacriticApplierMethod("̣"));
+    private static readonly CommandData _dCommandData = new(1, DiacriticApplierMethod("̣"));
 
     private static readonly CommandData _capitalOCommandData = NewSymbolicCommandData("Ø");
 
@@ -309,7 +309,7 @@ public partial class LatexParser
     private const string TipaOutput = "ː\u02D1ˈʉɨʌɜɥɐɒɤɵɘəɑβɕðɛɸɣɦɪʝʁʎɱŋɔʔʕɾʃθʊʋɯχʏʒ|";
 
     private static readonly Dictionary<char, string> _tipaSingleCharConversions =
-        Enumerable.Zip(TipaInput, TipaOutput)
+        TipaInput.Zip(TipaOutput)
             .Select(pair => (pair.First, pair.Second.ToString()))
             .ToDictionary();
     private static readonly CommandData _textipaCommandData = new(1, CommandTextIpa,
@@ -445,25 +445,25 @@ public partial class LatexParser
         } while (context.GroupDepth >= baseDepth);
     }
 
-    private static CommandData _symSemicolonTipaCommandData = new(1, DefaultParse, new Typeset()
+    private static readonly CommandData _symSemicolonTipaCommandData = new(1, DefaultParse, new Typeset()
         .AddReplacements("ABCDEFGHIJKLMNOPQRSTUVWYZ", "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘꞯʀꜱᴛᴜᴠᴡʏᴢ"));
 
-    private static CommandData _symColonTipaCommandData = new(1, DefaultParse, new Typeset()
+    private static readonly CommandData _symColonTipaCommandData = new(1, DefaultParse, new Typeset()
         .AddReplacements("tdsznlr", "ʈɖʂʐɳɭɽ"));
 
-    private static CommandData _symExclamationPointTipaCommandData = new(1, DefaultParse, new Typeset()
+    private static readonly CommandData _symExclamationPointTipaCommandData = new(1, DefaultParse, new Typeset()
         .AddReplacements("bdɖjgGo", "ɓɗᶑʄɠʛʘ"));
 
-    private static CommandData _symTildeCommandData = new(
+    private static readonly CommandData _symTildeCommandData = new(
         1, DiacriticApplierMethod("̃"));
 
-    private static CommandData _symTildeTipaCommandData = new(0,
+    private static readonly CommandData _symTildeTipaCommandData = new(0,
         TipaCommandSymTilde, null, false);
 
-    private static CommandData _ipaSubcommandTildeDotData = new(1,
+    private static readonly CommandData _ipaSubcommandTildeDotData = new(1,
         DiacriticApplierMethod("̇̃"));
 
-    private static CommandData _ipaSubcommandSubscriptTildeData = new(1, DiacriticApplierMethod("̰"));
+    private static readonly CommandData _ipaSubcommandSubscriptTildeData = new(1, DiacriticApplierMethod("̰"));
 
     private static void TipaCommandSymTilde(Context context)
     {
@@ -483,10 +483,10 @@ public partial class LatexParser
         }
     }
 
-    private static CommandData _symCaretCommandData = new(1, DiacriticApplierMethod("̂"));
-    private static CommandData _textsubcircumCommandData = new(1, DiacriticApplierMethod("̭"));
-    private static CommandData _textcircumdotCommandData = new(1, DiacriticApplierMethod("̇̂"));
-    private static CommandData _symCaretTipaCommandData = new(0, TipaCommandSymCaret, null, false);
+    private static readonly CommandData _symCaretCommandData = new(1, DiacriticApplierMethod("̂"));
+    private static readonly CommandData _textsubcircumCommandData = new(1, DiacriticApplierMethod("̭"));
+    private static readonly CommandData _textcircumdotCommandData = new(1, DiacriticApplierMethod("̇̂"));
+    private static readonly CommandData _symCaretTipaCommandData = new(0, TipaCommandSymCaret, null, false);
 
     private static void TipaCommandSymCaret(Context context)
     {
@@ -536,22 +536,22 @@ public partial class LatexParser
         }
     }
 
-    private static CommandData _textltildeCommandData = NewSymbolicCommandData("ɫ");
-    private static CommandData _textroundcapCommandData = new(1, DiacriticApplierMethod("̑"));
-    private static CommandData _textsubbridgeCommandData = new(1, DiacriticApplierMethod("̪"));
-    private static CommandData _textinvsubbridgeCommandData = new(1, DiacriticApplierMethod("̺"));
-    private static CommandData _textsubrhalfringCommandData = new(1, DiacriticApplierMethod("̹"));
-    private static CommandData _textsublhalfringCommandData = new(1, DiacriticApplierMethod("̜"));
-    private static CommandData _textsubwCommandData = new(1, DiacriticApplierMethod("̫"));
-    private static CommandData _textseagullCommandData = new(1, DiacriticApplierMethod("̼"));
-    private static CommandData _textovercrossCommandData = new(1, DiacriticApplierMethod("̽"));
-    private static CommandData _textsubplusCommandData = new(1, DiacriticApplierMethod("̟"));
-    private static CommandData _textraisingCommandData = new(1, DiacriticApplierMethod("̝"));
-    private static CommandData _textloweringCommandData = new(1, DiacriticApplierMethod("̞"));
-    private static CommandData _textadvancingCommandData = new(1, DiacriticApplierMethod("̘"));
-    private static CommandData _textretractingCommandData = new(1, DiacriticApplierMethod("̘"));
-    private static CommandData _textsuperimposedtildeCommandData = new(1, DiacriticApplierMethod("̴"));
-    private static CommandData _symVertTipaCommandData = new(0, TipaCommandSymVert, null, false);
+    private static readonly CommandData _textltildeCommandData = NewSymbolicCommandData("ɫ");
+    private static readonly CommandData _textroundcapCommandData = new(1, DiacriticApplierMethod("̑"));
+    private static readonly CommandData _textsubbridgeCommandData = new(1, DiacriticApplierMethod("̪"));
+    private static readonly CommandData _textinvsubbridgeCommandData = new(1, DiacriticApplierMethod("̺"));
+    private static readonly CommandData _textsubrhalfringCommandData = new(1, DiacriticApplierMethod("̹"));
+    private static readonly CommandData _textsublhalfringCommandData = new(1, DiacriticApplierMethod("̜"));
+    private static readonly CommandData _textsubwCommandData = new(1, DiacriticApplierMethod("̫"));
+    private static readonly CommandData _textseagullCommandData = new(1, DiacriticApplierMethod("̼"));
+    private static readonly CommandData _textovercrossCommandData = new(1, DiacriticApplierMethod("̽"));
+    private static readonly CommandData _textsubplusCommandData = new(1, DiacriticApplierMethod("̟"));
+    private static readonly CommandData _textraisingCommandData = new(1, DiacriticApplierMethod("̝"));
+    private static readonly CommandData _textloweringCommandData = new(1, DiacriticApplierMethod("̞"));
+    private static readonly CommandData _textadvancingCommandData = new(1, DiacriticApplierMethod("̘"));
+    private static readonly CommandData _textretractingCommandData = new(1, DiacriticApplierMethod("̘"));
+    private static readonly CommandData _textsuperimposedtildeCommandData = new(1, DiacriticApplierMethod("̴"));
+    private static readonly CommandData _symVertTipaCommandData = new(0, TipaCommandSymVert, null, false);
 
     private static void TipaCommandSymVert(Context context)
     {
@@ -578,9 +578,9 @@ public partial class LatexParser
         }
     }
 
-    private static CommandData _symEqualsCommandData = new(1, DiacriticApplierMethod("̄"));
-    private static CommandData _textsubbarCommandData = new(1, DiacriticApplierMethod("̠"));
-    private static CommandData _symEqualsTipaCommandData = new(0, TypaCommandSymEquals, null, false);
+    private static readonly CommandData _symEqualsCommandData = new(1, DiacriticApplierMethod("̄"));
+    private static readonly CommandData _textsubbarCommandData = new(1, DiacriticApplierMethod("̠"));
+    private static readonly CommandData _symEqualsTipaCommandData = new(0, TypaCommandSymEquals, null, false);
 
     private static void TypaCommandSymEquals(Context context)
     {
