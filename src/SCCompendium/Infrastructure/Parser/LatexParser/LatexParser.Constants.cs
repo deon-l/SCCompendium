@@ -134,7 +134,6 @@ public partial class LatexParser
         _normalCommands.Add("u", _uCommandData);
         _normalCommands.Add("textbrevemacron", _textbrevemacronCommandData);
         _normalCommands.Add("textsuperscript", _textsuperscriptCommandData);
-        _normalCommands.Add("super", _superAbnormalCommandData);
 
         _tipaCommands = _textipaCommandData.Typeset!.Value.CommandList!;
         _tipaCommands.Add("*", _symAsteriskTipaCommandData);
@@ -151,6 +150,21 @@ public partial class LatexParser
         _tipaCommands.Add("r", _rTipaCommandData);
         _tipaCommands.Add("s", _sTipaCommandData);
         _tipaCommands.Add("u", _uTipaCommandData);
+
+        static void AddAbnormalTipaCommand(string tipaCmdName)
+        {
+            CommandData data = _tipaCommands[tipaCmdName];
+            CommandData actual = new(0, context =>
+            {
+                Console.Error.WriteLine(
+                    $"tipa command ('\\{tipaCmdName}') shouldn't be defined here, but it is for the Index Diachronica, so it is.");
+                ExecuteCommand(context, data);
+            }, null, false);
+            _normalCommands.Add(tipaCmdName, actual);
+        }
+        AddAbnormalTipaCommand("super");
+        AddAbnormalTipaCommand("s");
+        AddAbnormalTipaCommand("t");
 
         _mathCommands.Add("Omega", _OmegaMathCommandData);
         _mathCommands.Add("langle", _langleMathSymbolicCommandData);

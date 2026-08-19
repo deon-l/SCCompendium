@@ -360,15 +360,6 @@ public partial class LatexParser
         .AddReplacements("aɐɑᴂɒbβcɕdðeəɛɜfghɦɥiɨɪjɟʝklɭɫʟmɱnɲɳɴoœɔprɹɻʁsʂʃtθuʉʊvʋʌwɯɰxyγɣzʐʑʒʕ",
             "ᵃᵄᵅᵆᶛᵇᵝᶜᶝᵈᶞᵉᵊᵋᵌᶠᵍʰʱᶣⁱᶤᶦʲᶡᶨᵏˡᶩꭞᶫᵐᶬⁿᶮᶯᶰᵒꟹᵓᵖʳʴʵʶˢᶳᶴᵗᶿᵘᶶᶷᵛᶹᶺʷᵚᶭˣʸᵞˠᶻᶼᶽᶾˤ"));
 
-    private static readonly CommandData _superAbnormalCommandData = _textsuperscriptCommandData with
-    {
-        Command = context =>
-        {
-            if (Char.IsWhiteSpace(context.PeekSource())) { _ = context.PopSource(); }
-            Console.Error.WriteLine( "'super' command shouldn't be defined here, but is anyways as it is defined in the original Index Diachronica");
-        }
-    };
-
     private static readonly CommandData _superTipaCommandData = _textsuperscriptCommandData;
 
     private static readonly CommandData _symAsteriskTipaCommandData = new(1, TipaCommandSymAsterisk);
