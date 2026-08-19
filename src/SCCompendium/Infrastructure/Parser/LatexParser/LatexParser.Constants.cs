@@ -102,7 +102,7 @@ public partial class LatexParser
         _normalCommands.Add("textlowering", _textloweringCommandData);
         _normalCommands.Add("textadvancing", _textadvancingCommandData);
         _normalCommands.Add("textretracting", _textretractingCommandData);
-        _normalCommands.Add("textsuperimposedtilde", _textsuperimposedtildeCommandData);
+        _normalCommands.Add("textsuperimposetilde", _textsuperimposetildeCommandData);
         _normalCommands.Add("textturnw", _textturnwCommandData);
         _normalCommands.Add("textasciitilde", _textasciitildeCommandData);
         _normalCommands.Add("textcorner", _textcornerCommandData);

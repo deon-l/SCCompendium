@@ -643,7 +643,7 @@ public class LatexParserTests
     [Arguments(@"\textlowering{a}", "a̞")]
     [Arguments(@"\textadvancing{a}", "a̘")]
     [Arguments(@"\textretracting{a}", "a̘")]
-    [Arguments(@"\textsuperimposedtilde{a}", "a̴")]
+    [Arguments(@"\textsuperimposetilde{a}", "a̴")]
     public async Task ParseLatex_VertCommandFamily_ExpectedOutput(string input, string expectedOutput)
     {
         expectedOutput = expectedOutput.Normalize();

@@ -529,7 +529,7 @@ public partial class LatexParser
     private static readonly CommandData _textloweringCommandData = new(1, DiacriticApplierMethod("̞"));
     private static readonly CommandData _textadvancingCommandData = new(1, DiacriticApplierMethod("̘"));
     private static readonly CommandData _textretractingCommandData = new(1, DiacriticApplierMethod("̘"));
-    private static readonly CommandData _textsuperimposedtildeCommandData = new(1, DiacriticApplierMethod("̴"));
+    private static readonly CommandData _textsuperimposetildeCommandData = new(1, DiacriticApplierMethod("̴"));
     private static readonly CommandData _symVertTipaCommandData = new(0, TipaCommandSymVert, null, false);
 
     private static void TipaCommandSymVert(Context context)
@@ -550,7 +550,7 @@ public partial class LatexParser
             case '`': ExecuteCommand(context, _textloweringCommandData); break;
             case '<': ExecuteCommand(context, _textadvancingCommandData); break;
             case '>': ExecuteCommand(context, _textretractingCommandData); break;
-            case '~': ExecuteCommand(context, _textsuperimposedtildeCommandData); break;
+            case '~': ExecuteCommand(context, _textsuperimposetildeCommandData); break;
             default:
                 context.AppendSource(c);
                 throw context.CreateParseError("Command '\\|' requires a subcommand");
