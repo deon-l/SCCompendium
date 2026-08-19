@@ -129,6 +129,17 @@ public class LatexParserTests
     }
 
     [Test]
+    public async Task ParseLatex_urlCommand_ExpectedOutput()
+    {
+        const string input = @"\url{https://asdf.com}aaa";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input);
+
+        await Assert.That(result).EndsWith("aaa");
+    }
+
+    [Test]
     public async Task ParseLatexSegment_SourceLigatures_GetLigatures()
     {
         const string input = @"``''-- ---";

@@ -192,7 +192,8 @@ public partial class LatexParser
         context => _ = Char.IsWhiteSpace(context.PeekSource()) ? context.PopSource() : '\0',
         new Typeset()
             .AddReplacements("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
-                "𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣𝟶𝟷𝟸𝟹𝟺𝟻𝟼𝟽𝟾𝟿"),
+                "𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣𝟶𝟷𝟸𝟹𝟺𝟻𝟼𝟽𝟾𝟿")
+            .AddReplacements(@"/\:;,.", "\u2009/\u2009\u2009\\\u2009\u2009:\u2009\u2009;\u2009\u2009,\u2009\u2009.\u2009"),
         false);
 
     private static readonly CommandData _textttComandData = new(1, DefaultParse, _ttCommandData.Typeset);
@@ -366,49 +367,6 @@ public partial class LatexParser
     };
 
     private static readonly CommandData _superTipaCommandData = _textsuperscriptCommandData;
-    /// <summary>
-    /// Convert its argument into superscript text.
-    /// </summary>
-    // private static void TipaCommandSuper(Context context)
-    // {
-    //     int baseDepth = context.GroupDepth;
-    //     do
-    //     {
-    //         int oldLength = context.LengthResult;
-    //         ParseCharacter(context);
-    //         int added = context.LengthResult - oldLength;
-    //         if (added == 0)
-    //         {
-    //             continue;
-    //         }
-    //
-    //         context.ConsumeResult(added);
-    //         for (int i = 0; i < added; i++)
-    //         {
-    //             char c = context.PopSource();
-    //             context.AppendResult(c switch
-    //             {
-    //                 'h' => 'ʰ',
-    //                 'l' => 'ˡ',
-    //                 'm' => 'ᵐ',
-    //                 'n' => 'ⁿ',
-    //                 'j' => 'ʲ',
-    //                 'w' => 'ʷ',
-    //                 'x' => 'ˣ',
-    //                 'y' => 'ʸ',
-    //                 // This command is TIPA exclusive, so the capital conversions are preemptively applied.
-    //                 'H' => 'ʱ',
-    //                 'M' => 'ᶬ',
-    //                 'N' => 'ᵑ',
-    //                 'P' => 'ˀ',
-    //                 'Q' => 'ˤ',
-    //                 'W' => 'ᵚ',
-    //                 _ => throw context.CreateParseError(
-    //                     $"Cannot raise '{c}' (limitation of encoding or not implemented)")
-    //             });
-    //         }
-    //     } while (context.GroupDepth >= baseDepth);
-    // }
 
     private static readonly CommandData _symAsteriskTipaCommandData = new(1, TipaCommandSymAsterisk);
     /// <summary>
