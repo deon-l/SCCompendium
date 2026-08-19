@@ -552,33 +552,12 @@ public class LatexParserTests
     [Arguments(@"a\textsubarch xe", "ax̯e")]
     [Arguments(@"a\. xe", "aẋe")]
     [Arguments(@"a\textsubsquare xe", "ax̻e")]
+    [Arguments(@"\ipa{\t{gb}a}",  "g͡ba")]
+    [Arguments("\\\"{adt}",  "äd̈ẗ")]
+    [Arguments(@"\textipa{\s{m}b}", @"m̩b")]
     public async Task ParseLatex_SimpleDiacriticApplierCommand_ExpectedOutput(string input, string expectedOutput)
     {
         expectedOutput = expectedOutput.Normalize();
-        LatexParser parser = new();
-
-        string result = parser.ParseLatexSegment(input).Normalize();
-
-        await Assert.That(result).IsEqualTo(expectedOutput);
-    }
-
-    [Test]
-    public async Task ParseLatex_tIpaCommand_ExpectedOutput()
-    {
-        const string input = @"\ipa{\t{gb}a}";
-        const string expectedOutput = "g͡ba";
-        LatexParser parser = new();
-
-        string result = parser.ParseLatexSegment(input).Normalize();
-
-        await Assert.That(result).IsEqualTo(expectedOutput);
-    }
-
-    [Test]
-    public async Task ParseLatex_QuoteCommand_ExpectedOutput()
-    {
-        const string input = "\\\"{adt}";
-        string expectedOutput = "äd̈ẗ".Normalize();
         LatexParser parser = new();
 
         string result = parser.ParseLatexSegment(input).Normalize();
@@ -726,18 +705,6 @@ public class LatexParserTests
     public async Task ParseLatex_SymGraveAccentCommand_ExpectedOutput(string input, string expectedOutput)
     {
         expectedOutput = expectedOutput.Normalize();
-        LatexParser parser = new();
-
-        string result = parser.ParseLatexSegment(input).Normalize();
-
-        await Assert.That(result).IsEqualTo(expectedOutput);
-    }
-
-    [Test]
-    public async Task ParseLatex_sTipaCommand_ExpectedOutput()
-    {
-        const string input = @"\textipa{\s{m}b}";
-        string expectedOutput = @"m̩b";
         LatexParser parser = new();
 
         string result = parser.ParseLatexSegment(input).Normalize();
