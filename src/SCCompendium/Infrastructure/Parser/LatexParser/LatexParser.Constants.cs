@@ -19,16 +19,8 @@ public partial class LatexParser
     private static readonly HashSet<char> _escapedChars = new("#$&%{} ");
     private static readonly HashSet<char> _spacingWhitespace = new(" \t\u2009");
 
-    private const string TipaInput  = ":;\"0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ|";
-    private const string TipaOutput = "ː\u02D1ˈʉɨʌɜɥɐɒɤɵɘəɑβɕðɛɸɣɦɪʝʁʎɱŋɔʔʕɾʃθʊʋɯχʏʒ|";
-
-    private static readonly Dictionary<char, string> _tipaSingleCharConversions =
-        Enumerable.Zip(TipaInput, TipaOutput)
-            .Select(pair => (pair.First, pair.Second.ToString()))
-            .ToDictionary();
-
     private static readonly Dictionary<string, CommandData> _normalCommands = new();
-    private static readonly Dictionary<string, CommandData> _tipaCommands = new();
+    private static readonly Dictionary<string, CommandData> _tipaCommands;
     private static readonly Dictionary<string, CommandData> _mathCommands = new();
 
     private static readonly Dictionary<(char, char), string> _paragraphLigatures = new()
@@ -46,8 +38,8 @@ public partial class LatexParser
     {
         _normalCommands.Add("ipa", _commandTextIpaData);
         _normalCommands.Add("textipa", _commandTextIpaData);
-        _normalCommands.Add("change", NewSymbolicCommandData('→'));
-        _normalCommands.Add("textrightarrow", _normalCommands["change"]);
+        _normalCommands.Add("change", _textrightarrowCommandData);
+        _normalCommands.Add("textrightarrow", _textrightarrowCommandData);
         _normalCommands.Add("bf", _commandBfData);
         _normalCommands.Add("textbf", _commandTextBf);
         _normalCommands.Add("it", _itCommandData);
@@ -139,8 +131,9 @@ public partial class LatexParser
         _normalCommands.Add("u", _uCommandData);
         _normalCommands.Add("textbrevemacron", _textbrevemacronCommandData);
 
-        _tipaCommands.Add("*", new(1, CommandAsterisk));
-        _tipaCommands.Add("super", new (1, CommandSuper));
+        _tipaCommands = _commandTextIpaData.Typeset!.Value.CommandList!;
+        _tipaCommands.Add("*", _symAsteriskTipaCommandData);
+        _tipaCommands.Add("super", _superTipaCommandData);
         _tipaCommands.Add("~", _ipaCommandTildeData);
         _tipaCommands.Add("^", _caretIpaCommandData);
         _tipaCommands.Add("t", _tIpaCommandData);
@@ -154,13 +147,8 @@ public partial class LatexParser
         _tipaCommands.Add("s", _sTipaCommandData);
         _tipaCommands.Add("u", _uTipaCommandData);
 
-        _mathCommands.Add("Omega", NewSymbolicCommandData('Ω'));
-        _mathCommands.Add("langle", NewSymbolicCommandData('⟨'));
-        _mathCommands.Add("rangle", NewSymbolicCommandData('⟩'));
+        _mathCommands.Add("Omega", _OmegaMathCommandData);
+        _mathCommands.Add("langle", _langleMathSymbolicCommandData);
+        _mathCommands.Add("rangle", _rangleMathSymbolicCommandData);
     }
-
-    private static readonly CommandData _commandTextIpaData = new(1, CommandTextIpa,
-        new Typeset(_tipaCommands,
-            new() { { ('|', '|'), "‖" }, {('\"', '\"'), "ˌ"} },
-            _tipaSingleCharConversions));
 }

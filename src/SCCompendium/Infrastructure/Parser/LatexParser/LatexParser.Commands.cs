@@ -248,6 +248,8 @@ public partial class LatexParser
 
     private static readonly CommandData _textleftarrowCommandData = NewSymbolicCommandData('←');
 
+    private static readonly CommandData _textrightarrowCommandData = NewSymbolicCommandData('→');
+
     private static readonly CommandData _textdoublebarpipeCommandData = NewSymbolicCommandData('ⱡ');
 
     private static readonly CommandData _textquoteleftCommandData = NewSymbolicCommandData('“');
@@ -303,6 +305,19 @@ public partial class LatexParser
 
     private static readonly CommandData _symCommaCommandData = NewSymbolicCommandData("\u2009"); // thin space
 
+
+
+    private const string TipaInput  = ":;\"0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ|";
+    private const string TipaOutput = "ː\u02D1ˈʉɨʌɜɥɐɒɤɵɘəɑβɕðɛɸɣɦɪʝʁʎɱŋɔʔʕɾʃθʊʋɯχʏʒ|";
+
+    private static readonly Dictionary<char, string> _tipaSingleCharConversions =
+        Enumerable.Zip(TipaInput, TipaOutput)
+            .Select(pair => (pair.First, pair.Second.ToString()))
+            .ToDictionary();
+    private static readonly CommandData _commandTextIpaData = new(1, CommandTextIpa,
+        new Typeset(new(),
+            new() { { ('|', '|'), "‖" }, {('\"', '\"'), "ˌ"} },
+            _tipaSingleCharConversions));
     /// <summary>
     /// Parsing for adding IPA characters quickly
     /// </summary>
@@ -334,6 +349,7 @@ public partial class LatexParser
 
     private static readonly CommandData _sTipaCommandData = new(1, DiacriticApplierMethod("̩"));
 
+    private static readonly CommandData _superTipaCommandData = new (1, CommandSuper);
     /// <summary>
     /// Convert its argument into superscript text.
     /// </summary>
@@ -378,6 +394,7 @@ public partial class LatexParser
         } while (context.GroupDepth >= baseDepth);
     }
 
+    private static readonly CommandData _symAsteriskTipaCommandData = new(1, CommandAsterisk);
     /// <summary>
     /// Transforms a select few chars, and marks the rest to not be replaced by Tipa defined replacements
     /// </summary>
@@ -634,4 +651,12 @@ public partial class LatexParser
             ExecuteCommand(context, _uCommandData);
         }
     }
+
+
+    // ReSharper disable once InconsistentNaming
+    private static readonly CommandData _OmegaMathCommandData = NewSymbolicCommandData('Ω');
+
+    private static readonly CommandData _langleMathSymbolicCommandData = NewSymbolicCommandData('⟨');
+
+    private static readonly CommandData _rangleMathSymbolicCommandData = NewSymbolicCommandData('⟩');
 }
