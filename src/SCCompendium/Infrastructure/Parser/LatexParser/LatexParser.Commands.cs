@@ -303,7 +303,7 @@ public partial class LatexParser
 
     private static readonly CommandData _symCommaCommandData = NewSymbolicCommandData("\u2009"); // thin space
 
-
+    private static readonly CommandData _symBackslashCommandData = NewSymbolicCommandData("\e\n");
 
     private const string TipaInput  = ":;\"0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ|";
     private const string TipaOutput = "ː\u02D1ˈʉɨʌɜɥɐɒɤɵɘəɑβɕðɛɸɣɦɪʝʁʎɱŋɔʔʕɾʃθʊʋɯχʏʒ|";

@@ -117,6 +117,7 @@ public partial class LatexParser
         _normalCommands.Add("textlhtlongi", _textlhtlongiCommandData);
         _normalCommands.Add("textraisevibyi", _textraisevibyiCommandData);
         _normalCommands.Add("textbackslash", _textbackslashCommandData);
+        _normalCommands.Add("\\", _symBackslashCommandData);
         _normalCommands.Add("backslash", _textbackslashCommandData);
         _normalCommands.Add("j", _jCommandData);
         _normalCommands.Add("=", _symEqualsCommandData);

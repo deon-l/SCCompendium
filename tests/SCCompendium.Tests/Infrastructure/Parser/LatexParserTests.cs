@@ -538,6 +538,7 @@ public class LatexParserTests
     [Arguments(@"\textraisevibyi", "ʅ")]
     [Arguments(@"{{\textbackslash}}", "\\")]
     [Arguments(@"{{\backslash}}", "\\")]
+    [Arguments(@"{{\\}}", "\n")]
     public async Task ParseLatex_ReplacementCommands_ExpectedOutput(string input, string expectedOutput)
     {
         expectedOutput = expectedOutput.Normalize();
