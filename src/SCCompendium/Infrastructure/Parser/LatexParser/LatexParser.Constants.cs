@@ -131,6 +131,8 @@ public partial class LatexParser
         _normalCommands.Add("textringmacron", _textringmacronCommandData);
         _normalCommands.Add("u", _uCommandData);
         _normalCommands.Add("textbrevemacron", _textbrevemacronCommandData);
+        _normalCommands.Add("textsuperscript", _textsuperscriptCommandData);
+        _normalCommands.Add("super", _superAbnormalCommandData);
 
         _tipaCommands = _textipaCommandData.Typeset!.Value.CommandList!;
         _tipaCommands.Add("*", _symAsteriskTipaCommandData);

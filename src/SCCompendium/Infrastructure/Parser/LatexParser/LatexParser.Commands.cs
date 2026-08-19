@@ -312,10 +312,14 @@ public partial class LatexParser
         TipaInput.Zip(TipaOutput)
             .Select(pair => (pair.First, pair.Second.ToString()))
             .ToDictionary();
+
     private static readonly CommandData _textipaCommandData = new(1, CommandTextIpa,
         new Typeset(new(),
-            new() { { ('|', '|'), "‖" }, {('\"', '\"'), "ˌ"} },
-            _tipaSingleCharConversions));
+                new() { { ('|', '|'), "‖" }, { ('\"', '\"'), "ˌ" } },
+                _tipaSingleCharConversions)
+            .AddReplacements("ᴴᴹᴺᴾꟴᵂ", "ʱᶬᵑˀˤᵚ")
+    );
+
     /// <summary>
     /// Parsing for adding IPA characters quickly
     /// </summary>
@@ -347,50 +351,64 @@ public partial class LatexParser
 
     private static readonly CommandData _sTipaCommandData = new(1, DiacriticApplierMethod("̩"));
 
-    private static readonly CommandData _superTipaCommandData = new (1, TipaCommandSuper);
+    private static readonly CommandData _textsuperscriptCommandData = new(1, DefaultParse, new Typeset()
+        .AddReplacements("ABCDEFGHIJKLMNOPQRTUVW", "ᴬᴮꟲᴰᴱꟳᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾꟴᴿᵀᵁⱽᵂ")
+        .AddReplacements("aɐɑᴂɒbβcɕdðeəɛɜfghɦɥiɨɪjɟʝklɭɫʟmɱnɲɳɴoœɔprɹɻʁsʂʃtθuʉʊvʋʌwɯɰxyγɣzʐʑʒʕ",
+            "ᵃᵄᵅᵆᶛᵇᵝᶜᶝᵈᶞᵉᵊᵋᵌᶠᵍʰʱᶣⁱᶤᶦʲᶡᶨᵏˡᶩꭞᶫᵐᶬⁿᶮᶯᶰᵒꟹᵓᵖʳʴʵʶˢᶳᶴᵗᶿᵘᶶᶷᵛᶹᶺʷᵚᶭˣʸᵞˠᶻᶼᶽᶾˤ"));
+
+    private static readonly CommandData _superAbnormalCommandData = _textsuperscriptCommandData with
+    {
+        Command = context =>
+        {
+            if (Char.IsWhiteSpace(context.PeekSource())) { _ = context.PopSource(); }
+            Console.Error.WriteLine( "'super' command shouldn't be defined here, but is anyways as it is defined in the original Index Diachronica");
+        }
+    };
+
+    private static readonly CommandData _superTipaCommandData = _textsuperscriptCommandData;
     /// <summary>
     /// Convert its argument into superscript text.
     /// </summary>
-    private static void TipaCommandSuper(Context context)
-    {
-        int baseDepth = context.GroupDepth;
-        do
-        {
-            int oldLength = context.LengthResult;
-            ParseCharacter(context);
-            int added = context.LengthResult - oldLength;
-            if (added == 0)
-            {
-                continue;
-            }
-
-            context.ConsumeResult(added);
-            for (int i = 0; i < added; i++)
-            {
-                char c = context.PopSource();
-                context.AppendResult(c switch
-                {
-                    'h' => 'ʰ',
-                    'l' => 'ˡ',
-                    'm' => 'ᵐ',
-                    'n' => 'ⁿ',
-                    'j' => 'ʲ',
-                    'w' => 'ʷ',
-                    'x' => 'ˣ',
-                    'y' => 'ʸ',
-                    // This command is TIPA exclusive, so the capital conversions are preemptively applied.
-                    'H' => 'ʱ',
-                    'M' => 'ᶬ',
-                    'N' => 'ᵑ',
-                    'P' => 'ˀ',
-                    'Q' => 'ˤ',
-                    'W' => 'ᵚ',
-                    _ => throw context.CreateParseError(
-                        $"Cannot raise '{c}' (limitation of encoding or not implemented)")
-                });
-            }
-        } while (context.GroupDepth >= baseDepth);
-    }
+    // private static void TipaCommandSuper(Context context)
+    // {
+    //     int baseDepth = context.GroupDepth;
+    //     do
+    //     {
+    //         int oldLength = context.LengthResult;
+    //         ParseCharacter(context);
+    //         int added = context.LengthResult - oldLength;
+    //         if (added == 0)
+    //         {
+    //             continue;
+    //         }
+    //
+    //         context.ConsumeResult(added);
+    //         for (int i = 0; i < added; i++)
+    //         {
+    //             char c = context.PopSource();
+    //             context.AppendResult(c switch
+    //             {
+    //                 'h' => 'ʰ',
+    //                 'l' => 'ˡ',
+    //                 'm' => 'ᵐ',
+    //                 'n' => 'ⁿ',
+    //                 'j' => 'ʲ',
+    //                 'w' => 'ʷ',
+    //                 'x' => 'ˣ',
+    //                 'y' => 'ʸ',
+    //                 // This command is TIPA exclusive, so the capital conversions are preemptively applied.
+    //                 'H' => 'ʱ',
+    //                 'M' => 'ᶬ',
+    //                 'N' => 'ᵑ',
+    //                 'P' => 'ˀ',
+    //                 'Q' => 'ˤ',
+    //                 'W' => 'ᵚ',
+    //                 _ => throw context.CreateParseError(
+    //                     $"Cannot raise '{c}' (limitation of encoding or not implemented)")
+    //             });
+    //         }
+    //     } while (context.GroupDepth >= baseDepth);
+    // }
 
     private static readonly CommandData _symAsteriskTipaCommandData = new(1, TipaCommandSymAsterisk);
     /// <summary>
