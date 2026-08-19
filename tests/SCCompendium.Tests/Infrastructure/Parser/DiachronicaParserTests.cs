@@ -333,7 +333,7 @@ NB: note 1 (Don't think its used this way.)
     }
 
     [Test]
-    public async Task Parse_SecionHeaderWithEscapedClosingBrace_AccountsForEscapes()
+    public async Task Parse_SectionHeaderWithEscapedClosingBrace_AccountsForEscapes()
     {
         const char indicator = 'z';
         const string input =
@@ -364,7 +364,7 @@ NB: note 1 (Don't think its used this way.)
     }
 
     [Test]
-    public async Task Parse_SecionHeaderWithEscapedOpeningBrace_AccountsForEscapes()
+    public async Task Parse_SectionHeaderWithEscapedOpeningBrace_AccountsForEscapes()
     {
         const char indicator = 'z';
         const string input =
