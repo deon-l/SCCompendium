@@ -33,10 +33,10 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         _latexParser = latexParser;
     }
 
-    public bool TryParseRule(string line,
-        out PhonologicalRule rule)
+    public bool TryParseRule(string line, out PhonologicalRule rule)
     {
-        Match result = _ruleDecomposer.Match(line);
+        (int start, int length) = ExtractExtraneousCommands(line);
+        Match result = _ruleDecomposer.Match(line, start, length);
         if (!result.Success)
         {
             rule = default;
@@ -74,7 +74,7 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
             ParseRuleSegment(StripNote(exception.ValueSpan, FieldType.Context, noteSb), contextChars);
         }
 
-        string ruleString = _latexParser.ParseLatexSegment(line);
+        string ruleString = _latexParser.ParseLatexSegment(line.AsSpan().Slice(start, length));
         string notes = noteSb.ToString();
         rule = new PhonologicalRule(ruleString, inputChars.ToArray(), outputChars.ToArray(), contextChars.ToArray(),
             notes);
@@ -84,6 +84,88 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         {
             string addedSegment = _latexParser.ParseLatexSegment(segment);
             ExtractCharacters(addedSegment, foundCharacters);
+        }
+    }
+
+    private (int start, int length) ExtractExtraneousCommands(string line)
+    {
+        int startI = 0;
+        int endI = line.Length;
+        while (true)
+        {
+            if (endI == startI)
+            {
+                return (0, 0);
+            }
+            var segment = line.AsSpan()[startI..endI];
+            startI += segment.Length - segment.TrimStart().Length;
+            endI -= segment.Length - segment.TrimEnd().Length;
+
+            if (startI >= endI)
+            {
+                return (0, 0);
+            }
+            Console.WriteLine($"{startI}:{endI}");
+            segment = line.AsSpan()[startI..endI];
+
+            if (segment.EndsWith(@"\\"))
+            {
+                endI -= 2;
+                continue;
+            }
+
+            if (StartsWithWord(segment, @"\item"))
+            {
+                startI += @"\item".Length;
+                continue;
+            }
+
+            if (StartsWithWord(segment, @"\end"))
+            {
+                startI += @"\end".Length;
+                while (startI < endI && Char.IsWhiteSpace(line[startI]))
+                {
+                    startI++;
+                }
+
+                int depth = 0;
+                do
+                {
+                    if (startI == endI)
+                    {
+                        break;
+                    }
+                    char c = line[startI];
+                    switch (c)
+                    {
+                        case '{':
+                            depth++; break;
+                        case '}':
+                            depth--; break;
+                        case '\\':
+                            startI++; break;
+                    }
+                    startI++;
+                } while (depth > 0);
+                continue;
+            }
+
+            int index = segment.LastIndexOf(@"\end");
+            if (index != -1 && StartsWithWord(segment[index..], @"\end"))
+            {
+                endI -= segment.Length - index;
+                continue;
+            }
+
+            break;
+        }
+
+        return (startI, endI - startI);
+
+        static bool StartsWithWord(ReadOnlySpan<char> segment, String word)
+        {
+            return segment.StartsWith(word)
+                && (segment.Length <= word.Length || !Char.IsLetter(segment[word.Length]));
         }
     }
 
