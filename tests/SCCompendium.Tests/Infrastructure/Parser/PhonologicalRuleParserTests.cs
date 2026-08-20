@@ -340,6 +340,46 @@ public class PhonologicalRuleParserTests
         await Assert.That(resultRule.Note).Contains(expectedSeparatorChar);
     }
 
+    private bool IsProperlyClosed(string segment)
+    {
+        int depth = 0;
+        for (var i = 0; i < segment.Length; i++)
+        {
+            var c = segment[i];
+            switch (c)
+            {
+                case '{':
+                    depth++; break;
+                case '}':
+                    depth--; break;
+                case '\\':
+                    i++; break;
+            }
+
+            if (depth < 0)
+            {
+                return false;
+            }
+        }
+
+        return depth == 0;
+    }
+
+    [Test]
+    [Arguments(@"\ipa{a} \textrightarrow\ \ipa{a} \textit{/ in some unstressed syllable}")]
+    [Arguments(@"\ipa{a} \change \ipa{a} / \ipa{a}_ \textbf{(zebra)}")]
+    [Arguments(@"\ipa{a} \change \ipa{a} / \ipa{a}_ \textbf{``quote note''}")]
+    public async Task TryParseRule_RuleHasWeirdlyClosedNotes_ProperlyCloses(string input)
+    {
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) => sb.Append("a"));
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+
+        _ = parser.TryParseRule(input, out PhonologicalRule resultRule);
+
+        latexParserMock.ParseLatexSegment(str => !IsProperlyClosed(str), Any()).WasNeverCalled();
+    }
+
     [Test]
     public async Task TryParseRule_RuleWithStartingItemCommand_SlicesOutItemCommand()
     {
