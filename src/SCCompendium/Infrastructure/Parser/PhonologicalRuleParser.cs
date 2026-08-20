@@ -345,7 +345,7 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
             for (int i = 0; i < segment.Length; i++)
             {
                 char c = segment[i];
-                if (Char.IsUpper(c))
+                if (Char.IsUpper(c) || Char.IsWhiteSpace(c))
                 {
                     continue;
                 }
@@ -384,8 +384,7 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         if ((quoteStart < parenthesisStart || parenthesisEnd < quoteStart)
             && quoteStart > 0 && segment.Length - quoteStart > significantNoteLength)
         {
-            AddNote(segment[quoteStart..], noteSb);
-            segment = segment[..quoteStart];
+            segment = StripFromEndConsiderate(segment, noteSb, quoteStart);
             return StripNote(segment, fieldType, noteSb);
         }
 
@@ -401,11 +400,58 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
             }
             else if (parenthesisEnd > segment.Length - edgeBuffer)
             {
-                AddNote(segment[parenthesisStart..], noteSb);
-                segment = segment[..parenthesisStart];
+                segment = StripFromEndConsiderate(segment, noteSb, parenthesisStart);
             }
         }
 
         return segment;
+    }
+
+    /// <summary>
+    /// Attempts to strip a portion of the text in <paramref name="segment"/>, from <paramref name="targetIndex"/>
+    /// (inclusive) to the end, taking more in order to maintain proper group closure and ensure both are valid latex
+    /// segments
+    /// </summary>
+    private ReadOnlySpan<char> StripFromEndConsiderate(ReadOnlySpan<char> segment, StringBuilder noteSb, int targetIndex)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(targetIndex);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(targetIndex,segment.Length);
+
+        int depth = 0;
+        int sliceI;
+        for (sliceI = segment.Length - 1; sliceI >= 0 && (sliceI >= targetIndex || depth > 0); sliceI--)
+        {
+            Console.WriteLine($"sliceI: {sliceI} ({segment[sliceI]})");
+            if (sliceI == 0 || segment[sliceI - 1] != '\\')
+            {
+                char c = segment[sliceI];
+                if (c == '{') depth--;
+                if (c == '}') depth++;
+            }
+        }
+
+        while (sliceI >= 0 && char.IsWhiteSpace(segment[sliceI]))
+        {
+            sliceI--;
+        }
+
+        sliceI++;
+        int commandStartI = sliceI - 1;
+        while (commandStartI >= 0 && Char.IsLetter(segment[commandStartI]))
+        {
+            commandStartI--;
+        }
+
+        if (commandStartI >= 0 && segment[commandStartI] == '\\')
+        {
+            var commandName = segment[(commandStartI + 1)..sliceI];
+            if (commandName is "textit" or "textbf" or "texttt" or "textsc")
+            {
+                sliceI = commandStartI;
+            }
+        }
+        Console.WriteLine($"{segment} - {sliceI} = {segment[sliceI..]}");
+        AddNote(segment[sliceI..], noteSb);
+        return segment[..sliceI];
     }
 }
