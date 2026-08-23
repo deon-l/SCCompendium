@@ -82,7 +82,7 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
                 }
                 else if (str[i..].StartsWith("``"))
                 {
-                    amount = MultiIndexOfConsiderate(str[i..], "''", "\"").Item1;
+                    amount = MultiIndexOfConsiderate(str[(i + 2)..], "''", "\"").Item1;
                     if (amount == -1)
                     {
                         break;
