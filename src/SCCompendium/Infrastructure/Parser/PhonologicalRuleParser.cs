@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Text;
-using System.Text.RegularExpressions;
 using SCCompendium.Application.Parser;
 using SCCompendium.Domain.ValueObjects.Parsed;
 
@@ -162,26 +161,21 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         int outputStartI = currentI;
         int outputEndI = inputEndI;
 
-        while (true)
+        do
         {
             if (currentMatch == "")
             {
                 break;
             }
+
             if (currentMatch == "!")
             {
                 break;
             }
 
-            (nextIndexOffset, nextMatch) = MultiIndexOfConsiderate(line[currentI..], @"\change", @"\textrightarrow", "/", "!");
+            (nextIndexOffset, nextMatch) =
+                MultiIndexOfConsiderate(line[currentI..], @"\change", @"\textrightarrow", "/", "!");
             int nextIndex = (nextIndexOffset == -1 ? line.Length : currentI + nextIndexOffset);
-            if (currentMatch == "/" && nextMatch is "!" or "")
-            {
-                if (MultiIndexOfConsiderate(line[currentI..nextIndex], "_").Item1 >= 0)
-                {
-                    break;
-                }
-            }
 
             inputEndI = outputEndI;
             outputEndI = nextIndex;
@@ -193,20 +187,7 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
 
             currentI += nextIndexOffset + nextMatch.Length;
             currentMatch = nextMatch;
-
-
-            // decomposition = decomposition with { InputSegment = line[outputStartI..outputEndI] };
-            // currentI += nextIndexOffset + nextMatch.Length;
-
-            // (nextIndexOffset, nextMatch) = MultiIndexOfConsiderate(line[currentI..], @"\change", @"\textrightarrow", "/", "!");
-
-
-
-            // So this is just output, repeat.
-            // inputEndI = outputEnd;
-            // outputEndI = nextIndexOffset;
-
-        }
+        } while (currentMatch is not ("" or "!" or "/"));
 
         int contextStartI = currentI;
         int contextEndI = currentI;
