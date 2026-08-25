@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Text;
-using System.Text.RegularExpressions;
 using SCCompendium.Application.Parser;
 using SCCompendium.Domain.ValueObjects.Parsed;
 
@@ -20,12 +19,6 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
     /// <summary>set of vowels</summary>
     private static readonly HashSet<char> _vowels = new("iyɨʉɯuɪʏʊeøɘɵɤoəɛœɜɞʌɔæɐaɶɑɒ");
 
-    /// <summary>Regex used to identify source rules, and decompose them into parts.</summary>
-    /// <remarks>Also detects the starting "---" segment in some rules, and the ending "\\".</remarks>
-    private static readonly Regex _ruleDecomposer =
-        new(@"^(--- )?(.+?)(?:\\change|\\textrightarrow)(.+?)(?:/(.+?))?(?:!(?![^{\n]*?})(.+?))?(?:\\\\)?$",
-            RegexOptions.Compiled);
-
     private readonly ILatexParser _latexParser;
 
     public PhonologicalRuleParser(ILatexParser latexParser)
@@ -33,48 +26,232 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         _latexParser = latexParser;
     }
 
-    public bool TryParseRule(string line,
-        out PhonologicalRule rule)
+    /// <summary>
+    /// Result struct holding the segments a rule is broken into, or indicating that the matching failed.
+    /// </summary>
+    private readonly ref struct RuleDecomposition
     {
-        Match result = _ruleDecomposer.Match(line);
-        if (!result.Success)
+        public bool IsMatchSuccess { get; init;  }
+        public bool InSubgroup { get; init; }
+        public ReadOnlySpan<char> InputSegment { get; init; }
+        public ReadOnlySpan<char> OutputSegment { get; init; }
+        public ReadOnlySpan<char> ContextSegment { get; init; }
+        public ReadOnlySpan<char> ExceptionSegment { get; init; }
+
+        public override String ToString()
+        {
+            return IsMatchSuccess ? $"Matched Rule:\n\tInput = '{InputSegment}' \n\toutput = '{OutputSegment}'\n\tcontext = '{ContextSegment}\n\texception = '{ExceptionSegment}'"
+                                  : "No match";
+        }
+    }
+
+    /// <summary>
+    /// Finds the first index position in <paramref name="str"/> that matches any of the strings in <paramref name="matches"/>
+    /// It takes into account collections formed from <c>()</c>, <c>{}</c>, etc. and doesn't match within those groups.
+    /// </summary>
+    /// <returns>The first index with a found match and the string that matched, or <c>(-1, <see cref="String.Empty"/>)</c></returns>
+    private (int, string match) MultiIndexOfConsiderate(ReadOnlySpan<char> str, params Span<string> matches)
+    {
+        bool wasBackslash = false;
+        for (int i = 0; i < str.Length; i++)
+        {
+            char c = str[i];
+            if (wasBackslash)
+            {
+                wasBackslash = false;
+            }
+            else if (c == '\\')
+            {
+                wasBackslash = true;
+            }
+            else
+            {
+                int amount = 0;
+                if (c == '{')
+                {
+                    amount = Skip(str[i..], '{', '}');
+                }
+                else if (c == '(')
+                {
+                    amount = Skip(str[i..], '(', ')');
+                }
+                else if (c == '[')
+                {
+                    amount = Skip(str[i..], '[', ']');
+                }
+                else if (str[i..].StartsWith("``"))
+                {
+                    amount = MultiIndexOfConsiderate(str[(i + 2)..], "''", "\"").Item1;
+                    if (amount == -1)
+                    {
+                        break;
+                    }
+                }
+
+                if (amount > 0)
+                {
+                    i += amount;
+                    continue;
+                }
+            }
+
+            foreach (string match in matches)
+            {
+                if (str[i..].StartsWith(match))
+                {
+                    return (i, match);
+                }
+            }
+        }
+        return (-1, String.Empty);
+
+        static int Skip(ReadOnlySpan<char> segment, char opening, char closing)
+        {
+            Debug.Assert(segment.Length > 0);
+            Debug.Assert(segment[0] == opening);
+            int skipAmount;
+            int depth = 0;
+            for (skipAmount = 0; skipAmount < segment.Length; skipAmount++)
+            {
+                char c = segment[skipAmount];
+                if (c == opening)
+                {
+                    depth++;
+                }
+                if (c == closing)
+                {
+                    depth--;
+                    if (depth == 0)
+                    {
+                        break;
+                    }
+                }
+                if (c == '\\')
+                {
+                    skipAmount++;
+                }
+            }
+
+            if (depth != 0)
+            {
+                return -1;
+            }
+            return skipAmount;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to decompose a source line into the sections of a rule, indicating
+    /// when it is unable to do so.
+    /// </summary>
+    /// <seealso cref="RuleDecomposition"/>
+    private RuleDecomposition DecomposeRule(ReadOnlySpan<char> line)
+    {
+        var (nextIndexOffset, nextMatch) = MultiIndexOfConsiderate(line, @"\change", @"\textrightarrow");
+        if (nextIndexOffset == -1)
+        {
+            return new RuleDecomposition() { IsMatchSuccess = false };
+        }
+        int inputEndI = nextIndexOffset;
+        RuleDecomposition decomposition = new() { IsMatchSuccess = true,  InputSegment = line[..inputEndI] };
+
+        if (line.TrimStart().StartsWith("---"))
+        {
+            decomposition = decomposition with { InSubgroup = true };
+        }
+
+        int currentI = nextIndexOffset + nextMatch.Length;
+        string currentMatch = nextMatch;
+        int outputStartI = currentI;
+        int outputEndI = inputEndI;
+
+        do
+        {
+            if (currentMatch == "")
+            {
+                break;
+            }
+
+            if (currentMatch == "!")
+            {
+                break;
+            }
+
+            (nextIndexOffset, nextMatch) =
+                MultiIndexOfConsiderate(line[currentI..], @"\change", @"\textrightarrow", "/", "!");
+            int nextIndex = (nextIndexOffset == -1 ? line.Length : currentI + nextIndexOffset);
+
+            inputEndI = outputEndI;
+            outputEndI = nextIndex;
+            decomposition = decomposition with
+            {
+                InputSegment = line[..inputEndI],
+                OutputSegment = line[outputStartI..outputEndI],
+            };
+
+            currentI += nextIndexOffset + nextMatch.Length;
+            currentMatch = nextMatch;
+        } while (currentMatch is not ("" or "!" or "/"));
+
+        int contextStartI = currentI;
+        int contextEndI = currentI;
+        if (currentMatch == "/")
+        {
+            (nextIndexOffset, nextMatch) = MultiIndexOfConsiderate(line[currentI..],  "!");
+            if (nextIndexOffset == -1)
+            {
+                contextEndI = line.Length;
+                currentI = line.Length;
+            }
+            else
+            {
+                contextEndI = currentI + nextIndexOffset;
+                currentI += nextIndexOffset + nextMatch.Length;
+            }
+            currentMatch = nextMatch;
+        }
+        decomposition = decomposition with { ContextSegment = line[contextStartI..contextEndI] };
+
+        if (currentMatch == "!")
+        {
+            decomposition = decomposition with { ExceptionSegment = line[currentI..] };
+        }
+
+        return decomposition;
+    }
+
+    public bool TryParseRule(string line, out PhonologicalRule rule)
+    {
+        (int start, int length) = StripExtraneousCommands(line);
+        RuleDecomposition decomposition = DecomposeRule(line.AsSpan().Slice(start, length));
+        if (!decomposition.IsMatchSuccess)
         {
             rule = default;
             return false;
         }
-
-        GroupCollection groups = result.Groups;
-        Debug.Assert(groups.Count == 6);
-
-        bool inSubgroup = groups[1].Success;
-        Group
-            input = groups[2],
-            output = groups[3],
-            context = groups[4],
-            exception = groups[5];
         List<IpaCharacter>
             inputChars = [],
             outputChars = [],
             contextChars = [];
         StringBuilder noteSb = new StringBuilder();
 
-        Debug.Assert(input.Success && !input.ValueSpan.IsWhiteSpace());
-        ParseRuleSegment(StripNote(input.ValueSpan, FieldType.Input, noteSb), inputChars);
+        Debug.Assert(!decomposition.InputSegment.IsWhiteSpace());
+        ParseRuleSegment(StripNote(decomposition.InputSegment, FieldType.Input, noteSb), inputChars);
 
-        Debug.Assert(output.Success && !output.ValueSpan.IsWhiteSpace());
-        ParseRuleSegment(StripNote(output.ValueSpan, FieldType.Output, noteSb), outputChars);
+        Debug.Assert(!decomposition.OutputSegment.IsWhiteSpace());
+        ParseRuleSegment(StripNote(decomposition.OutputSegment, FieldType.Output, noteSb), outputChars);
 
-        if (context.Success && !context.ValueSpan.IsWhiteSpace())
+        if (!decomposition.ContextSegment.IsWhiteSpace())
         {
-            ParseRuleSegment(StripNote(context.ValueSpan, FieldType.Context, noteSb), contextChars);
+            ParseRuleSegment(StripNote(decomposition.ContextSegment, FieldType.Context, noteSb), contextChars);
         }
 
-        if (exception.Success && !exception.ValueSpan.IsWhiteSpace())
+        if (!decomposition.ExceptionSegment.IsWhiteSpace())
         {
-            ParseRuleSegment(StripNote(exception.ValueSpan, FieldType.Context, noteSb), contextChars);
+            ParseRuleSegment(StripNote(decomposition.ExceptionSegment, FieldType.Context, noteSb), contextChars);
         }
 
-        string ruleString = _latexParser.ParseLatexSegment(line);
+        string ruleString = _latexParser.ParseLatexSegment(line.AsSpan().Slice(start, length));
         string notes = noteSb.ToString();
         rule = new PhonologicalRule(ruleString, inputChars.ToArray(), outputChars.ToArray(), contextChars.ToArray(),
             notes);
@@ -84,6 +261,91 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         {
             string addedSegment = _latexParser.ParseLatexSegment(segment);
             ExtractCharacters(addedSegment, foundCharacters);
+        }
+    }
+
+    /// <summary>
+    /// Returns a range for <paramref name="line"/> that leaves out sections that otherwise make it illegal/unsupported
+    /// ipa text.
+    /// </summary>
+    private (int start, int length) StripExtraneousCommands(string line)
+    {
+        int startI = 0;
+        int endI = line.Length;
+        while (true)
+        {
+            if (endI == startI)
+            {
+                return (0, 0);
+            }
+            var segment = line.AsSpan()[startI..endI];
+            startI += segment.Length - segment.TrimStart().Length;
+            endI -= segment.Length - segment.TrimEnd().Length;
+
+            if (startI >= endI)
+            {
+                return (0, 0);
+            }
+            segment = line.AsSpan()[startI..endI];
+
+            if (segment.EndsWith(@"\\"))
+            {
+                endI -= 2;
+                continue;
+            }
+
+            if (StartsWithWord(segment, @"\item"))
+            {
+                startI += @"\item".Length;
+                continue;
+            }
+
+            if (StartsWithWord(segment, @"\end"))
+            {
+                startI += @"\end".Length;
+                while (startI < endI && Char.IsWhiteSpace(line[startI]))
+                {
+                    startI++;
+                }
+
+                int depth = 0;
+                do
+                {
+                    if (startI == endI)
+                    {
+                        break;
+                    }
+                    char c = line[startI];
+                    switch (c)
+                    {
+                        case '{':
+                            depth++; break;
+                        case '}':
+                            depth--; break;
+                        case '\\':
+                            startI++; break;
+                    }
+                    startI++;
+                } while (depth > 0);
+                continue;
+            }
+
+            int index = segment.LastIndexOf(@"\end");
+            if (index != -1 && StartsWithWord(segment[index..], @"\end"))
+            {
+                endI -= segment.Length - index;
+                continue;
+            }
+
+            break;
+        }
+
+        return (startI, endI - startI);
+
+        static bool StartsWithWord(ReadOnlySpan<char> segment, String word)
+        {
+            return segment.StartsWith(word)
+                && (segment.Length <= word.Length || !Char.IsLetter(segment[word.Length]));
         }
     }
 
@@ -217,7 +479,7 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         {
             return !(
                 Char.IsWhiteSpace(c) ||
-                "[](){},_~".Contains(c)
+                "[](){},_~→/;".Contains(c)
             );
         }
     }
@@ -263,7 +525,7 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
             for (int i = 0; i < segment.Length; i++)
             {
                 char c = segment[i];
-                if (Char.IsUpper(c))
+                if (Char.IsUpper(c) || Char.IsWhiteSpace(c))
                 {
                     continue;
                 }
@@ -302,8 +564,7 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         if ((quoteStart < parenthesisStart || parenthesisEnd < quoteStart)
             && quoteStart > 0 && segment.Length - quoteStart > significantNoteLength)
         {
-            AddNote(segment[quoteStart..], noteSb);
-            segment = segment[..quoteStart];
+            segment = StripFromEndConsiderate(segment, noteSb, quoteStart);
             return StripNote(segment, fieldType, noteSb);
         }
 
@@ -319,11 +580,56 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
             }
             else if (parenthesisEnd > segment.Length - edgeBuffer)
             {
-                AddNote(segment[parenthesisStart..], noteSb);
-                segment = segment[..parenthesisStart];
+                segment = StripFromEndConsiderate(segment, noteSb, parenthesisStart);
             }
         }
 
         return segment;
+    }
+
+    /// <summary>
+    /// Attempts to strip a portion of the text in <paramref name="segment"/>, from <paramref name="targetIndex"/>
+    /// (inclusive) to the end, taking more in order to maintain proper group closure and ensure both are valid latex
+    /// segments
+    /// </summary>
+    private ReadOnlySpan<char> StripFromEndConsiderate(ReadOnlySpan<char> segment, StringBuilder noteSb, int targetIndex)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(targetIndex);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(targetIndex,segment.Length);
+
+        int depth = 0;
+        int sliceI;
+        for (sliceI = segment.Length - 1; sliceI >= 0 && (sliceI >= targetIndex || depth > 0); sliceI--)
+        {
+            if (sliceI == 0 || segment[sliceI - 1] != '\\')
+            {
+                char c = segment[sliceI];
+                if (c == '{') depth--;
+                if (c == '}') depth++;
+            }
+        }
+
+        while (sliceI >= 0 && char.IsWhiteSpace(segment[sliceI]))
+        {
+            sliceI--;
+        }
+
+        sliceI++;
+        int commandStartI = sliceI - 1;
+        while (commandStartI >= 0 && Char.IsLetter(segment[commandStartI]))
+        {
+            commandStartI--;
+        }
+
+        if (commandStartI >= 0 && segment[commandStartI] == '\\')
+        {
+            var commandName = segment[(commandStartI + 1)..sliceI];
+            if (commandName is "textit" or "textbf" or "texttt" or "textsc")
+            {
+                sliceI = commandStartI;
+            }
+        }
+        AddNote(segment[sliceI..], noteSb);
+        return segment[..sliceI];
     }
 }
