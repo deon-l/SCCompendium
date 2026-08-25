@@ -224,7 +224,6 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
     {
         (int start, int length) = StripExtraneousCommands(line);
         RuleDecomposition decomposition = DecomposeRule(line.AsSpan().Slice(start, length));
-        Console.WriteLine(decomposition.ToString());
         if (!decomposition.IsMatchSuccess)
         {
             rule = default;
@@ -287,7 +286,6 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
             {
                 return (0, 0);
             }
-            Console.WriteLine($"{startI}:{endI}");
             segment = line.AsSpan()[startI..endI];
 
             if (segment.EndsWith(@"\\"))
@@ -603,7 +601,6 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         int sliceI;
         for (sliceI = segment.Length - 1; sliceI >= 0 && (sliceI >= targetIndex || depth > 0); sliceI--)
         {
-            Console.WriteLine($"sliceI: {sliceI} ({segment[sliceI]})");
             if (sliceI == 0 || segment[sliceI - 1] != '\\')
             {
                 char c = segment[sliceI];
@@ -632,7 +629,6 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
                 sliceI = commandStartI;
             }
         }
-        Console.WriteLine($"{segment} - {sliceI} = {segment[sliceI..]}");
         AddNote(segment[sliceI..], noteSb);
         return segment[..sliceI];
     }
