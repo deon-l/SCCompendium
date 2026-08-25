@@ -140,7 +140,11 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         }
     }
 
-
+    /// <summary>
+    /// Attempts to decompose a source line into the sections of a rule, indicating
+    /// when it is unable to do so.
+    /// </summary>
+    /// <seealso cref="RuleDecomposition"/>
     private RuleDecomposition DecomposeRule(ReadOnlySpan<char> line)
     {
         var (nextIndexOffset, nextMatch) = MultiIndexOfConsiderate(line, @"\change", @"\textrightarrow");
@@ -218,7 +222,7 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
 
     public bool TryParseRule(string line, out PhonologicalRule rule)
     {
-        (int start, int length) = ExtractExtraneousCommands(line);
+        (int start, int length) = StripExtraneousCommands(line);
         RuleDecomposition decomposition = DecomposeRule(line.AsSpan().Slice(start, length));
         Console.WriteLine(decomposition.ToString());
         if (!decomposition.IsMatchSuccess)
@@ -261,7 +265,11 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         }
     }
 
-    private (int start, int length) ExtractExtraneousCommands(string line)
+    /// <summary>
+    /// Returns a range for <paramref name="line"/> that leaves out sections that otherwise make it illegal/unsupported
+    /// ipa text.
+    /// </summary>
+    private (int start, int length) StripExtraneousCommands(string line)
     {
         int startI = 0;
         int endI = line.Length;
