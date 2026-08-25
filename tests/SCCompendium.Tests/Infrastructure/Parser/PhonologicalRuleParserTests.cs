@@ -405,4 +405,40 @@ public class PhonologicalRuleParserTests
 
         latexParserMock.ParseLatexSegment(s => s.Contains(@"\end"), Any()).WasNeverCalled();
     }
+
+    [Test]
+    public async Task TryParseRule_RuleWithMultipleChanges_IntermediateFormInBothInputOutput()
+    {
+        const string input = @"\ipa{1} \change\ \ipa{2}\ \textrightarrow\ipa{3} / \ipa{4}_ ! \ipa{5}_";
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            if (str.Contains("1")) sb.Append("a");
+            if (str.Contains(@"\change")) sb.Append(" → ");
+            if (str.Contains("2")) sb.Append("b");
+            if (str.Contains(@"\textrightarrow")) sb.Append(" → ");
+            if (str.Contains("3")) sb.Append("c");
+            if (str.Contains("/")) sb.Append(" / ");
+            if (str.Contains("4")) sb.Append("d_");
+            if (str.Contains("!")) sb.Append(" ! ");
+            if (str.Contains("5")) sb.Append("e_");
+        });
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+
+        bool success = parser.TryParseRule(input, out PhonologicalRule result);
+
+        await Assert.That(success).IsTrue();
+        await Assert.That(result.InputCharacters)
+            .Contains(ipaC => ipaC.Diacritics.Length == 0 && ipaC.Character is "a")
+            .And.Contains(ipaC => ipaC.Diacritics.Length == 0 && ipaC.Character is "b")
+            .And.Count().IsEqualTo(2);
+        await Assert.That(result.OutputCharacters)
+            .Contains(ipaC => ipaC.Diacritics.Length == 0 && ipaC.Character is "b")
+            .And.Contains(ipaC => ipaC.Diacritics.Length == 0 && ipaC.Character is "c")
+            .And.Count().IsEqualTo(2);
+        await Assert.That(result.ContextCharacters)
+            .Contains(ipaC => ipaC.Diacritics.Length == 0 && ipaC.Character is "d")
+            .And.Contains(ipaC => ipaC.Diacritics.Length == 0 && ipaC.Character is "e")
+            .And.Count().IsEqualTo(2);
+    }
 }
