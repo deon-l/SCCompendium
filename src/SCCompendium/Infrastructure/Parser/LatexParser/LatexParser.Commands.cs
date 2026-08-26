@@ -205,7 +205,7 @@ public partial class LatexParser
             false);
 
     private static readonly CommandData _clearpageCommandData =
-        new(0, c => Console.Error.WriteLine("cmd clearpage currently does nothing."));
+        new(0, c => Console.Error.WriteLine("cmd clearpage currently does nothing."), null, false);
 
     private static readonly CommandData _tabCommandData = NewSymbolicCommandData("\e\t");
 

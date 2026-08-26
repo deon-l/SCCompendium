@@ -761,4 +761,16 @@ public class LatexParserTests
 
         await Assert.That(result).IsEqualTo(expectedOutput);
     }
+
+    [Test]
+    public async Task ParseLatex_clearpageCommand_DoesNothing()
+    {
+        const string input = @"\clearpage";
+        const string expectedOutput = @"";
+        LatexParser parser = new();
+
+        string result = parser.ParseLatexSegment(input).Normalize();
+
+        await Assert.That(result).IsEqualTo(expectedOutput);
+    }
 }
