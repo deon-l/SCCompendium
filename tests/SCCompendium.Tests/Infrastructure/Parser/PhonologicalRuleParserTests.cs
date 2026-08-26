@@ -441,4 +441,21 @@ public class PhonologicalRuleParserTests
             .And.Contains(ipaC => ipaC.Diacritics.Length == 0 && ipaC.Character is "e")
             .And.Count().IsEqualTo(2);
     }
+
+    [Test]
+    [Arguments(@"\ipa{1} \change \ipa{2}\ ")]
+    [Arguments(@"\ipa{1} \change \ipa{2}\ (some note here)")]
+    public async Task TryParseRule_RuleWithEndingSpaceCommand_ValidIpa(string input)
+    {
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            sb.Append(str);
+        });
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+
+        _ = parser.TryParseRule(input, out _);
+
+        latexParserMock.ParseLatexSegment(str => str.EndsWith("\\"), Any()).WasNeverCalled();
+    }
 }
