@@ -280,7 +280,7 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
             }
             var segment = line.AsSpan()[startI..endI];
             startI += segment.Length - segment.TrimStart().Length;
-            endI -= segment.Length - segment.TrimEnd().Length;
+            // endI -= segment.Length - segment.TrimEnd().Length;
 
             if (startI >= endI)
             {
@@ -607,11 +607,6 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
                 if (c == '{') depth--;
                 if (c == '}') depth++;
             }
-        }
-
-        while (sliceI >= 0 && char.IsWhiteSpace(segment[sliceI]))
-        {
-            sliceI--;
         }
 
         sliceI++;
