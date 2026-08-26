@@ -43,10 +43,32 @@ public class DiachronicaParser : IDiachronicaParser
 
         int titleStartIndex = result.Length;
         Debug.Assert(reader.CurrentLine[titleStartIndex] == '{');
-        int titleEndIndex = reader.CurrentLine.IndexOf('}', titleStartIndex);
-        Debug.Assert(titleEndIndex != -1);
-        string title = reader.CurrentLine[(titleStartIndex + 1)..titleEndIndex];
-        string credit = reader.CurrentLine[(titleEndIndex + 1)..];
+        int titleEndIndex;
+        int depth = 1;
+        for (titleEndIndex = titleStartIndex + 1; depth > 0; titleEndIndex++)
+        {
+            if (titleEndIndex >= reader.CurrentLine.Length)
+            {
+                reader.Advance();
+                GetNextSubsection(reader);
+            }
+            char c = reader.CurrentLine[titleEndIndex];
+            if (c == '{')
+            {
+                depth++;
+            }
+            if (c == '}')
+            {
+                depth--;
+            }
+            if (c == '\\')
+            {
+                // skip next char, in case it is an escaped '{' or '}'
+                titleEndIndex++;
+            }
+        }
+        string title = reader.CurrentLine[titleStartIndex..titleEndIndex];
+        string credit = reader.CurrentLine[titleEndIndex..];
         return (title, credit);
     }
 
