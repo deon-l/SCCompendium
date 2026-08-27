@@ -372,11 +372,17 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
                     characterEndI++;
                 }
             }
-            else // is maybe affricate
+            else if (characterEndI < segment.Length && _ipaDoubleChars.Contains((c, segment[characterEndI])))
             {
-                if (characterEndI < segment.Length && _ipaDoubleChars.Contains((c, segment[characterEndI])))
+                characterEndI++;
+            }
+            else if (c == '[')
+            {
+                characterEndI = segment[i..].IndexOf(']') + i + 1;
+                if (characterEndI == -1)
                 {
-                    characterEndI++;
+                    i++;
+                    continue;
                 }
             }
 
@@ -390,6 +396,10 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
                 char c2 = segment[i];
                 if (c2 == '[')
                 {
+                    if (!segment[(i + 1)..].IsWhiteSpace() && segment[(i + 1)..].TrimStart()[0] is not ('+' or '-'))
+                    {
+                        break;
+                    }
                     int diacriticLength = segment[i..].IndexOf(']');
                     if (diacriticLength == -1)
                     {
@@ -479,7 +489,7 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         {
             return !(
                 Char.IsWhiteSpace(c) ||
-                "[](){},_~→/;".Contains(c)
+                "](){},_~→/;".Contains(c)
             );
         }
     }

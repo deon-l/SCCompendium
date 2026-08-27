@@ -458,4 +458,38 @@ public class PhonologicalRuleParserTests
 
         latexParserMock.ParseLatexSegment(str => str.EndsWith("\\"), Any()).WasNeverCalled();
     }
+
+    [Test]
+    public async Task TryParseRule_NonPropertyBracketChar_ParsesAsStandalone()
+    {
+        const string input = @"\ipa{1}[standalone char] \change\ [2]\diacritic";
+        const char diacritic = 'ʰ';
+        const string bracketCharacter = "[standalone]";
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            if (str.Contains("1"))
+            {
+                sb.Append($"p{bracketCharacter}");
+            }
+            if (str.Contains(@"\change"))
+            {
+                sb.Append("→");
+            }
+            if (str.Contains("2"))
+            {
+                sb.Append($"{bracketCharacter}{diacritic}");
+            }
+        });
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+
+        bool success = parser.TryParseRule(input, out PhonologicalRule result);
+
+        await Assert.That(success).IsTrue();
+        await Assert.That(result.InputCharacters).Count().IsEqualTo(2);
+        await Assert.That(result.InputCharacters).Contains(new IpaCharacter("p", []));
+        await Assert.That(result.InputCharacters).Contains(new IpaCharacter(bracketCharacter, []));
+        await Assert.That(result.OutputCharacters).Count().IsEqualTo(1);
+        await Assert.That(result.OutputCharacters).Contains(new IpaCharacter(bracketCharacter, [diacritic.ToString()]));
+    }
 }
