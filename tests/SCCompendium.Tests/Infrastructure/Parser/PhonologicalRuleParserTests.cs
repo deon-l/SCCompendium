@@ -340,6 +340,34 @@ public class PhonologicalRuleParserTests
         await Assert.That(resultRule.Note).Contains(expectedSeparatorChar);
     }
 
+    [Test]
+    public async Task TryParseRule_RuleWithNoteWithNestedParenthesis_SeparatesNote()
+    {
+        const string input = @"\ipa{1}\change\ \ipa{2} (\ipa{3(c)} padding)";
+        var latexParserMock = MockableILatexParser.Mock();
+        latexParserMock.ParseLatexSegment(Any(), Any()).Callback((str, sb) =>
+        {
+            if (str.Contains("1"))
+                sb.Append("a");
+            if (str.Contains(@"\change"))
+                sb.Append("→");
+            if (str.Contains("2"))
+                sb.Append("b");
+            if (str.Contains(@"(\ipa"))
+                sb.Append('(');
+            if (str.Contains("3"))
+                sb.Append("c(c) padding))");
+        });
+        PhonologicalRuleParser parser = new(latexParserMock.Object);
+
+        var success = parser.TryParseRule(input, out PhonologicalRule resultRule);
+
+        latexParserMock.ParseLatexSegment(str => !IsProperlyClosed(str) || str.TrimEnd().EndsWith(@"\ipa"), Any() ).WasNeverCalled();
+        await Assert.That(success).IsTrue();
+        await Assert.That(resultRule.InputCharacters).Count().IsEqualTo(1);
+        await Assert.That(resultRule.OutputCharacters).Count().IsEqualTo(1);
+    }
+
     private bool IsProperlyClosed(string segment)
     {
         int depth = 0;
