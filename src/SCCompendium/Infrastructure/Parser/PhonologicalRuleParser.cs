@@ -568,8 +568,25 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         }
 
         int quoteStart = segment.LastIndexOf("``");
-        int parenthesisStart = segment.LastIndexOf('(');
         int parenthesisEnd = segment.LastIndexOf(')');
+        int parenthesisStart;
+        int parenthesisDepth = 0;
+        for (parenthesisStart = segment.Length - 1; parenthesisStart >= 0; parenthesisStart--)
+        {
+            char c = segment[parenthesisStart];
+            if (c == ')')
+            {
+                parenthesisDepth++;
+            }
+            if (c == '(')
+            {
+                parenthesisDepth--;
+                if (parenthesisDepth <= 0)
+                {
+                    break;
+                }
+            }
+        }
 
         if ((quoteStart < parenthesisStart || parenthesisEnd < quoteStart)
             && quoteStart > 0 && segment.Length - quoteStart > significantNoteLength)
