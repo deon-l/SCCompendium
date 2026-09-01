@@ -520,6 +520,59 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
         Input, Output, Context
     }
 
+    private bool IsSignificantNonIpaSegment(ReadOnlySpan<char> segment)
+    {
+        int lowercaseCount = 0;
+        for (int i = 0; i < segment.Length; i++)
+        {
+            char c = segment[i];
+            if (Char.IsLower(c))
+            {
+                lowercaseCount++;
+            }
+            if (c == '\\')
+            {
+                i++;
+                if (segment[i..].Length >= 6 && segment[i..].StartsWith("text") && Char.IsLower(segment[i..][4]) &&
+                    Char.IsLower(segment[i..][5]))
+                {
+                    return true;
+                }
+
+                while (i < segment.Length && Char.IsLetter(segment[i]))
+                {
+                    i++;
+                }
+                while (i < segment.Length && Char.IsWhiteSpace(segment[i]))
+                {
+                    i++;
+                }
+                if (i >= segment.Length)
+                {
+                    continue;
+                }
+
+                c = segment[i];
+                if (c != '{')
+                {
+                    continue;
+                }
+
+                int depth = 1;
+                i++;
+                for (; i < segment.Length && depth > 0; i++)
+                {
+                    c = segment[i];
+                    if (c == '{') depth++;
+                    if (c == '}') depth--;
+                    if (c == '\\') i++;
+                }
+            }
+        }
+
+        return lowercaseCount >= 4;
+    }
+
     /// <summary>
     /// Takes in <i>unparsed</i> ipa in <paramref name="segment"/>,
     /// and returns segment stripped of notes (non-phonological data).
@@ -597,7 +650,7 @@ public class PhonologicalRuleParser : IPhonologicalRuleParser
 
         if (parenthesisStart != -1 && parenthesisEnd != -1 && parenthesisEnd > parenthesisStart
             && parenthesisEnd - parenthesisStart > significantNoteLength
-            && !segment[parenthesisStart..parenthesisEnd].Contains('\\')
+            && IsSignificantNonIpaSegment(segment[parenthesisStart..parenthesisEnd])
            )
         {
             if (parenthesisStart < edgeBuffer)
