@@ -16,7 +16,7 @@ public class App(IDbConnectionRepository connectionRepo, IDbWriter dbWriter, IDi
     [Command(Description = "Parses the specified file for latex phonological rules and redirects it elsewhere.")]
     public void Parse(
         [Operand]string fileName,
-        [Option('u', "add-to-db")]string? connectionString,
+        [Option('u', "upload-to-db")]string? connectionString,
         PrintOptions printOptions)
     {
         bool addToDb = connectionString is not null;
