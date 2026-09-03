@@ -1,6 +1,7 @@
 
 using CommandDotNet;
 using CommandDotNet.IoC.MicrosoftDependencyInjection;
+using CommandDotNet.Rendering;
 using Microsoft.Extensions.DependencyInjection;
 using SCCompendium.Application.DbAccess;
 using SCCompendium.Application.Parser;
@@ -28,6 +29,7 @@ collection.AddTransient<IDbConnectionRepository, DbConnectionRepository>();
 collection.AddTransient<IDiachronicaParser, DiachronicaParser>();
 collection.AddTransient<ILatexParser, LatexParser>();
 collection.AddTransient<IPhonologicalRuleParser, PhonologicalRuleParser>();
+collection.AddSingleton<IConsoleIO, SystemConsole>();
 
 runner.UseMicrosoftDependencyInjection(collection.BuildServiceProvider());
 
