@@ -14,6 +14,7 @@ AppRunner<App> runner = new AppRunner<App>();
 runner.Configure(b =>
 {
     b.CustomHelpProvider = new HelpInterceptor(b.AppSettings, b.Console);
+    b.AppSettings.Arguments.BooleanMode = BooleanMode.Implicit;
 });
 ServiceCollection collection = new();
 foreach (var commandClassType in runner.GetCommandClassTypes())
