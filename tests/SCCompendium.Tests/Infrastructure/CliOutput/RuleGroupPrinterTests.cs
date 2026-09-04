@@ -16,7 +16,7 @@ public partial class RuleGroupPrinterTests
     [Arguments(true, true)]
     public async Task PrintRuleGroup_EmptyCollection_PrintsHeader(bool printGroupTitles, bool printRules)
     {
-        TestConsole console = new();
+        TestConsole console = new(false);
         RuleGroupPrinter printer = new(console);
         List<PhonologicalRuleGroup> groups = new();
 
@@ -33,7 +33,7 @@ public partial class RuleGroupPrinterTests
     {
         const bool printGroupTitles = false;
         const bool printRules = true;
-        TestConsole console = new();
+        TestConsole console = new(false);
         RuleGroupPrinter printer = new(console);
         List<PhonologicalRuleGroup> groups =
         [
@@ -60,7 +60,7 @@ public partial class RuleGroupPrinterTests
         const bool printRules = true;
         const string badIndicator = "z";
         Debug.Assert(!SomeName(0).Contains(badIndicator));
-        TestConsole console = new();
+        TestConsole console = new(false);
         RuleGroupPrinter printer = new(console);
         List<PhonologicalRuleGroup> groups = new()
         {
@@ -98,7 +98,7 @@ public partial class RuleGroupPrinterTests
         const bool printRules = false;
         const string badIndicator = "z";
         Debug.Assert(!SomeName(0).Contains(badIndicator));
-        TestConsole console = new();
+        TestConsole console = new(false);
         RuleGroupPrinter printer = new(console);
         List<PhonologicalRuleGroup> groups = new()
         {
@@ -134,7 +134,7 @@ public partial class RuleGroupPrinterTests
     {
         const bool printGroupTitles = true;
         const bool printRules = false;
-        TestConsole console = new();
+        TestConsole console = new(false);
         RuleGroupPrinter printer = new(console);
         List<PhonologicalRuleGroup> groups = new()
         {
@@ -168,7 +168,7 @@ public partial class RuleGroupPrinterTests
     [MethodDataSource<DataSource>(nameof(DataSource.PrintCharactersEmptyCollectionCases))]
     public async Task PrintCharacters_EmptyCollection_PrintsHeader(List<PhonologicalRuleGroup> groups)
     {
-        TestConsole console = new();
+        TestConsole console = new(false);
         RuleGroupPrinter printer = new(console);
 
         printer.PrintCharacters(groups);
@@ -185,7 +185,7 @@ public partial class RuleGroupPrinterTests
     {
         const string badIndicator = "z";
         Debug.Assert(!SomeName(0).Contains(badIndicator));
-        TestConsole console = new();
+        TestConsole console = new(false);
         RuleGroupPrinter printer = new(console);
         List<PhonologicalRuleGroup> groups = new()
         {
@@ -219,7 +219,7 @@ public partial class RuleGroupPrinterTests
     {
         const string badIndicator = "z";
         Debug.Assert(!SomeName(0).Contains(badIndicator));
-        TestConsole console = new();
+        TestConsole console = new(false);
         RuleGroupPrinter printer = new(console);
         List<PhonologicalRuleGroup> groups = new()
         {
@@ -261,7 +261,7 @@ public partial class RuleGroupPrinterTests
     {
         const string badIndicator = "z";
         Debug.Assert(!SomeName(0).Contains(badIndicator));
-        TestConsole console = new();
+        TestConsole console = new(false);
         RuleGroupPrinter printer = new(console);
         List<PhonologicalRuleGroup> groups = new()
         {
@@ -316,7 +316,7 @@ public partial class RuleGroupPrinterTests
     [MethodDataSource<DataSource>(nameof(DataSource.PrintDiacriticsEmptyCollectionCases))]
     public async Task PrintDiacritics_EmptyCollection_PrintsOnlyHeader(List<PhonologicalRuleGroup> groups)
     {
-        TestConsole console = new();
+        TestConsole console = new(false);
         RuleGroupPrinter printer = new(console);
 
         printer.PrintCharacters(groups);
@@ -334,7 +334,7 @@ public partial class RuleGroupPrinterTests
     {
         const string badIndicatorScope = "zz-1";
         const string badIndicatorChar = "zz-2";
-        TestConsole console = new();
+        TestConsole console = new(false);
         RuleGroupPrinter printer = new(console);
         List<PhonologicalRuleGroup> groups =
         [
@@ -381,7 +381,7 @@ public partial class RuleGroupPrinterTests
     {
         const string badIndicator = "zz";
         Debug.Assert(!SomeName(0).Contains(badIndicator));
-        TestConsole console = new();
+        TestConsole console = new(false);
         RuleGroupPrinter printer = new(console);
         List<PhonologicalRuleGroup> groups = new()
         {
@@ -414,7 +414,7 @@ public partial class RuleGroupPrinterTests
     {
         const string badIndicator = "zz";
         Debug.Assert(!SomeName(0).Contains(badIndicator));
-        TestConsole console = new();
+        TestConsole console = new(false);
         RuleGroupPrinter printer = new(console);
         List<PhonologicalRuleGroup> groups = new()
         {
