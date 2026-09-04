@@ -76,8 +76,7 @@ public class RuleGroupPrinter(IConsoleIO console) : IRuleGroupPrinter
             }
         }
 
-        Console.WriteLine($"--- Diacritics ---");
-        Console.WriteLine($"\t{String.Join("\t\n", diacritics)}");
+        Console.WriteLine($"--- Diacritics ---{String.Concat(diacritics.Select(str => $"\n\t{str}"))}");
 
         static void AddDiacritics(HashSet<string> diacritics, IEnumerable<IpaCharacter> characters)
         {
