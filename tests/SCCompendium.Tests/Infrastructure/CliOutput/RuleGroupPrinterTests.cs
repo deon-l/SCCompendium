@@ -145,11 +145,11 @@ public partial class RuleGroupPrinterTests
             ]),
             new PhonologicalRuleGroup(SomeName(6), SomeName(7), [
                 new(SomeName(8), [], [], []),
-            ]),
-            new PhonologicalRuleGroup(SomeName(9), SomeName(10), [
-                new(SomeName(11), [], [], []),
+            ], SomeName(9)),
+            new PhonologicalRuleGroup(SomeName(10), SomeName(11), [
                 new(SomeName(12), [], [], []),
-            ]),
+                new(SomeName(13), [], [], []),
+            ], SomeName(14)),
         };
 
         printer.PrintRuleGroups(groups, printGroupTitles, printRules);
@@ -157,7 +157,7 @@ public partial class RuleGroupPrinterTests
         Console.WriteLine(output);
 
         await Assert.That(output).IsNotNullOrWhiteSpace();
-        foreach (int i in Enumerable.Range(1, 12))
+        foreach (int i in Enumerable.Range(1, 14))
         {
             Console.WriteLine("case: " + i);
             await Assert.That(output).Contains(SomeName(i));
