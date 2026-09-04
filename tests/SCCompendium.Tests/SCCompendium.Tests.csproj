@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CommandDotNet.TestTools" Version="7.1.0" />
     <PackageReference Include="DbMocker" Version="1.26.0" />
     <PackageReference Include="TUnit" Version="1.9.17" />
     <PackageReference Include="TUnit.Mocks" Version="1.48.6" />

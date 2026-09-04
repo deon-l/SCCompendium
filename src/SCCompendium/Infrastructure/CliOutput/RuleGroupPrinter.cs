@@ -22,6 +22,7 @@ public class RuleGroupPrinter(IConsoleIO console) : IRuleGroupPrinter
 
         foreach (var ruleGroup in ruleGroups)
         {
+            Console.WriteLine();
             if (printGroupTitles)
             {
                 Console.WriteLine($"# {ruleGroup.Title}\n{ruleGroup.Credit}");
