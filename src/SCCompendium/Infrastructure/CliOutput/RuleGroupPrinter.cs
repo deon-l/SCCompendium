@@ -22,6 +22,10 @@ public class RuleGroupPrinter(IConsoleIO console) : IRuleGroupPrinter
 
         foreach (var ruleGroup in ruleGroups)
         {
+            if (!printGroupTitles && (!printRules || ruleGroup.Rules.Count == 0))
+            {
+                continue;
+            }
             Console.WriteLine();
             if (printGroupTitles)
             {

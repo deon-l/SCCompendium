@@ -109,7 +109,6 @@ public partial class RuleGroupPrinterTests
                 new(badIndicator, [], [], [], badIndicator),
             ]),
             new PhonologicalRuleGroup(SomeName(3), SomeName(4), [
-                new(badIndicator, [], [], [], badIndicator),
             ]),
             new PhonologicalRuleGroup(SomeName(5), SomeName(6), [
                 new(badIndicator, [], [], [], badIndicator),
@@ -134,7 +133,7 @@ public partial class RuleGroupPrinterTests
     public async Task PrintRules_SampleCollectionPrintGroupsAndRules_PrintsEverything()
     {
         const bool printGroupTitles = true;
-        const bool printRules = false;
+        const bool printRules = true;
         TestConsole console = new(false);
         RuleGroupPrinter printer = new(console);
         List<PhonologicalRuleGroup> groups = new()
