@@ -12,7 +12,13 @@ public readonly struct IpaCharacter : IEquatable<IpaCharacter>
     public string[] Diacritics { get; }
 
     /// <summary>
-    /// Creates an Ipa Character with the specified character and diacritics
+    /// Creates an Ipa Character with the specified character.
+    /// </summary>
+    public IpaCharacter(string character) : this(character, [])
+    { }
+
+    /// <summary>
+    /// Creates an Ipa Character with the specified character and diacritics.
     /// </summary>
     /// <remarks><paramref name="diacritics"/> <i>isn't</i> copied. It should also be sorted (by ordinal)</remarks>
     public IpaCharacter(string character, string[] diacritics)
