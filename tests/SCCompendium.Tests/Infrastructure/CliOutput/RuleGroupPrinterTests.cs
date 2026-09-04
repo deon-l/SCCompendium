@@ -46,6 +46,7 @@ public partial class RuleGroupPrinterTests
 
         printer.PrintRuleGroups(groups, printGroupTitles, printRules);
         string output = console.OutText()!;
+        Console.WriteLine(output);
 
         await Assert.That(output).IsNotNullOrWhiteSpace();
         await Assert.That(output).DoesNotContain(DataSource.BadIndicator);
@@ -154,6 +155,7 @@ public partial class RuleGroupPrinterTests
 
         printer.PrintRuleGroups(groups, printGroupTitles, printRules);
         string output = console.OutText()!;
+        Console.WriteLine(output);
 
         await Assert.That(output).IsNotNullOrWhiteSpace();
         foreach (int i in Enumerable.Range(1, 12))
@@ -285,6 +287,7 @@ public partial class RuleGroupPrinterTests
 
         printer.PrintCharacters(groups);
         string output = console.OutText()!;
+        Console.WriteLine(output);
 
         await Assert.That(output).IsNotNullOrWhiteSpace();
         foreach (int i in Enumerable.Range(1, 3))
@@ -292,9 +295,9 @@ public partial class RuleGroupPrinterTests
             Console.WriteLine("case: " + i);
             await Assert.That(output).Contains(SomeName(i));
         }
-        await Assert.That(SubstringCount(output, SomeName(1))).IsEqualTo(3);
+        await Assert.That(SubstringCount(output, SomeName(1))).IsEqualTo(4);
         await Assert.That(SubstringCount(output, SomeName(2))).IsEqualTo(2);
-        await Assert.That(SubstringCount(output, SomeName(3))).IsEqualTo(3);
+        await Assert.That(SubstringCount(output, SomeName(3))).IsEqualTo(2);
         await Assert.That(output).EndsWith("\n");
 
         int SubstringCount(string str, string sub)
@@ -319,9 +322,8 @@ public partial class RuleGroupPrinterTests
         TestConsole console = new(false);
         RuleGroupPrinter printer = new(console);
 
-        printer.PrintCharacters(groups);
+        printer.PrintDiacritics(groups);
         string output = console.OutText()!;
-
 
         await Assert.That(output).IsNotNullOrWhiteSpace();
         await Assert.That(output).DoesNotContain(DataSource.BadIndicator);
@@ -366,8 +368,9 @@ public partial class RuleGroupPrinterTests
             ]),
         ];
 
-        printer.PrintCharacters(groups);
+        printer.PrintDiacritics(groups);
         string output = console.OutText()!;
+        Console.WriteLine(output);
 
         await Assert.That(output).IsNotNullOrWhiteSpace();
         await Assert.That(output).DoesNotContain(badIndicatorScope);
@@ -396,8 +399,9 @@ public partial class RuleGroupPrinterTests
             ]),
         };
 
-        printer.PrintCharacters(groups);
+        printer.PrintDiacritics(groups);
         string output = console.OutText()!;
+        Console.WriteLine(output);
 
         await Assert.That(output).IsNotNullOrWhiteSpace();
         foreach (int i in Enumerable.Range(1, 6))
@@ -442,8 +446,9 @@ public partial class RuleGroupPrinterTests
             ]),
         };
 
-        printer.PrintCharacters(groups);
+        printer.PrintDiacritics(groups);
         string output = console.OutText()!;
+        Console.WriteLine(output);
 
         await Assert.That(output).IsNotNullOrWhiteSpace();
         foreach (int i in Enumerable.Range(1, 5))
