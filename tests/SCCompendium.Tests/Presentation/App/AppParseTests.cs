@@ -44,17 +44,17 @@ public partial class AppParseTests
 
         command.Parse(ExamplePath, connectionString, default);
 
-        mocks.FileFinder.GetFile(ExamplePath).WasCalled();
-        mocks.DiaParser.Parse(sampleReader).WasCalled();
-        mocks.ConnectionRepo.CreateConnection(connectionString).WasCalled();
-        mocks.DbWriter.Write(Any(), rules).WasCalled();
+        mocks.FileFinder.GetFile(ExamplePath).WasCalled(Times.Exactly(1));
+        mocks.DiaParser.Parse(sampleReader).WasCalled(Times.Exactly(1));
+        mocks.ConnectionRepo.CreateConnection(connectionString).WasCalled(Times.Exactly(1));
+        mocks.DbWriter.Write(Any(), rules).WasCalled(Times.Exactly(1));
         mocks.RuleGroupPrinter.PrintCharacters(Any()).WasNeverCalled();
         mocks.RuleGroupPrinter.PrintDiacritics(Any()).WasNeverCalled();
         mocks.RuleGroupPrinter.PrintRuleGroups(Any(), Any(), Any()).WasNeverCalled();
     }
 
     [Test]
-    public async Task Parse_GivenNoOptions_DefaultsToPrintAllRules()
+    public async Task Parse_GivenNoOptions_PrintsAllRulesAndGroups()
     {
         const string? connectionString = null;
         PrintOptions options = default;
@@ -72,7 +72,8 @@ public partial class AppParseTests
         mocks.DbWriter.Write(Any(), Any()).WasNeverCalled();
         mocks.RuleGroupPrinter.PrintCharacters(Any()).WasNeverCalled();
         mocks.RuleGroupPrinter.PrintDiacritics(Any()).WasNeverCalled();
-        mocks.RuleGroupPrinter.PrintRuleGroups(rules, false, true).WasCalled();
+        mocks.RuleGroupPrinter.PrintRuleGroups(rules, true, true).WasCalled();
+        mocks.RuleGroupPrinter.PrintRuleGroups(rules, Any(), Any()).WasCalled(Times.Exactly(1));
     }
 
     [Test]
@@ -93,15 +94,15 @@ public partial class AppParseTests
         mocks.ConnectionRepo.CreateConnection(Any()).WasNeverCalled();
         mocks.DbWriter.Write(Any(), Any()).WasNeverCalled();
         if (options.PrintCharacters)
-            mocks.RuleGroupPrinter.PrintCharacters(rules).WasCalled();
+            mocks.RuleGroupPrinter.PrintCharacters(rules).WasCalled(Times.Exactly(1));
         else
             mocks.RuleGroupPrinter.PrintCharacters(Any()).WasNeverCalled();
         if (options.PrintDiacritics)
-            mocks.RuleGroupPrinter.PrintDiacritics(rules).WasCalled();
+            mocks.RuleGroupPrinter.PrintDiacritics(rules).WasCalled(Times.Exactly(1));
         else
             mocks.RuleGroupPrinter.PrintDiacritics(Any()).WasNeverCalled();
         if (options.PrintGroups || options.PrintRules)
-            mocks.RuleGroupPrinter.PrintRuleGroups(rules, options.PrintGroups, options.PrintRules).WasCalled();
+            mocks.RuleGroupPrinter.PrintRuleGroups(rules, options.PrintGroups, options.PrintRules).WasCalled(Times.Exactly(1));
         else
             mocks.RuleGroupPrinter.PrintRuleGroups(rules, Any(), Any()).WasNeverCalled();
     }
@@ -119,11 +120,11 @@ public partial class AppParseTests
 
         command.Parse(ExamplePath, connectionString, options);
 
-        mocks.FileFinder.GetFile(ExamplePath).WasCalled();
-        mocks.DiaParser.Parse(sampleReader).WasCalled();
-        mocks.ConnectionRepo.CreateConnection(connectionString).WasCalled();
-        mocks.DbWriter.Write(Any(), rules).WasCalled();
-        mocks.RuleGroupPrinter.PrintCharacters(rules).WasCalled();
+        mocks.FileFinder.GetFile(ExamplePath).WasCalled(Times.Exactly(1));
+        mocks.DiaParser.Parse(sampleReader).WasCalled(Times.Exactly(1));
+        mocks.ConnectionRepo.CreateConnection(connectionString).WasCalled(Times.Exactly(1));
+        mocks.DbWriter.Write(Any(), rules).WasCalled(Times.Exactly(1));
+        mocks.RuleGroupPrinter.PrintCharacters(rules).WasCalled(Times.Exactly(1));
         mocks.RuleGroupPrinter.PrintDiacritics(Any()).WasNeverCalled();
         mocks.RuleGroupPrinter.PrintRuleGroups(Any(), Any(), Any()).WasNeverCalled();
     }
