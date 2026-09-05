@@ -1,6 +1,6 @@
 using SCCompendium.Domain.ValueObjects.Parsed;
 
-namespace SCCompendium.Application.CliOutput;
+namespace SCCompendium.Application.CliIO;
 
 /// <summary>
 /// Prints out the data stored in a list of <see cref="PhonologicalRuleGroup"/>

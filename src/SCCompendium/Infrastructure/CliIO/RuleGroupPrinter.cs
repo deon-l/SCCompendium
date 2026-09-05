@@ -1,8 +1,8 @@
 using CommandDotNet;
-using SCCompendium.Application.CliOutput;
+using SCCompendium.Application.CliIO;
 using SCCompendium.Domain.ValueObjects.Parsed;
 
-namespace SCCompendium.Infrastructure.CliOutput;
+namespace SCCompendium.Infrastructure.CliIO;
 
 public class RuleGroupPrinter(IConsoleIO console) : IRuleGroupPrinter
 {
