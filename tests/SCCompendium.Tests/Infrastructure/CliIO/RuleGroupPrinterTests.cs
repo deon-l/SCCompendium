@@ -2,9 +2,9 @@
 using System.Text;
 using CommandDotNet.TestTools;
 using SCCompendium.Domain.ValueObjects.Parsed;
-using SCCompendium.Infrastructure.CliOutput;
+using SCCompendium.Infrastructure.CliIO;
 
-namespace SCCompendium.Tests.Infrastructure.CliOutput;
+namespace SCCompendium.Tests.Infrastructure.CliIO;
 
 public partial class RuleGroupPrinterTests
 {

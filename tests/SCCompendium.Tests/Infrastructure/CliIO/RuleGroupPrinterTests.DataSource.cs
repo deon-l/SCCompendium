@@ -1,6 +1,6 @@
 using SCCompendium.Domain.ValueObjects.Parsed;
 
-namespace SCCompendium.Tests.Infrastructure.CliOutput;
+namespace SCCompendium.Tests.Infrastructure.CliIO;
 
 public partial class RuleGroupPrinterTests
 {
