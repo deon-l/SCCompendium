@@ -8,12 +8,9 @@ using SCCompendium.Tests.Domain.ValueObjects.DbValues;
 
 namespace SCCompendium.Presentation.App;
 
-[Subcommand]
-[Command(Description = "Search and filter data stored in the database")]
 public class AppSearch(IDbConnectionRepository connectionRepo, IDbReader dbReader, ICharacterSearchParser searchParser, IRuleGroupPrinter ruleGroupPrinter)
 {
-    [DefaultCommand]
-    public void Character(
+    public void Search(
         [Option('f', "filter")] string searchFilter,
         PrintOptions printOptions,
         [Operand] string connectionString)
