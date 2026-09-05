@@ -1,4 +1,3 @@
-using CommandDotNet;
 using SCCompendium.Application.CliIO;
 using SCCompendium.Application.DbAccess;
 using SCCompendium.Application.Parser;
@@ -10,7 +9,7 @@ namespace SCCompendium.Presentation.App;
 /// <summary>
 /// Methods for execute the <c>parse</c> command.
 /// </summary>
-public class AppParse(IDbConnectionRepository connectionRepo, IDbWriter dbWriter, IDiachronicaParser diaParser, IRuleGroupPrinter ruleGroupPrinter)
+public class AppParse(IDbConnectionRepository connectionRepo, IDbWriter dbWriter, IDiachronicaParser diaParser, IRuleGroupPrinter ruleGroupPrinter, IFileFinder fileFinder)
 {
     public void Parse(
         string fileName,
@@ -23,9 +22,7 @@ public class AppParse(IDbConnectionRepository connectionRepo, IDbWriter dbWriter
             printOptions.PrintCharacters = true;
         }
 
-        StreamReader file = new(File.OpenRead(fileName));
-
-        List<PhonologicalRuleGroup> rules = diaParser.Parse(file);
+        List<PhonologicalRuleGroup> rules = diaParser.Parse(fileFinder.GetFile(fileName));
 
         if (addToDb)
         {
