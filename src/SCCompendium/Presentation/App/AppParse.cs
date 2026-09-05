@@ -19,7 +19,8 @@ public class AppParse(IDbConnectionRepository connectionRepo, IDbWriter dbWriter
         bool addToDb = connectionString is not null;
         if (!addToDb && printOptions.NoOptionsSelected())
         {
-            printOptions.PrintCharacters = true;
+            printOptions.PrintGroups = true;
+            printOptions.PrintRules = true;
         }
 
         List<PhonologicalRuleGroup> rules = diaParser.Parse(fileFinder.GetFile(fileName));
@@ -30,7 +31,7 @@ public class AppParse(IDbConnectionRepository connectionRepo, IDbWriter dbWriter
             dbWriter.Write(connectionRepo, rules);
         }
 
-        if (printOptions.PrintGroups || printOptions.PrintGroups)
+        if (printOptions.PrintGroups || printOptions.PrintRules)
         {
             ruleGroupPrinter.PrintRuleGroups(rules, printOptions.PrintGroups, printOptions.PrintRules);
         }
