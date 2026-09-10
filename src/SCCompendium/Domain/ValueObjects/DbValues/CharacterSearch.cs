@@ -24,6 +24,6 @@ public readonly record struct CharacterSearch()
     public override string ToString()
     {
         return
-            $"CharacterSearch {{ Character = {Character}, Diacritics = {String.Join(',',  Diacritics)}, Environment = {Environment} }}";
+            $"CharacterSearch {{ Character = {Character}, Diacritics = [{String.Join(',',  Diacritics)}], Environment = {Environment} }}";
     }
 }

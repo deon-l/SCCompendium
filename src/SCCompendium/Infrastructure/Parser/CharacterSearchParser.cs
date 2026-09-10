@@ -106,10 +106,15 @@ public class CharacterSearchParser(IConsoleIO console) : ICharacterSearchParser
         for (currentI = currentI; currentI < input.Length; currentI++)
         {
             char c = input[currentI];
+            if (Char.IsWhiteSpace(c))
+            {
+                continue;
+            }
+
             if (c == '[')
             {
-                string section = GetBracketSection(input);
-                currentI += section.Length;
+                string section = GetBracketSection(input[currentI..]);
+                currentI += section.Length - 1;
                 if (!section.EndsWith(']'))
                 {
                     console.Error.WriteLine($"Warning: Unclosed bracket '[]' group in search filter: '{input}'");

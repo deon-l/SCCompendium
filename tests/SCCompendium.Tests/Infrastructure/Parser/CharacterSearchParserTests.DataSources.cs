@@ -24,7 +24,7 @@ public partial class CharacterSearchParserTests
         public IEnumerable<(string input, CharacterSearch search)> SampleDiacriticSearchCases()
         {
             yield return ("[+prop]", new CharacterSearch { Diacritics = ["[+prop]"] });
-            yield return ("[+prop 1][+prop 2]", new CharacterSearch { Diacritics = ["[+prop 1][+prop 2]"] });
+            yield return ("[+prop 1][+prop 2]", new CharacterSearch { Diacritics = ["[+prop 1]", "[+prop 2]"] });
             yield return ("ʰ", new CharacterSearch { Diacritics = ["ʰ"] });
             yield return ("̞", new CharacterSearch { Diacritics = ["̞"] });
             yield return ("̞̃", new CharacterSearch { Diacritics = ["̃", "̞"] });
@@ -40,7 +40,7 @@ public partial class CharacterSearchParserTests
             yield return ("[-output]", new CharacterSearch { Environment = CharacterEnvironment.Input | CharacterEnvironment.Context});
             yield return ("[-context]", new CharacterSearch { Environment = CharacterEnvironment.Input | CharacterEnvironment.Output});
 
-            yield return ("[+input][+output]", new CharacterSearch { Environment = CharacterEnvironment.Input | CharacterEnvironment.Context});
+            yield return ("[+input][+context]", new CharacterSearch { Environment = CharacterEnvironment.Input | CharacterEnvironment.Context});
             yield return ("[-input][-output]",  new CharacterSearch { Environment = CharacterEnvironment.Context});
         }
     }
