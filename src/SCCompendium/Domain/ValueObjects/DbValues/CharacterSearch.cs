@@ -16,8 +16,14 @@ public readonly record struct CharacterSearch()
            && Diacritics.Length == other.Diacritics.Length
            && Diacritics.All(other.Diacritics.Contains);
 
-    public readonly override int GetHashCode()
+    public override int GetHashCode()
     {
         return HashCode.Combine(Character, Diacritics.Length, (int)Environment);
+    }
+
+    public override string ToString()
+    {
+        return
+            $"CharacterSearch {{ Character = {Character}, Diacritics = {String.Join(',',  Diacritics)}, Environment = {Environment} }}";
     }
 }
