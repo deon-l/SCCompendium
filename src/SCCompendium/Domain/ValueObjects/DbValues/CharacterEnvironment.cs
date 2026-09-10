@@ -6,6 +6,7 @@ namespace SCCompendium.Tests.Domain.ValueObjects.DbValues;
 [Flags]
 public enum CharacterEnvironment
 {
+    None = 0,
     Input   = 0b_001,
     Output  = 0b_010,
     Context = 0b_100,

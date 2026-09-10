@@ -2,6 +2,7 @@ namespace SCCompendium.Tests.Domain.ValueObjects.DbValues;
 
 public readonly record struct CharacterSearch()
 {
+    public static readonly CharacterSearch NonFilteringSearch = new();
     /// <summary>The character to search for.</summary>
     public string Character { get; init; } = String.Empty;
     /// <summary>The diacritics any characters found must have.</summary>
