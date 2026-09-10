@@ -1,29 +1,41 @@
 using CommandDotNet;
+using SCCompendium.Application.CliIO;
 using SCCompendium.Application.DbAccess;
 using SCCompendium.Application.Parser;
 using SCCompendium.Domain.ValueObjects.Parsed;
+using SCCompendium.Presentation.App.ArgumentModels;
 using SCCompendium.Tests.Domain.ValueObjects.DbValues;
 
 namespace SCCompendium.Presentation.App;
 
-[Subcommand]
-[Command(Description = "Search and filter data stored in the database")]
-public class AppSearch(IDbConnectionRepository connectionRepo, IDbReader dbReader)
+public class AppSearch(IDbConnectionRepository connectionRepo, IDbReader dbReader, ICharacterSearchParser searchParser, IRuleGroupPrinter ruleGroupPrinter)
 {
-    [DefaultCommand]
-    public void Character(
-        string character,
-        [Option] string connectionString)
+    public void Search(
+        [Option('f', "filter")] string searchFilter,
+        PrintOptions printOptions,
+        [Operand] string connectionString)
     {
-        // TODO: proper method to create search from string
-        CharacterSearch search = new() { Character = character };
+        if (printOptions.NoOptionsSelected())
+        {
+            printOptions.PrintGroups = true;
+            printOptions.PrintRules = true;
+        }
+        CharacterSearch search = searchParser.GetCharacterSearch(searchFilter);
         connectionRepo.CreateConnection(connectionString);
 
         List<PhonologicalRuleGroup> groups = dbReader.FindRules(connectionRepo, search);
-        // TODO: Add some other Application interface for this.
-        foreach (PhonologicalRuleGroup group in groups)
+
+        if (printOptions.PrintGroups || printOptions.PrintRules)
         {
-            Console.WriteLine(group);
+            ruleGroupPrinter.PrintRuleGroups(groups, printOptions.PrintGroups, printOptions.PrintRules);
+        }
+        if (printOptions.PrintCharacters)
+        {
+            ruleGroupPrinter.PrintCharacters(groups);
+        }
+        if (printOptions.PrintDiacritics)
+        {
+            ruleGroupPrinter.PrintDiacritics(groups);
         }
     }
 }

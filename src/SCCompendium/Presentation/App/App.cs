@@ -7,11 +7,12 @@ namespace SCCompendium.Presentation.App;
 /// Base command.
 /// </remarks>
 [Command(Description = "Utility to parse Phonological data, upload to MySQL databases, and read from them.")]
-public class App(AppParse parseCommand)
+public class App(AppParse parseCommand, AppSearch searchCommand)
 {
     public static IEnumerable<Type> GetCommandImplementationDependencies()
     {
         yield return typeof(AppParse);
+        yield return typeof(AppSearch);
     }
 
     [Command(Description = "Parses the specified file for latex phonological rules and redirects it elsewhere.")]
@@ -23,6 +24,12 @@ public class App(AppParse parseCommand)
        parseCommand.Parse(fileName, connectionString, printOptions);
     }
 
-    [Subcommand(RenameAs = "search")]
-    public AppSearch Search { get; set; } = null!;
+    [Command(Description = "Search and filter data stored in the database")]
+    public void Search(
+        [Option('f', "filter")] string searchFilter,
+        PrintOptions printOptions,
+        [Operand] string connectionString)
+    {
+        searchCommand.Search(searchFilter, printOptions, connectionString);
+    }
 }
