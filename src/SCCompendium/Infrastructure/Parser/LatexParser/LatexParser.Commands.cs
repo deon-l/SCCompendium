@@ -29,6 +29,8 @@ public partial class LatexParser
     private static readonly CommandData _nullCommandData = new(
         0, _nullCommand, null, false);
 
+    private static readonly CommandData _defaultParse1ArgCommandData = new(1, DefaultParse);
+
     private static Action<Context> DiacriticApplierMethod(string diacritic) => (context) =>
     {
         int baseDepth = context.GroupDepth;
@@ -152,12 +154,14 @@ public partial class LatexParser
     }
 
     private static readonly CommandData _raiseboxCommandData = new(1, CommandRaisebox);
+
     private static void CommandRaisebox(Context context)
     {
         double ptSize = GetMeasurement(context);
         if (Math.Abs(ptSize) > 4)
         {
-            Console.Error.WriteLine("Latex Command 'raisebox' currently does nothing, but is invoked with a significant vertical displacement.");
+            Console.Error.WriteLine(
+                "Latex Command 'raisebox' currently does nothing, but is invoked with a significant vertical displacement.");
         }
     }
 
@@ -193,12 +197,14 @@ public partial class LatexParser
         new Typeset()
             .AddReplacements("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
                 "𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣𝟶𝟷𝟸𝟹𝟺𝟻𝟼𝟽𝟾𝟿")
-            .AddReplacements(@"/\:;,.", "\u2009/\u2009\u2009\\\u2009\u2009:\u2009\u2009;\u2009\u2009,\u2009\u2009.\u2009"),
+            .AddReplacements(@"/\:;,.",
+                "\u2009/\u2009\u2009\\\u2009\u2009:\u2009\u2009;\u2009\u2009,\u2009\u2009.\u2009"),
         false);
 
-    private static readonly CommandData _textttComandData = new(1, DefaultParse, _ttCommandData.Typeset);
+    private static readonly CommandData _textttComandData =
+        _defaultParse1ArgCommandData with { Typeset = _ttCommandData.Typeset };
 
-    private static readonly CommandData _scCommandData = new(0,
+private static readonly CommandData _scCommandData = new(0,
         context => _ = Char.IsWhiteSpace(context.PeekSource()) ? context.PopSource() : '\0',
         new Typeset()
             .AddReplacements("ABCDEFGHIJKLMNOPQRSTUVWYZ", "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘꞯʀꜱᴛᴜᴠᴡʏᴢ"),
@@ -355,10 +361,13 @@ public partial class LatexParser
 
     private static readonly CommandData _sTipaCommandData = new(1, DiacriticApplierMethod("̩"));
 
-    private static readonly CommandData _textsuperscriptCommandData = new(1, DefaultParse, new Typeset()
-        .AddReplacements("ABCDEFGHIJKLMNOPQRTUVW", "ᴬᴮꟲᴰᴱꟳᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾꟴᴿᵀᵁⱽᵂ")
-        .AddReplacements("aɐɑᴂɒbβcɕdðeəɛɜfghɦɥiɨɪjɟʝklɭɫʟmɱnɲɳɴoœɔprɹɻʁsʂʃtθuʉʊvʋʌwɯɰxyγɣzʐʑʒʕ",
-            "ᵃᵄᵅᵆᶛᵇᵝᶜᶝᵈᶞᵉᵊᵋᵌᶠᵍʰʱᶣⁱᶤᶦʲᶡᶨᵏˡᶩꭞᶫᵐᶬⁿᶮᶯᶰᵒꟹᵓᵖʳʴʵʶˢᶳᶴᵗᶿᵘᶶᶷᵛᶹᶺʷᵚᶭˣʸᵞˠᶻᶼᶽᶾˤ"));
+    private static readonly CommandData _textsuperscriptCommandData = _defaultParse1ArgCommandData with
+    {
+        Typeset = new Typeset()
+            .AddReplacements("ABCDEFGHIJKLMNOPQRTUVW", "ᴬᴮꟲᴰᴱꟳᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾꟴᴿᵀᵁⱽᵂ")
+            .AddReplacements("aɐɑᴂɒbβcɕdðeəɛɜfghɦɥiɨɪjɟʝklɭɫʟmɱnɲɳɴoœɔprɹɻʁsʂʃtθuʉʊvʋʌwɯɰxyγɣzʐʑʒʕ",
+                "ᵃᵄᵅᵆᶛᵇᵝᶜᶝᵈᶞᵉᵊᵋᵌᶠᵍʰʱᶣⁱᶤᶦʲᶡᶨᵏˡᶩꭞᶫᵐᶬⁿᶮᶯᶰᵒꟹᵓᵖʳʴʵʶˢᶳᶴᵗᶿᵘᶶᶷᵛᶹᶺʷᵚᶭˣʸᵞˠᶻᶼᶽᶾˤ")
+    };
 
     private static readonly CommandData _superTipaCommandData = _textsuperscriptCommandData;
 
@@ -415,14 +424,23 @@ public partial class LatexParser
         } while (context.GroupDepth >= baseDepth);
     }
 
-    private static readonly CommandData _symSemicolonTipaCommandData = new(1, DefaultParse, new Typeset()
-        .AddReplacements("ABCDEFGHIJKLMNOPQRSTUVWYZ", "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘꞯʀꜱᴛᴜᴠᴡʏᴢ"));
+    private static readonly CommandData _symSemicolonTipaCommandData = _defaultParse1ArgCommandData with
+    {
+        Typeset = new Typeset()
+            .AddReplacements("ABCDEFGHIJKLMNOPQRSTUVWYZ", "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘꞯʀꜱᴛᴜᴠᴡʏᴢ")
+    };
 
-    private static readonly CommandData _symColonTipaCommandData = new(1, DefaultParse, new Typeset()
-        .AddReplacements("tdsznlr", "ʈɖʂʐɳɭɽ"));
+    private static readonly CommandData _symColonTipaCommandData = _defaultParse1ArgCommandData with
+    {
+        Typeset = new Typeset()
+            .AddReplacements("tdsznlr", "ʈɖʂʐɳɭɽ")
+    };
 
-    private static readonly CommandData _symExclamationPointTipaCommandData = new(1, DefaultParse, new Typeset()
-        .AddReplacements("bdɖjgGo", "ɓɗᶑʄɠʛʘ"));
+    private static readonly CommandData _symExclamationPointTipaCommandData = _defaultParse1ArgCommandData with
+    {
+        Typeset = new Typeset()
+            .AddReplacements("bdɖjgGo", "ɓɗᶑʄɠʛʘ")
+    };
 
     private static readonly CommandData _symTildeCommandData = new(
         1, DiacriticApplierMethod("̃"));
