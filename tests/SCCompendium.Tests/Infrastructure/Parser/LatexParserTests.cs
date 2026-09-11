@@ -136,7 +136,7 @@ public class LatexParserTests
 
         string result = parser.ParseLatexSegment(input);
 
-        await Assert.That(result).EndsWith("aaa");
+        await Assert.That(result).IsEqualTo("https://asdf.comaaa");
     }
 
     [Test]

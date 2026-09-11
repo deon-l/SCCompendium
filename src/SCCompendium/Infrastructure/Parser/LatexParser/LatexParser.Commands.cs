@@ -29,6 +29,8 @@ public partial class LatexParser
     private static readonly CommandData _nullCommandData = new(
         0, _nullCommand, null, false);
 
+    private static readonly CommandData _null1ArgCommandData = new(1, c => ParseParagraphMode(c));
+
     private static Action<Context> DiacriticApplierMethod(string diacritic) => (context) =>
     {
         int baseDepth = context.GroupDepth;
