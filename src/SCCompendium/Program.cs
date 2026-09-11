@@ -32,10 +32,12 @@ collection.AddSingleton<IDbWriter, DbWriter>();
 collection.AddSingleton<IDbReader, DbReader>();
 collection.AddSingleton<IConsoleIO, SystemConsole>();
 collection.AddSingleton<IFileFinder, FileFinder>();
+collection.AddTransient<IRuleGroupPrinter, RuleGroupPrinter>();
 collection.AddTransient<IDbConnectionRepository, DbConnectionRepository>();
 collection.AddTransient<IDiachronicaParser, DiachronicaParser>();
 collection.AddTransient<ILatexParser, LatexParser>();
 collection.AddTransient<IPhonologicalRuleParser, PhonologicalRuleParser>();
+collection.AddTransient<ICharacterSearchParser, CharacterSearchParser>();
 
 runner.UseMicrosoftDependencyInjection(collection.BuildServiceProvider());
 

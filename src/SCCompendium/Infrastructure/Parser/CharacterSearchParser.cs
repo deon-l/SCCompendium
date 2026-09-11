@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using SCCompendium.Application.Parser;
 using SCCompendium.Tests.Domain.ValueObjects.DbValues;
 
@@ -57,7 +58,7 @@ public class CharacterSearchParser(IConsoleIO console) : ICharacterSearchParser
             return CharacterSearch.NonFilteringSearch;
         }
 
-        input = input.TrimStart();
+        input = input.TrimStart().Normalize(NormalizationForm.FormD);
 
         string ipaCharacter = "";
         int currentI;

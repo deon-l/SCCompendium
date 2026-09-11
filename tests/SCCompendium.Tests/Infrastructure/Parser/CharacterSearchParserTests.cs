@@ -108,4 +108,17 @@ public partial class CharacterSearchParserTests
 
         await Assert.That(result).IsEqualTo(expectedSearch);
     }
+
+    [Test]
+    public async Task GetCharacterSearch_MergedCharacterDiacritic_SeparatedInResult()
+    {
+        const string input = "á";
+        CharacterSearch expectedSearch = new CharacterSearch { Character = "a", Diacritics = ["́"] };
+        TestConsole console = new();
+        CharacterSearchParser parser = new(console);
+
+        CharacterSearch result = parser.GetCharacterSearch(input);
+
+        await Assert.That(result).IsEqualTo(expectedSearch);
+    }
 }
